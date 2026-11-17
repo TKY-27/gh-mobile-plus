@@ -1,0 +1,55 @@
+{
+  "ORIGINAL_OID": "f572d396fae9206628714fb2ce00f72e94f2258f",
+  "COMMITTED_OID": "ca9c424550ed5007a77241c067d1e553bb8fdb57",
+  "fileEdit": {
+    "owner": "octo-org",
+    "repo": "hello-mobile",
+    "branch": "main",
+    "path": "src/welcome.ts",
+    "content": "export const greeting = \"こんにちは 🌏\";\n",
+    "expectedHeadOid": "f572d396fae9206628714fb2ce00f72e94f2258f",
+    "message": {
+      "headline": "Translate the welcome message",
+      "body": "Use the Japanese greeting."
+    }
+  },
+  "newBranch": {
+    "kind": "newBranch",
+    "branchName": "ghm/mona/20261117-welcome",
+    "pullRequest": {
+      "title": "Translate welcome",
+      "body": "Changes the Japanese welcome message."
+    }
+  },
+  "forkRepository": {
+    "id": "R_kgDOGhIF8A",
+    "name": "hello-mobile",
+    "owner": { "login": "mona" },
+    "defaultBranchRef": { "name": "main" }
+  },
+  "upstreamRepository": { "id": "R_kgDOGhIF8Q", "forks": { "nodes": [] } },
+  "committedFile": {
+    "createCommitOnBranch": {
+      "commit": { "oid": "ca9c424550ed5007a77241c067d1e553bb8fdb57" }
+    }
+  },
+  "createdBranch": { "createRef": { "ref": { "id": "REF_kwDOGhIF8q9yZWZzL2hlYWRzL2dobQ" } } },
+  "openedPullRequest": { "createPullRequest": { "pullRequest": { "number": 42 } } },
+  "latestFile": {
+    "repository": {
+      "ref": {
+        "target": {
+          "__typename": "Commit",
+          "oid": "ca9c424550ed5007a77241c067d1e553bb8fdb57",
+          "file": {
+            "object": {
+              "__typename": "Blob",
+              "isBinary": false,
+              "text": "export const greeting = \"Hello!\";\n"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,227 @@
+.scroller {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.scroller[data-wrap] {
+  overflow-x: visible;
+}
+
+.diff {
+  --diff-add-bg: light-dark(#eefaf1, #10241a);
+  --diff-add-gutter: light-dark(#d9f2e0, #173825);
+  --diff-del-bg: light-dark(#fff0ef, #2a1515);
+  --diff-del-gutter: light-dark(#fbdcd9, #44201f);
+  /* Token colors need sufficient contrast. */
+  --diff-selected-bg: light-dark(#f2f5ff, #1a2234);
+  --diff-number-width: calc(var(--digits) * 1ch + var(--space-2));
+
+  position: relative;
+  font-family: var(--font-mono);
+  font-size: var(--text-footnote);
+  /* Dense rows still need accessible targets. */
+  line-height: max(1.55em, 24px);
+  tab-size: 4;
+}
+
+.diff[data-digits="1"],
+.diff[data-digits="2"] {
+  --digits: 2;
+}
+
+.diff[data-digits="3"] {
+  --digits: 3;
+}
+
+.diff[data-digits="4"] {
+  --digits: 4;
+}
+
+.diff[data-digits="5"],
+.diff[data-digits="6"] {
+  --digits: 5;
+}
+
+.row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.row[data-raised] {
+  z-index: 2;
+}
+
+.line {
+  position: relative;
+  display: flex;
+  min-width: max-content;
+  background: var(--color-bg);
+}
+
+.diff[data-wrap] .line {
+  min-width: 0;
+}
+
+.line[data-kind="add"] {
+  background: var(--diff-add-bg);
+}
+
+.line[data-kind="del"] {
+  background: var(--diff-del-bg);
+}
+
+.line[data-selected] {
+  background: var(--diff-selected-bg);
+}
+
+.gutter {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-left: 3px solid transparent;
+  background: var(--color-bg);
+  color: var(--color-text-tertiary);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+span.gutter {
+  cursor: default;
+}
+
+.line[data-kind="add"] .gutter {
+  background: var(--diff-add-gutter);
+  color: var(--color-text-secondary);
+}
+
+.line[data-kind="del"] .gutter {
+  background: var(--diff-del-gutter);
+  color: var(--color-text-secondary);
+}
+
+.line[data-selected] .gutter {
+  border-left-color: var(--accent-fill);
+  color: var(--color-text);
+  font-weight: var(--weight-semibold);
+}
+
+.gutter:focus-visible {
+  outline-offset: -2px;
+}
+
+.number {
+  width: var(--diff-number-width);
+  padding-inline-end: var(--space-1);
+}
+
+.marker {
+  flex: none;
+  width: 2ch;
+  color: var(--color-text-secondary);
+  text-align: center;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.line[data-kind="add"] .marker {
+  color: var(--status-success);
+}
+
+.line[data-kind="del"] .marker {
+  color: var(--status-failure);
+}
+
+.text {
+  flex: 1;
+  padding-inline-end: var(--space-4);
+  font: inherit;
+  white-space: pre;
+}
+
+.diff[data-wrap] .text {
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.hunk {
+  padding: var(--space-1) var(--space-3);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  white-space: pre;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  outline: none;
+}
+
+.diff[data-wrap] .hunk {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.hunk:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+/* Small knobs need full-size touch targets. */
+.handle {
+  position: absolute;
+  left: -8px;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  touch-action: none;
+  cursor: ns-resize;
+}
+
+.handle::after {
+  content: "";
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-bg);
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+}
+
+.handle[data-end="start"] {
+  top: -22px;
+}
+
+.handle[data-end="end"] {
+  bottom: -22px;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Native selection conflicts with range gestures. */
+@media (pointer: coarse) {
+  .diff {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+}

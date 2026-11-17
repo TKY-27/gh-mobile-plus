@@ -1,0 +1,6 @@
+.skeleton {
+  display: grid;
+  gap: var(--space-3);
+  padding: calc(env(safe-area-inset-top) + var(--nav-bar-height) + var(--space-2)) var(--space-4)
+    var(--space-4);
+}

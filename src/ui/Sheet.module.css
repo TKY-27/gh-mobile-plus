@@ -1,0 +1,59 @@
+.overlay {
+  z-index: 100;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--color-scrim);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+}
+
+.sheet {
+  width: min(100%, 40rem);
+  max-height: calc(100dvh - env(safe-area-inset-top) - var(--space-10));
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-sheet);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  max-height: inherit;
+  outline: none;
+}
+
+.grabber {
+  align-self: center;
+  width: 36px;
+  height: 5px;
+  margin-top: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-separator);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-headline);
+  font-weight: var(--weight-semibold);
+}
+
+.body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: calc(env(safe-area-inset-bottom) + var(--space-4));
+}

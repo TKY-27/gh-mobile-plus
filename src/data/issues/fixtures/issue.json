@@ -1,0 +1,265 @@
+{
+  "data": {
+    "repository": {
+      "name": "hello-mobile",
+      "owner": {
+        "login": "octo-org"
+      },
+      "isArchived": false,
+      "viewerPermission": "WRITE",
+      "mergeCommitAllowed": true,
+      "squashMergeAllowed": true,
+      "rebaseMergeAllowed": false,
+      "viewerDefaultMergeMethod": "SQUASH",
+      "issueOrPullRequest": {
+        "__typename": "Issue",
+        "id": "I_kwDOJx1cRc6Ab12C",
+        "author": {
+          "login": "hubot",
+          "avatarUrl": "https://avatars.githubusercontent.com/u/480938?v=4"
+        },
+        "bodyHTML": "<p>The app crashes when the notification list is opened without a network connection.</p>",
+        "createdAt": "2026-11-02T08:15:00Z",
+        "viewerCanReact": true,
+        "reactionGroups": [
+          {
+            "content": "THUMBS_UP",
+            "viewerHasReacted": true,
+            "reactors": {
+              "totalCount": 3
+            }
+          },
+          {
+            "content": "THUMBS_DOWN",
+            "viewerHasReacted": false,
+            "reactors": {
+              "totalCount": 0
+            }
+          },
+          {
+            "content": "LAUGH",
+            "viewerHasReacted": false,
+            "reactors": {
+              "totalCount": 0
+            }
+          },
+          {
+            "content": "HOORAY",
+            "viewerHasReacted": false,
+            "reactors": {
+              "totalCount": 0
+            }
+          },
+          {
+            "content": "CONFUSED",
+            "viewerHasReacted": false,
+            "reactors": {
+              "totalCount": 0
+            }
+          },
+          {
+            "content": "HEART",
+            "viewerHasReacted": false,
+            "reactors": {
+              "totalCount": 1
+            }
+          },
+          {
+            "content": "ROCKET",
+            "viewerHasReacted": false,
+            "reactors": {
+              "totalCount": 0
+            }
+          },
+          {
+            "content": "EYES",
+            "viewerHasReacted": false,
+            "reactors": {
+              "totalCount": 0
+            }
+          }
+        ],
+        "viewerCanLabel": true,
+        "labels": {
+          "nodes": [
+            {
+              "name": "bug",
+              "color": "d73a4a",
+              "description": "Something isn't working"
+            },
+            {
+              "name": "offline",
+              "color": "0e8a16",
+              "description": null
+            }
+          ]
+        },
+        "assignees": {
+          "nodes": [
+            {
+              "login": "mona",
+              "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+            }
+          ]
+        },
+        "locked": false,
+        "viewerSubscription": "SUBSCRIBED",
+        "viewerCanClose": true,
+        "viewerCanReopen": true,
+        "url": "https://github.com/octo-org/hello-mobile/issues/42",
+        "number": 42,
+        "title": "Crash when opening notifications offline",
+        "issueState": "OPEN",
+        "stateReason": "REOPENED",
+        "milestone": {
+          "id": "MI_kwDOJx1cRc4AqZ1b",
+          "title": "v1.0"
+        },
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": true,
+            "endCursor": "Y3Vyc29yOnYyOpPPAAABk2F0bGluZQ=="
+          },
+          "nodes": [
+            {
+              "__typename": "LabeledEvent",
+              "id": "LE_lADOJx1cRc6Ab12CzwAAAAJk1aB1",
+              "actor": {
+                "login": "mona",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+              },
+              "createdAt": "2026-11-02T08:20:00Z",
+              "label": {
+                "name": "bug",
+                "color": "d73a4a",
+                "description": "Something isn't working"
+              }
+            },
+            {
+              "__typename": "UnlabeledEvent",
+              "id": "ULE_lADOJx1cRc6Ab12CzwAAAAJk1aB2",
+              "actor": {
+                "login": "mona",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+              },
+              "createdAt": "2026-11-02T08:21:00Z",
+              "label": {
+                "name": "triage",
+                "color": "fbca04",
+                "description": "Needs triage"
+              }
+            },
+            {
+              "__typename": "AssignedEvent",
+              "id": "AE_lADOJx1cRc6Ab12CzwAAAAJk1aB3",
+              "actor": {
+                "login": "mona",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+              },
+              "createdAt": "2026-11-02T08:22:00Z",
+              "assignee": {
+                "login": "mona",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+              }
+            },
+            {
+              "__typename": "UnassignedEvent",
+              "id": "UAE_lADOJx1cRc6Ab12CzwAAAAJk1aB4",
+              "actor": {
+                "login": "mona",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+              },
+              "createdAt": "2026-11-02T08:23:00Z",
+              "assignee": {
+                "login": "hubot",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/480938?v=4"
+              }
+            },
+            {
+              "__typename": "IssueComment",
+              "id": "IC_kwDOJx1cRc6Q1w2E",
+              "author": {
+                "login": "octocat",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/583231?v=4"
+              },
+              "bodyHTML": "<p>Reproduced on iOS 19 with airplane mode on.</p>",
+              "createdAt": "2026-11-03T10:00:00Z",
+              "viewerCanReact": true,
+              "reactionGroups": [
+                {
+                  "content": "THUMBS_UP",
+                  "viewerHasReacted": false,
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                },
+                {
+                  "content": "EYES",
+                  "viewerHasReacted": false,
+                  "reactors": {
+                    "totalCount": 0
+                  }
+                }
+              ]
+            },
+            {
+              "__typename": "CrossReferencedEvent",
+              "id": "CRE_kwDOJx1cRc6Ab12CzwAAAAJk1aB5",
+              "actor": {
+                "login": "mona",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+              },
+              "createdAt": "2026-11-04T09:30:00Z",
+              "source": {
+                "__typename": "PullRequest",
+                "number": 43,
+                "title": "Cache notifications for offline mode",
+                "repository": {
+                  "name": "hello-mobile",
+                  "owner": {
+                    "login": "octo-org"
+                  }
+                }
+              }
+            },
+            {
+              "__typename": "ClosedEvent",
+              "id": "CE_lADOJx1cRc6Ab12CzwAAAAJk1aB6",
+              "actor": {
+                "login": "hubot",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/480938?v=4"
+              },
+              "createdAt": "2026-11-05T12:00:00Z",
+              "stateReason": "NOT_PLANNED"
+            },
+            {
+              "__typename": "ReopenedEvent",
+              "id": "REE_lADOJx1cRc6Ab12CzwAAAAJk1aB7",
+              "actor": {
+                "login": "mona",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+              },
+              "createdAt": "2026-11-05T12:30:00Z"
+            },
+            {
+              "__typename": "RenamedTitleEvent",
+              "id": "RTE_lADOJx1cRc6Ab12CzwAAAAJk1aB8",
+              "actor": {
+                "login": "mona",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+              },
+              "createdAt": "2026-11-05T12:31:00Z",
+              "previousTitle": "Crash in notifications",
+              "currentTitle": "Crash when opening notifications offline"
+            }
+          ]
+        }
+      }
+    },
+    "rateLimit": {
+      "limit": 5000,
+      "remaining": 4980,
+      "resetAt": "2026-11-17T12:00:00Z"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+name: Bug report
+description: Something does not work as expected
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Include what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Tap ...
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - iPhone (installed to Home Screen)
+        - iPhone (Safari tab)
+        - Android (installed app)
+        - Android (Chrome tab)
+        - Desktop browser
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: OS and browser version
+      placeholder: iOS 26.1, Safari
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: Shown in Account → Settings → About.
+  - type: textarea
+    id: details
+    attributes:
+      label: Diagnostics
+      description: Paste "Copy details" output if an error screen offered it. Never paste tokens.

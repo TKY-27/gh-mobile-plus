@@ -1,0 +1,38 @@
+{
+  "total_count": 2,
+  "incomplete_results": false,
+  "items": [
+    {
+      "name": "index.ts",
+      "path": "src/index.ts",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "url": "https://api.github.com/repositories/101/contents/src/index.ts?ref=main",
+      "git_url": "https://api.github.com/repositories/101/git/blobs/e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "html_url": "https://github.com/octo-org/hello-mobile/blob/main/src/index.ts",
+      "repository": {
+        "id": 101,
+        "name": "hello-mobile",
+        "full_name": "octo-org/hello-mobile",
+        "private": false,
+        "owner": {
+          "login": "octo-org",
+          "id": 3
+        }
+      },
+      "text_matches": [
+        {
+          "object_url": "https://api.github.com/repositories/101/contents/src/index.ts?ref=main",
+          "object_type": "FileContent",
+          "property": "content",
+          "fragment": "export const mobile = true;",
+          "matches": [
+            {
+              "text": "mobile",
+              "indices": [13, 19]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

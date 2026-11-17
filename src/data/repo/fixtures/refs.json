@@ -1,0 +1,31 @@
+{
+  "data": {
+    "repository": {
+      "defaultBranchRef": {
+        "name": "main"
+      },
+      "branches": {
+        "pageInfo": { "hasNextPage": false, "endCursor": "branches-end" },
+        "nodes": [
+          {
+            "name": "feature/navigation"
+          },
+          {
+            "name": "main"
+          },
+          {
+            "name": "release"
+          }
+        ]
+      },
+      "tags": {
+        "pageInfo": { "hasNextPage": false, "endCursor": "tags-end" },
+        "nodes": [
+          {
+            "name": "v1.0.0"
+          }
+        ]
+      }
+    }
+  }
+}

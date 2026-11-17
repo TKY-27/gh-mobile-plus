@@ -1,0 +1,33 @@
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.title {
+  overflow-wrap: anywhere;
+}
+
+.repo {
+  font-weight: var(--weight-semibold);
+}
+
+.tag {
+  font-family: var(--font-mono);
+  font-size: var(--text-subhead);
+}
+
+.meta {
+  display: flex;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta time {
+  flex: none;
+}

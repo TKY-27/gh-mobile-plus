@@ -1,0 +1,88 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--hit-target);
+  min-width: var(--hit-target);
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.button[data-variant="primary"] {
+  background: var(--accent-fill);
+  color: var(--on-accent);
+}
+
+.button[data-variant="secondary"] {
+  background: var(--color-fill);
+  color: var(--color-text);
+}
+
+.button[data-variant="plain"] {
+  background: transparent;
+  color: var(--accent-text);
+  padding-inline: var(--space-2);
+}
+
+.button[data-variant="destructive"] {
+  background: var(--color-fill);
+  color: var(--status-failure);
+}
+
+.button[data-wide] {
+  width: 100%;
+}
+
+.button[data-pressed] {
+  transform: scale(0.97);
+  opacity: 0.8;
+}
+
+.button[data-disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.button[data-pending] {
+  cursor: progress;
+}
+
+.iconButton {
+  display: inline-grid;
+  place-items: center;
+  width: var(--hit-target);
+  height: var(--hit-target);
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--accent-text);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.iconButton[data-pressed] {
+  background: var(--color-fill-pressed);
+}
+
+.iconButton[data-disabled] {
+  opacity: 0.4;
+}
+
+.iconButton svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}

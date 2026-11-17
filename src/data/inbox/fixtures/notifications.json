@@ -1,0 +1,117 @@
+[
+  {
+    "id": "1",
+    "unread": true,
+    "reason": "mention",
+    "updated_at": "2026-11-17T10:00:00Z",
+    "last_read_at": null,
+    "url": "https://api.github.com/notifications/threads/1",
+    "subscription_url": "https://api.github.com/notifications/threads/1/subscription",
+    "subject": {
+      "title": "Fix offline state",
+      "type": "Issue",
+      "url": "https://api.github.com/repos/octo-org/hello-mobile/issues/13",
+      "latest_comment_url": null
+    },
+    "repository": {
+      "name": "hello-mobile",
+      "owner": {
+        "login": "octo-org"
+      },
+      "private": true,
+      "html_url": "https://github.com/octo-org/hello-mobile"
+    }
+  },
+  {
+    "id": "2",
+    "unread": true,
+    "reason": "mention",
+    "updated_at": "2026-11-17T10:00:00Z",
+    "last_read_at": null,
+    "url": "https://api.github.com/notifications/threads/2",
+    "subscription_url": "https://api.github.com/notifications/threads/2/subscription",
+    "subject": {
+      "title": "Improve review",
+      "type": "PullRequest",
+      "url": "https://api.github.com/repos/octo-org/hello-mobile/pulls/12",
+      "latest_comment_url": null
+    },
+    "repository": {
+      "name": "hello-mobile",
+      "owner": {
+        "login": "octo-org"
+      },
+      "private": true,
+      "html_url": "https://github.com/octo-org/hello-mobile"
+    }
+  },
+  {
+    "id": "3",
+    "unread": true,
+    "reason": "mention",
+    "updated_at": "2026-11-17T10:00:00Z",
+    "last_read_at": null,
+    "url": "https://api.github.com/notifications/threads/3",
+    "subscription_url": "https://api.github.com/notifications/threads/3/subscription",
+    "subject": {
+      "title": "Fix cache",
+      "type": "Commit",
+      "url": "https://api.github.com/repos/octo-org/hello-mobile/commits/abc123def4567890abc123def4567890abc123de",
+      "latest_comment_url": null
+    },
+    "repository": {
+      "name": "hello-mobile",
+      "owner": {
+        "login": "octo-org"
+      },
+      "private": true,
+      "html_url": "https://github.com/octo-org/hello-mobile"
+    }
+  },
+  {
+    "id": "4",
+    "unread": true,
+    "reason": "mention",
+    "updated_at": "2026-11-17T10:00:00Z",
+    "last_read_at": null,
+    "url": "https://api.github.com/notifications/threads/4",
+    "subscription_url": "https://api.github.com/notifications/threads/4/subscription",
+    "subject": {
+      "title": "Mobile release",
+      "type": "Release",
+      "url": "https://api.github.com/repos/octo-org/hello-mobile/releases/10",
+      "latest_comment_url": null
+    },
+    "repository": {
+      "name": "hello-mobile",
+      "owner": {
+        "login": "octo-org"
+      },
+      "private": true,
+      "html_url": "https://github.com/octo-org/hello-mobile"
+    }
+  },
+  {
+    "id": "5",
+    "unread": true,
+    "reason": "mention",
+    "updated_at": "2026-11-17T10:00:00Z",
+    "last_read_at": null,
+    "url": "https://api.github.com/notifications/threads/5",
+    "subscription_url": "https://api.github.com/notifications/threads/5/subscription",
+    "subject": {
+      "title": "Ideas",
+      "type": "Discussion",
+      "url": "https://api.github.com/repos/octo-org/hello-mobile/discussions/3",
+      "latest_comment_url": null
+    },
+    "repository": {
+      "name": "hello-mobile",
+      "owner": {
+        "login": "octo-org"
+      },
+      "private": true,
+      "html_url": "https://github.com/octo-org/hello-mobile"
+    }
+  }
+]

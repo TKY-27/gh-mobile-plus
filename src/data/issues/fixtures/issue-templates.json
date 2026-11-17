@@ -1,0 +1,50 @@
+{
+  "data": {
+    "repository": {
+      "object": {
+        "__typename": "Tree",
+        "entries": [
+          {
+            "name": "bug_report.md",
+            "type": "blob",
+            "object": {
+              "__typename": "Blob",
+              "text": "---\nname: Bug report\nabout: Report something that does not work\ntitle: \"[Bug] \"\nlabels: bug, triage\nassignees: ''\n---\n\n**Describe the bug**\nA clear description of what happened.\n\n**Steps to reproduce**\n1. Open the app\n"
+            }
+          },
+          {
+            "name": "config.yml",
+            "type": "blob",
+            "object": {
+              "__typename": "Blob",
+              "text": "blank_issues_enabled: false\ncontact_links:\n  - name: Discussions\n    url: https://github.com/octo-org/hello-mobile/discussions\n    about: Ask questions here\n"
+            }
+          },
+          {
+            "name": "crash_report.yml",
+            "type": "blob",
+            "object": {
+              "__typename": "Blob",
+              "text": "name: Crash report\ndescription: Attach a crash log\nlabels: [bug]\nbody:\n  - type: input\n    id: version\n    attributes:\n      label: App version\n  - type: upload\n    id: log\n    attributes:\n      label: Crash log\n"
+            }
+          },
+          {
+            "name": "feature_request.yml",
+            "type": "blob",
+            "object": {
+              "__typename": "Blob",
+              "text": "name: Feature request\ndescription: Suggest an idea for GH Mobile+\ntitle: \"[Feature]: \"\nlabels: [\"enhancement\"]\nbody:\n  - type: markdown\n    attributes:\n      value: Thanks for taking the time to suggest a feature!\n  - type: input\n    id: summary\n    attributes:\n      label: Summary\n      description: One line describing the feature.\n      placeholder: Swipe to archive in Inbox\n    validations:\n      required: true\n  - type: textarea\n    id: details\n    attributes:\n      label: Details\n      render: markdown\n  - type: dropdown\n    id: platforms\n    attributes:\n      label: Platforms\n      multiple: true\n      options:\n        - iOS\n        - Android\n  - type: checkboxes\n    id: terms\n    attributes:\n      label: Checklist\n      options:\n        - label: I searched existing issues\n          required: true\n        - label: I can help implement this\n"
+            }
+          },
+          {
+            "name": "images",
+            "type": "tree",
+            "object": {
+              "__typename": "Tree"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

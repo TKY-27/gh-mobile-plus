@@ -1,0 +1,160 @@
+{
+  "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+  "node_id": "C_kwDOKx3l5doAKDZkY2IwOWI1",
+  "url": "https://api.github.com/repos/octo-org/hello-mobile/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e",
+  "html_url": "https://github.com/octo-org/hello-mobile/commit/6dcb09b5b57875f334f61aebed695e2e4193db5e",
+  "comments_url": "https://api.github.com/repos/octo-org/hello-mobile/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e/comments",
+  "commit": {
+    "url": "https://api.github.com/repos/octo-org/hello-mobile/git/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e",
+    "author": {
+      "name": "Mona Lisa",
+      "email": "mona@example.com",
+      "date": "2026-11-17T09:50:00Z"
+    },
+    "committer": {
+      "name": "GitHub",
+      "email": "noreply@github.com",
+      "date": "2026-11-17T09:57:30Z"
+    },
+    "message": "Translate the greeting\n\nAdds a tiny i18n helper and switches the\ndefault locale to Japanese.\n\n  - keeps formatName",
+    "comment_count": 0,
+    "tree": {
+      "sha": "9c48853fa3dc5c1c3d6f1f1cd1f2743e72652840",
+      "url": "https://api.github.com/repos/octo-org/hello-mobile/git/trees/9c48853fa3dc5c1c3d6f1f1cd1f2743e72652840"
+    },
+    "verification": {
+      "verified": true,
+      "reason": "valid",
+      "signature": null,
+      "payload": null,
+      "verified_at": "2026-11-17T09:57:31Z"
+    }
+  },
+  "author": {
+    "login": "mona",
+    "id": 583231,
+    "node_id": "U_583231",
+    "avatar_url": "https://avatars.githubusercontent.com/u/583231?v=4",
+    "html_url": "https://github.com/mona",
+    "type": "User",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "web-flow",
+    "id": 19864447,
+    "node_id": "U_19864447",
+    "avatar_url": "https://avatars.githubusercontent.com/u/19864447?v=4",
+    "html_url": "https://github.com/web-flow",
+    "type": "User",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678",
+      "url": "https://api.github.com/repos/octo-org/hello-mobile/commits/a1b2c3d4e5f60718293a4b5c6d7e8f9012345678",
+      "html_url": "https://github.com/octo-org/hello-mobile/commit/a1b2c3d4e5f60718293a4b5c6d7e8f9012345678"
+    }
+  ],
+  "stats": {
+    "total": 12418,
+    "additions": 8430,
+    "deletions": 3988
+  },
+  "files": [
+    {
+      "sha": "b5ef0fd1c0de4a9b2a6f5e8d7c3b1a0f9e8d7c6b",
+      "filename": "src/greeting.ts",
+      "status": "modified",
+      "additions": 6,
+      "deletions": 5,
+      "changes": 11,
+      "blob_url": "https://github.com/octo-org/hello-mobile/blob/6dcb09b5b57875f334f61aebed695e2e4193db5e/src/greeting.ts",
+      "raw_url": "https://github.com/octo-org/hello-mobile/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/src/greeting.ts",
+      "contents_url": "https://api.github.com/repos/octo-org/hello-mobile/contents/src/greeting.ts?ref=6dcb09b5b57875f334f61aebed695e2e4193db5e",
+      "patch": "@@ -1,13 +1,14 @@\n import { formatName } from \"./names\";\n+import { translate } from \"./i18n\";\n \n export interface Greeting {\n   text: string;\n   locale: string;\n }\n \n-export function greet(name: string): Greeting {\n-  const text = \"Hello, \" + formatName(name);\n-  return { text, locale: \"en\" };\n+export function greet(name: string, locale = DEFAULT_LOCALE): Greeting {\n+  const text = translate(locale, \"hello\", { name: formatName(name) });\n+  return { text, locale };\n }\n \n export function farewell(name: string): string {\n@@ -23,7 +24,7 @@ export function whisper(name: string): string {\n }\n \n export function repeat(name: string, times: number): string {\n-  return Array.from({ length: times }, () => greet(name).text).join(\" \");\n+  return Array.from({ length: times }, () => greet(name).text).join(\"\\n\");\n }\n \n-export const DEFAULT_LOCALE = \"en\";\n+export const DEFAULT_LOCALE = \"ja\";"
+    },
+    {
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filename": "src/i18n.ts",
+      "status": "added",
+      "additions": 9,
+      "deletions": 0,
+      "changes": 9,
+      "blob_url": "https://github.com/octo-org/hello-mobile/blob/6dcb09b5b57875f334f61aebed695e2e4193db5e/src/i18n.ts",
+      "raw_url": "https://github.com/octo-org/hello-mobile/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/src/i18n.ts",
+      "contents_url": "https://api.github.com/repos/octo-org/hello-mobile/contents/src/i18n.ts?ref=6dcb09b5b57875f334f61aebed695e2e4193db5e",
+      "patch": "@@ -0,0 +1,9 @@\n+const MESSAGES: Record<string, Record<string, string>> = {\n+  en: { hello: \"Hello, {name}\" },\n+  ja: { hello: \"こんにちは、{name}\" },\n+};\n+\n+export function translate(locale: string, key: string, values: Record<string, string>): string {\n+  const template = MESSAGES[locale]?.[key] ?? key;\n+  return template.replace(/\\{(\\w+)\\}/g, (_, name: string) => values[name] ?? \"\");\n+}"
+    },
+    {
+      "sha": "3a1f0c5d2b4e6f7081928374655647382910abcd",
+      "filename": "src/names.ts",
+      "status": "renamed",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2,
+      "blob_url": "https://github.com/octo-org/hello-mobile/blob/6dcb09b5b57875f334f61aebed695e2e4193db5e/src/names.ts",
+      "raw_url": "https://github.com/octo-org/hello-mobile/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/src/names.ts",
+      "contents_url": "https://api.github.com/repos/octo-org/hello-mobile/contents/src/names.ts?ref=6dcb09b5b57875f334f61aebed695e2e4193db5e",
+      "patch": "@@ -1,3 +1,3 @@\n export function formatName(name: string): string {\n-  return name.trim();\n+  return name.trim().normalize(\"NFC\");\n }",
+      "previous_filename": "src/name-format.ts"
+    },
+    {
+      "sha": "0000000000000000000000000000000000000000",
+      "filename": "docs/old-guide.md",
+      "status": "removed",
+      "additions": 0,
+      "deletions": 3,
+      "changes": 3,
+      "blob_url": "https://github.com/octo-org/hello-mobile/blob/6dcb09b5b57875f334f61aebed695e2e4193db5e/docs/old-guide.md",
+      "raw_url": "https://github.com/octo-org/hello-mobile/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/docs/old-guide.md",
+      "contents_url": "https://api.github.com/repos/octo-org/hello-mobile/contents/docs/old-guide.md?ref=6dcb09b5b57875f334f61aebed695e2e4193db5e",
+      "patch": "@@ -1,3 +0,0 @@\n-# Old guide\n-\n-Use greet()."
+    },
+    {
+      "sha": "9f2c4e6a8b0d1f3e5a7c9b1d3f5e7a9c1b3d5f7e",
+      "filename": "README.md",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 2,
+      "changes": 4,
+      "blob_url": "https://github.com/octo-org/hello-mobile/blob/6dcb09b5b57875f334f61aebed695e2e4193db5e/README.md",
+      "raw_url": "https://github.com/octo-org/hello-mobile/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/README.md",
+      "contents_url": "https://api.github.com/repos/octo-org/hello-mobile/contents/README.md?ref=6dcb09b5b57875f334f61aebed695e2e4193db5e",
+      "patch": "@@ -1,5 +1,5 @@\n # Hello Mobile\n \n-A tiny greeting library.\n+A tiny greeting library with i18n.\n \n-Run `pnpm test`.\n\\ No newline at end of file\n+Run `pnpm test`."
+    },
+    {
+      "sha": "7c4a8d09ca3762af61e59520943dc26494f8941b",
+      "filename": "pnpm-lock.yaml",
+      "status": "modified",
+      "additions": 8412,
+      "deletions": 3977,
+      "changes": 12389,
+      "blob_url": "https://github.com/octo-org/hello-mobile/blob/6dcb09b5b57875f334f61aebed695e2e4193db5e/pnpm-lock.yaml",
+      "raw_url": "https://github.com/octo-org/hello-mobile/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/pnpm-lock.yaml",
+      "contents_url": "https://api.github.com/repos/octo-org/hello-mobile/contents/pnpm-lock.yaml?ref=6dcb09b5b57875f334f61aebed695e2e4193db5e"
+    },
+    {
+      "sha": "4b825dc642cb6eb9a060e54bf8d69288fbee4904",
+      "filename": "assets/logo.png",
+      "status": "added",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "blob_url": "https://github.com/octo-org/hello-mobile/blob/6dcb09b5b57875f334f61aebed695e2e4193db5e/assets/logo.png",
+      "raw_url": "https://github.com/octo-org/hello-mobile/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/assets/logo.png",
+      "contents_url": "https://api.github.com/repos/octo-org/hello-mobile/contents/assets/logo.png?ref=6dcb09b5b57875f334f61aebed695e2e4193db5e"
+    },
+    {
+      "sha": "2e65efe2a145dda7ee51d1741299f848e5bf752e",
+      "filename": "src/legacy/format.ts",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0,
+      "changes": 0,
+      "blob_url": "https://github.com/octo-org/hello-mobile/blob/6dcb09b5b57875f334f61aebed695e2e4193db5e/src/legacy/format.ts",
+      "raw_url": "https://github.com/octo-org/hello-mobile/raw/6dcb09b5b57875f334f61aebed695e2e4193db5e/src/legacy/format.ts",
+      "contents_url": "https://api.github.com/repos/octo-org/hello-mobile/contents/src/legacy/format.ts?ref=6dcb09b5b57875f334f61aebed695e2e4193db5e",
+      "previous_filename": "src/format.ts"
+    }
+  ]
+}

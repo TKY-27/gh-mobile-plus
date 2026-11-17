@@ -1,0 +1,37 @@
+{
+  "data": {
+    "repository": {
+      "issueOrPullRequest": {
+        "__typename": "Issue",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpPPAAABk2F0bGluZTI="
+          },
+          "nodes": [
+            {
+              "__typename": "IssueComment",
+              "id": "IC_kwDOJx1cRc6Q1w3F",
+              "author": {
+                "login": "mona",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+              },
+              "bodyHTML": "<p>Fixed by <a href=\"https://github.com/octo-org/hello-mobile/pull/43\">#43</a> once it lands.</p>",
+              "createdAt": "2026-11-06T09:00:00Z",
+              "viewerCanReact": true,
+              "reactionGroups": [
+                {
+                  "content": "HOORAY",
+                  "viewerHasReacted": false,
+                  "reactors": {
+                    "totalCount": 2
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "data": {
+    "repository": {
+      "assignableUsers": {
+        "nodes": [
+          {
+            "id": "U_kgDOAAAAAQ",
+            "login": "mona",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+          },
+          {
+            "id": "MDQ6VXNlcjQ4MDkzOA==",
+            "login": "hubot",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/480938?v=4"
+          },
+          {
+            "id": "MDQ6VXNlcjU4MzIzMQ==",
+            "login": "octocat",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/583231?v=4"
+          }
+        ]
+      }
+    }
+  }
+}

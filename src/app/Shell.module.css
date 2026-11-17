@@ -1,0 +1,23 @@
+.shell {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.stacks {
+  position: absolute;
+  inset: 0;
+}
+
+.banners {
+  position: fixed;
+  right: 0;
+  bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom));
+  left: 0;
+  z-index: 15;
+  display: grid;
+}
+
+.banners[data-keyboard-open] {
+  bottom: var(--keyboard-inset);
+}

@@ -1,0 +1,48 @@
+{
+  "data": {
+    "repository": {
+      "issueOrPullRequest": {
+        "__typename": "PullRequest",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpPPAAABk21lcmdlZA=="
+          },
+          "nodes": [
+            {
+              "__typename": "PullRequestReview",
+              "id": "PRR_kwDOJx1cRc6Lm2a1",
+              "author": {
+                "login": "octocat",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/583231?v=4"
+              },
+              "createdAt": "2026-11-04T14:00:00Z",
+              "submittedAt": "2026-11-04T14:02:00Z",
+              "state": "APPROVED",
+              "bodyHTML": ""
+            },
+            {
+              "__typename": "MergedEvent",
+              "id": "ME_lADOJx1cRc5vX8zAzwAAAAJk1aC1",
+              "actor": {
+                "login": "mona",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+              },
+              "createdAt": "2026-11-04T15:00:00Z"
+            },
+            {
+              "__typename": "ClosedEvent",
+              "id": "CE_lADOJx1cRc5vX8zAzwAAAAJk1aC2",
+              "actor": {
+                "login": "mona",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+              },
+              "createdAt": "2026-11-04T15:00:00Z",
+              "stateReason": null
+            }
+          ]
+        }
+      }
+    }
+  }
+}

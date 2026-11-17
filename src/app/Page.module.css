@@ -1,0 +1,94 @@
+.page {
+  min-height: 100%;
+  padding-bottom: calc(var(--tab-bar-height) + env(safe-area-inset-bottom) + var(--space-6));
+}
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding-top: env(safe-area-inset-top);
+  padding-inline: max(var(--space-1), env(safe-area-inset-left))
+    max(var(--space-1), env(safe-area-inset-right));
+  background: transparent;
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+
+.bar[data-collapsed] {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: 0 var(--border-width) 0 var(--color-separator);
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: 1fr minmax(0, auto) 1fr;
+  align-items: center;
+  min-height: var(--nav-bar-height);
+}
+
+.leading {
+  display: flex;
+  justify-self: start;
+}
+
+.trailing {
+  display: flex;
+  justify-self: end;
+  align-items: center;
+}
+
+.back {
+  display: inline-grid;
+  place-items: center;
+  width: var(--hit-target);
+  height: var(--hit-target);
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--accent-text);
+  cursor: pointer;
+}
+
+.back[data-pressed] {
+  background: var(--color-fill-pressed);
+}
+
+.back svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.compactTitle {
+  overflow: hidden;
+  font-size: var(--text-headline);
+  font-weight: var(--weight-semibold);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  outline: none;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.bar[data-collapsed] .compactTitle {
+  opacity: 1;
+}
+
+.largeTitle {
+  padding: var(--space-1) calc(var(--space-4) + env(safe-area-inset-right)) var(--space-2)
+    calc(var(--space-4) + env(safe-area-inset-left));
+  font-size: var(--text-large-title);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  outline: none;
+}
+
+.content {
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+}

@@ -1,0 +1,103 @@
+.scroller {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.lines {
+  position: relative;
+  font-family: var(--font-mono);
+  font-size: var(--text-footnote);
+  line-height: 1.55;
+  tab-size: 4;
+}
+
+.lines[data-digits="1"],
+.lines[data-digits="2"] {
+  --gutter: 2ch;
+}
+
+.lines[data-digits="3"] {
+  --gutter: 3ch;
+}
+
+.lines[data-digits="4"] {
+  --gutter: 4ch;
+}
+
+.lines[data-digits="5"] {
+  --gutter: 5ch;
+}
+
+.line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  width: 100%;
+  min-width: max-content;
+}
+
+.lines[data-wrap] .line {
+  min-width: 0;
+}
+
+.line[data-selected] {
+  /* Fractional edges can leave visible seams. */
+  --selected-bg: light-dark(#eef3ff, #1a2132);
+  background: var(--selected-bg);
+  box-shadow: 0 1px 0 var(--selected-bg);
+}
+
+.number {
+  position: sticky;
+  left: 0;
+  flex: none;
+  box-sizing: content-box;
+  width: var(--gutter);
+  padding-inline: calc(var(--space-3) + 3px) var(--space-2);
+  background: var(--color-bg);
+  color: var(--color-text-tertiary);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.line[data-selected] .number {
+  background: var(--selected-bg);
+  color: var(--color-text);
+  font-weight: var(--weight-semibold);
+}
+
+/* Overlap rows to hide WebKit seams. */
+.line[data-selected] .number::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: -1px;
+  left: 0;
+  width: 3px;
+  background: var(--accent);
+}
+
+.text {
+  flex: 1;
+  padding-inline: var(--space-2) var(--space-4);
+  font: inherit;
+  white-space: pre;
+}
+
+.lines[data-wrap] .text {
+  min-width: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Avoid native selection during long-press. */
+@media (pointer: coarse) {
+  .lines {
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+}

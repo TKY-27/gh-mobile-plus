@@ -1,0 +1,151 @@
+{
+  "reviewRequested": {
+    "issueCount": 70,
+    "nodes": [
+      {
+        "__typename": "PullRequest",
+        "number": 12,
+        "title": "Improve mobile review",
+        "updatedAt": "2026-11-17T10:00:00Z",
+        "author": {
+          "login": "mona",
+          "avatarUrl": "https://avatars.githubusercontent.com/u/1"
+        },
+        "repository": {
+          "name": "hello-mobile",
+          "owner": {
+            "login": "octo-org"
+          }
+        },
+        "isDraft": false,
+        "reviewDecision": "REVIEW_REQUIRED",
+        "commits": {
+          "nodes": [
+            {
+              "commit": {
+                "statusCheckRollup": {
+                  "state": "FAILURE"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "myPrs": {
+    "issueCount": 1,
+    "nodes": [
+      {
+        "__typename": "PullRequest",
+        "number": 12,
+        "title": "Improve mobile review",
+        "updatedAt": "2026-11-17T10:00:00Z",
+        "author": {
+          "login": "mona",
+          "avatarUrl": "https://avatars.githubusercontent.com/u/1"
+        },
+        "repository": {
+          "name": "hello-mobile",
+          "owner": {
+            "login": "octo-org"
+          }
+        },
+        "isDraft": false,
+        "reviewDecision": "REVIEW_REQUIRED",
+        "commits": {
+          "nodes": [
+            {
+              "commit": {
+                "statusCheckRollup": {
+                  "state": "FAILURE"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "assigned": {
+    "issueCount": 2,
+    "nodes": [
+      {
+        "__typename": "Issue",
+        "number": 13,
+        "title": "Fix offline state",
+        "updatedAt": "2026-11-17T09:00:00Z",
+        "author": null,
+        "repository": {
+          "name": "hello-mobile",
+          "owner": {
+            "login": "octo-org"
+          }
+        }
+      },
+      {
+        "__typename": "PullRequest",
+        "number": 12,
+        "title": "Improve mobile review",
+        "updatedAt": "2026-11-17T10:00:00Z",
+        "author": {
+          "login": "mona",
+          "avatarUrl": "https://avatars.githubusercontent.com/u/1"
+        },
+        "repository": {
+          "name": "hello-mobile",
+          "owner": {
+            "login": "octo-org"
+          }
+        },
+        "isDraft": false,
+        "reviewDecision": "REVIEW_REQUIRED",
+        "commits": {
+          "nodes": [
+            {
+              "commit": {
+                "statusCheckRollup": {
+                  "state": "FAILURE"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "ciFailing": {
+    "issueCount": 1,
+    "nodes": [
+      {
+        "__typename": "PullRequest",
+        "number": 12,
+        "title": "Improve mobile review",
+        "updatedAt": "2026-11-17T10:00:00Z",
+        "author": {
+          "login": "mona",
+          "avatarUrl": "https://avatars.githubusercontent.com/u/1"
+        },
+        "repository": {
+          "name": "hello-mobile",
+          "owner": {
+            "login": "octo-org"
+          }
+        },
+        "isDraft": false,
+        "reviewDecision": "REVIEW_REQUIRED",
+        "commits": {
+          "nodes": [
+            {
+              "commit": {
+                "statusCheckRollup": {
+                  "state": "FAILURE"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

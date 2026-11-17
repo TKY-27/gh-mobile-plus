@@ -1,0 +1,38 @@
+/* Maintain WCAG contrast in both themes. */
+.token[data-kind="keyword"] {
+  color: var(--status-merged);
+}
+
+.token[data-kind="string"],
+.token[data-kind="inserted"] {
+  color: var(--status-success);
+}
+
+.token[data-kind="string-expression"] {
+  color: light-dark(#0b6e7f, #4fc7d6);
+}
+
+.token[data-kind="constant"] {
+  color: light-dark(#a64b00, #f0a35c);
+}
+
+.token[data-kind="function"],
+.token[data-kind="link"] {
+  color: var(--accent-text);
+}
+
+.token[data-kind="comment"] {
+  color: var(--color-text-tertiary);
+}
+
+.token[data-kind="punctuation"] {
+  color: var(--color-text-secondary);
+}
+
+.token[data-kind="deleted"] {
+  color: var(--status-failure);
+}
+
+.token[data-kind="changed"] {
+  color: var(--status-pending);
+}

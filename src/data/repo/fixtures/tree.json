@@ -1,0 +1,46 @@
+{
+  "data": {
+    "repository": {
+      "object": {
+        "__typename": "Tree",
+        "entries": [
+          {
+            "name": "zebra.ts",
+            "path": "src/zebra.ts",
+            "type": "blob",
+            "mode": 33188,
+            "size": 20
+          },
+          {
+            "name": "assets",
+            "path": "src/assets",
+            "type": "tree",
+            "mode": 16384,
+            "size": 0
+          },
+          {
+            "name": "README-link",
+            "path": "src/README-link",
+            "type": "blob",
+            "mode": 40960,
+            "size": 12
+          },
+          {
+            "name": "vendor",
+            "path": "src/vendor",
+            "type": "commit",
+            "mode": 57344,
+            "size": 0
+          },
+          {
+            "name": "alpha.ts",
+            "path": "src/alpha.ts",
+            "type": "blob",
+            "mode": 33188,
+            "size": 30
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "id": 11223344556,
+  "name": "CI",
+  "node_id": "WFR_11223344556",
+  "head_branch": "feature/i18n",
+  "head_sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+  "path": ".github/workflows/ci.yml",
+  "display_title": "Translate the greeting",
+  "run_number": 482,
+  "event": "pull_request",
+  "status": "in_progress",
+  "conclusion": null,
+  "workflow_id": 161335,
+  "check_suite_id": 11223344563,
+  "url": "https://api.github.com/repos/octo-org/hello-mobile/actions/runs/11223344556",
+  "html_url": "https://github.com/octo-org/hello-mobile/actions/runs/11223344556",
+  "pull_requests": [],
+  "created_at": "2026-11-17T09:58:00Z",
+  "updated_at": "2026-11-17T10:01:12Z",
+  "actor": {
+    "login": "mona",
+    "id": 583231,
+    "node_id": "U_583231",
+    "avatar_url": "https://avatars.githubusercontent.com/u/583231?v=4",
+    "type": "User",
+    "site_admin": false,
+    "html_url": "https://github.com/mona"
+  },
+  "triggering_actor": {
+    "login": "mona",
+    "id": 583231,
+    "node_id": "U_583231",
+    "avatar_url": "https://avatars.githubusercontent.com/u/583231?v=4",
+    "type": "User",
+    "site_admin": false,
+    "html_url": "https://github.com/mona"
+  },
+  "run_attempt": 1,
+  "run_started_at": "2026-11-17T09:58:03Z",
+  "jobs_url": "https://api.github.com/repos/octo-org/hello-mobile/actions/runs/11223344556/jobs",
+  "logs_url": "https://api.github.com/repos/octo-org/hello-mobile/actions/runs/11223344556/logs"
+}

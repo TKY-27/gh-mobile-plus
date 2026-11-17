@@ -1,0 +1,166 @@
+.markdown {
+  min-width: 0;
+  color: var(--color-text, #1f2328);
+  font-family: -apple-system, "SF Pro Text", Roboto, "Noto Sans JP", system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.markdown :is(p, ul, ol, dl, blockquote, pre, table, details) {
+  margin: 0 0 16px;
+}
+.markdown :is(h1, h2, h3, h4, h5, h6) {
+  margin: 24px 0 16px;
+  line-height: 1.25;
+  font-weight: 600;
+}
+.markdown h1 {
+  font-size: 2rem;
+}
+.markdown h2 {
+  font-size: 1.5rem;
+}
+.markdown h3 {
+  font-size: 1.25rem;
+}
+.markdown :is(h4, h5, h6) {
+  font-size: 1rem;
+}
+.markdown :is(h1, h2) {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-separator, #d1d9e0);
+}
+.markdown > :first-child {
+  margin-top: 0;
+}
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+.markdown a[href] {
+  color: var(--accent-text, #1f5fe6);
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+.markdown :focus-visible {
+  outline: 2px solid var(--accent, #3d7bff);
+  outline-offset: 4px;
+}
+.markdown :is(ul, ol) {
+  padding-inline-start: 24px;
+}
+.markdown li + li {
+  margin-top: 4px;
+}
+.markdown li > :is(ul, ol) {
+  margin-bottom: 0;
+}
+.markdown :global(.task-list-item) {
+  list-style: none;
+}
+.markdown input[type="checkbox"] {
+  margin: 0 8px 0 -20px;
+  accent-color: var(--accent, #3d7bff);
+}
+.markdown :is(code, pre, kbd, samp) {
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  font-size: 0.875em;
+}
+.markdown :not(pre) > code {
+  padding: 4px;
+  border-radius: 4px;
+  background: var(--color-bg-secondary, #f6f8fa);
+}
+.markdown pre {
+  max-width: 100%;
+  padding: 16px;
+  overflow-x: auto;
+  white-space: var(--wrap, pre);
+  background: var(--color-bg-secondary, #f6f8fa);
+  border-radius: 4px;
+}
+.markdown pre code {
+  font-size: inherit;
+  white-space: inherit;
+}
+.markdown kbd {
+  padding: 0 4px;
+  border: 1px solid var(--color-separator, #d1d9e0);
+  border-radius: 4px;
+}
+.markdown :is(img, video) {
+  max-width: 100%;
+  height: auto;
+}
+.markdown table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+.markdown :is(th, td) {
+  padding: 8px 12px;
+  border: 1px solid var(--color-separator, #d1d9e0);
+}
+.markdown th {
+  font-weight: 600;
+}
+.markdown tr:nth-child(2n) {
+  background: var(--color-bg-secondary, #f6f8fa);
+}
+.markdown blockquote {
+  padding-inline: 16px;
+  color: var(--color-text-secondary, #59636e);
+  border-inline-start: 4px solid var(--color-separator, #d1d9e0);
+}
+.markdown blockquote > :last-child {
+  margin-bottom: 0;
+}
+.markdown summary {
+  min-height: 44px;
+  cursor: pointer;
+}
+.markdown hr {
+  margin: 24px 0;
+  border: 0;
+  border-top: 1px solid var(--color-separator, #d1d9e0);
+}
+.markdown :global(.markdown-alert) {
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  border-inline-start: 4px solid var(--accent, #3d7bff);
+}
+.markdown :global(.markdown-alert-title) {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 600;
+}
+.markdown :global(.markdown-alert-title)::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  flex: none;
+}
+.markdown
+  :is(:global(.markdown-alert-warning), :global(.markdown-alert-caution))
+  :global(.markdown-alert-title)::before {
+  border-radius: 0;
+  transform: rotate(45deg);
+}
+.markdown :global(.pl-c) {
+  color: var(--color-text-secondary, #59636e);
+}
+.markdown :is(:global(.pl-k), :global(.pl-s), :global(.pl-en)) {
+  color: var(--accent-text, #1f5fe6);
+}
+.markdown :is(:global(.user-mention), :global(.issue-link)) {
+  font-weight: 600;
+}
+.offlineImage {
+  display: inline-block;
+  padding: 12px 16px;
+  border: 1px dashed var(--color-separator, #d1d9e0);
+  color: var(--color-text-secondary, #59636e);
+}

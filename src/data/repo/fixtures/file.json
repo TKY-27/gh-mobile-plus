@@ -1,0 +1,23 @@
+{
+  "data": {
+    "repository": {
+      "isPrivate": false,
+      "branch": {
+        "prefix": "refs/heads/",
+        "target": { "oid": "0123456789abcdef0123456789abcdef01234567" }
+      },
+      "head": {
+        "__typename": "Commit",
+        "oid": "0123456789abcdef0123456789abcdef01234567"
+      },
+      "object": {
+        "__typename": "Blob",
+        "byteSize": 26,
+        "isBinary": false,
+        "isTruncated": false,
+        "text": "export const hello = true;",
+        "oid": "abcdef0123456789abcdef0123456789abcdef01"
+      }
+    }
+  }
+}

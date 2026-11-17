@@ -1,0 +1,20 @@
+{
+  "data": {
+    "repository": {
+      "isPrivate": false,
+      "branch": null,
+      "head": {
+        "__typename": "Commit",
+        "oid": "0123456789abcdef0123456789abcdef01234567"
+      },
+      "object": {
+        "__typename": "Blob",
+        "byteSize": 8,
+        "isBinary": false,
+        "isTruncated": false,
+        "text": "one\ntwo\n",
+        "oid": "abcdef0123456789abcdef0123456789abcdef01"
+      }
+    }
+  }
+}

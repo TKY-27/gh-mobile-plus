@@ -1,0 +1,31 @@
+{
+  "data": {
+    "repositoryOwner": {
+      "__typename": "User",
+      "starredRepositories": {
+        "nodes": [
+          {
+            "__typename": "Repository",
+            "owner": {
+              "login": "octo-org"
+            },
+            "name": "hello-mobile",
+            "description": "A mobile GitHub client fixture",
+            "isPrivate": false,
+            "isFork": false,
+            "stargazerCount": 128,
+            "primaryLanguage": {
+              "name": "TypeScript",
+              "color": "#3178c6"
+            },
+            "updatedAt": "2026-11-16T10:30:00Z"
+          }
+        ],
+        "pageInfo": {
+          "endCursor": null,
+          "hasNextPage": false
+        }
+      }
+    }
+  }
+}

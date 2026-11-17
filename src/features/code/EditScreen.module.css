@@ -1,0 +1,21 @@
+.branch {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: var(--text-footnote);
+  overflow-wrap: anywhere;
+}
+
+.branch svg {
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.skeleton {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+}

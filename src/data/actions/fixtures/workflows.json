@@ -1,0 +1,41 @@
+{
+  "total_count": 3,
+  "workflows": [
+    {
+      "id": 161335,
+      "node_id": "W_kwDOKx3l5c4AAncX",
+      "name": "CI",
+      "path": ".github/workflows/ci.yml",
+      "state": "active",
+      "created_at": "2026-01-12T10:00:00.000Z",
+      "updated_at": "2026-10-02T08:30:00.000Z",
+      "url": "https://api.github.com/repos/octo-org/hello-mobile/actions/workflows/161335",
+      "html_url": "https://github.com/octo-org/hello-mobile/blob/main/.github/workflows/ci.yml",
+      "badge_url": "https://github.com/octo-org/hello-mobile/workflows/CI/badge.svg"
+    },
+    {
+      "id": 161336,
+      "node_id": "W_kwDOKx3l5c4AAncY",
+      "name": "Deploy",
+      "path": ".github/workflows/deploy.yml",
+      "state": "active",
+      "created_at": "2026-02-01T09:00:00.000Z",
+      "updated_at": "2026-11-01T12:00:00.000Z",
+      "url": "https://api.github.com/repos/octo-org/hello-mobile/actions/workflows/161336",
+      "html_url": "https://github.com/octo-org/hello-mobile/blob/main/.github/workflows/deploy.yml",
+      "badge_url": "https://github.com/octo-org/hello-mobile/workflows/Deploy/badge.svg"
+    },
+    {
+      "id": 161337,
+      "node_id": "W_kwDOKx3l5c4AAncZ",
+      "name": "Nightly",
+      "path": ".github/workflows/nightly.yml",
+      "state": "disabled_manually",
+      "created_at": "2026-03-05T09:00:00.000Z",
+      "updated_at": "2026-09-01T12:00:00.000Z",
+      "url": "https://api.github.com/repos/octo-org/hello-mobile/actions/workflows/161337",
+      "html_url": "https://github.com/octo-org/hello-mobile/blob/main/.github/workflows/nightly.yml",
+      "badge_url": "https://github.com/octo-org/hello-mobile/workflows/Nightly/badge.svg"
+    }
+  ]
+}

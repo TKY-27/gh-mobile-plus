@@ -1,0 +1,105 @@
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  padding-inline-start: var(--space-2);
+  position: sticky;
+  top: calc(var(--nav-bar-height) + env(safe-area-inset-top));
+  z-index: 1;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: 0 var(--border-width) 0 var(--color-separator);
+}
+
+.list {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0 var(--space-2);
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.crumb {
+  display: flex;
+  flex: none;
+  align-items: center;
+  font-size: var(--text-subhead);
+  white-space: nowrap;
+}
+
+.refButton {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  max-width: 45%;
+  min-height: var(--hit-target);
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.ref {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-fill);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-footnote);
+}
+
+.refButton[data-pressed] .ref {
+  background: var(--color-fill-pressed);
+}
+
+.refName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ref svg {
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.crumb + .crumb::before {
+  content: "/" / "";
+  padding-inline: var(--space-1);
+  color: var(--color-text-tertiary);
+}
+
+.link,
+.current {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hit-target);
+  padding-inline: var(--space-1);
+}
+
+.link {
+  border-radius: var(--radius-sm);
+  color: var(--accent-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.link[data-pressed] {
+  background: var(--color-fill-pressed);
+}
+
+.link[data-focus-visible] {
+  outline-offset: -2px;
+}
+
+.current {
+  font-weight: var(--weight-semibold);
+}

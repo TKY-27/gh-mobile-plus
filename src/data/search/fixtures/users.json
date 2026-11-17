@@ -1,0 +1,27 @@
+{
+  "data": {
+    "search": {
+      "repositoryCount": 0,
+      "issueCount": 0,
+      "userCount": 2,
+      "nodes": [
+        {
+          "__typename": "User",
+          "login": "mona",
+          "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4",
+          "profileName": "Mona Octocat"
+        },
+        {
+          "__typename": "Organization",
+          "login": "octo-org",
+          "avatarUrl": "https://avatars.githubusercontent.com/u/3?v=4",
+          "profileName": "Octo Organization"
+        }
+      ],
+      "pageInfo": {
+        "endCursor": null,
+        "hasNextPage": false
+      }
+    }
+  }
+}

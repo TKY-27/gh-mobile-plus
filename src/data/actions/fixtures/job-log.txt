@@ -1,0 +1,12 @@
+﻿2026-11-17T09:58:12.1234567Z ##[group]Run actions/checkout@v5
+2026-11-17T09:58:12.1240000Z with:
+2026-11-17T09:58:12.1241000Z   repository: octo-org/hello-mobile
+2026-11-17T09:58:12.1300000Z ##[endgroup]
+2026-11-17T09:58:15.0000000Z [36;1mpnpm test[0m
+2026-11-17T09:58:15.2000000Z ##[command]/usr/bin/pnpm test
+2026-11-17T09:59:01.0000000Z [32m✓[39m src/greeting.test.ts [2m(4 tests)[22m
+2026-11-17T09:59:01.1000000Z [31m×[39m src/shout.test.ts [1;4mshouts[0m
+2026-11-17T09:59:01.2000000Z [38;5;208mwarning[0m [48;2;40;44;52mtruecolor[0m
+2026-11-17T09:59:02.0000000Z ##[error]Process completed with exit code 1.
+2026-11-17T09:59:02.1000000Z ##[group]Post job cleanup
+2026-11-17T09:59:02.2000000Z Cleaning up orphan processes

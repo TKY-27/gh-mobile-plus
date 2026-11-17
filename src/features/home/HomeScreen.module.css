@@ -1,0 +1,54 @@
+.section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  margin-block: var(--space-4);
+}
+
+.heading {
+  padding-inline: var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: var(--text-footnote);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.filters {
+  padding-inline: var(--space-4);
+}
+
+/* Six filters overflow phone widths. */
+@media (max-width: 559px) {
+  .filters > :first-child {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .filters > :first-child > * {
+    padding-inline: var(--space-1);
+  }
+}
+
+.seeAll {
+  color: var(--accent-text);
+}
+
+.cardError {
+  margin: var(--space-2) var(--space-4) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
+}
+
+.loadingMore {
+  display: grid;
+  place-items: center;
+  min-height: var(--hit-target);
+}
+
+.footnote {
+  padding-inline: var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: var(--text-footnote);
+  text-align: center;
+}

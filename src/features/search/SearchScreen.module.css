@@ -1,0 +1,33 @@
+.controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: 0 var(--space-4) var(--space-2);
+}
+
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-footnote);
+}
+
+.note svg {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 1px;
+}
+
+.total {
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-text-secondary);
+  font-size: var(--text-footnote);
+}
+
+.loadingMore {
+  display: grid;
+  place-items: center;
+  min-height: var(--hit-target);
+}

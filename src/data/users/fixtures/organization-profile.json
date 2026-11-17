@@ -1,0 +1,35 @@
+{
+  "data": {
+    "repositoryOwner": {
+      "__typename": "Organization",
+      "login": "octo-org",
+      "name": "Octo Organization",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/3?v=4",
+      "description": "Building together",
+      "location": "Tokyo",
+      "websiteUrl": "https://github.com/octo-org",
+      "viewerIsFollowing": false,
+      "repository": null,
+      "pinnedItems": {
+        "nodes": [
+          {
+            "__typename": "Repository",
+            "owner": {
+              "login": "octo-org"
+            },
+            "name": "hello-mobile",
+            "description": "A mobile GitHub client fixture",
+            "isPrivate": false,
+            "isFork": false,
+            "stargazerCount": 128,
+            "primaryLanguage": {
+              "name": "TypeScript",
+              "color": "#3178c6"
+            },
+            "updatedAt": "2026-11-16T10:30:00Z"
+          }
+        ]
+      }
+    }
+  }
+}

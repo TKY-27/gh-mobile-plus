@@ -1,0 +1,43 @@
+{
+  "data": {
+    "repository": {
+      "id": "R_hello_mobile",
+      "name": "hello-mobile",
+      "owner": {
+        "login": "octo-org"
+      },
+      "description": "A small mobile-friendly project.",
+      "isPrivate": false,
+      "isFork": true,
+      "parent": {
+        "owner": {
+          "login": "mona"
+        },
+        "name": "hello-mobile"
+      },
+      "stargazerCount": 42,
+      "forkCount": 7,
+      "watchers": {
+        "totalCount": 3
+      },
+      "primaryLanguage": {
+        "name": "TypeScript",
+        "color": "#3178c6"
+      },
+      "licenseInfo": {
+        "name": "MIT License"
+      },
+      "defaultBranchRef": {
+        "name": "main"
+      },
+      "viewerHasStarred": false,
+      "viewerSubscription": "UNSUBSCRIBED",
+      "viewerPermission": "WRITE",
+      "mergeCommitAllowed": true,
+      "squashMergeAllowed": true,
+      "rebaseMergeAllowed": false,
+      "hasIssuesEnabled": true,
+      "url": "https://github.com/octo-org/hello-mobile"
+    }
+  }
+}

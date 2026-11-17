@@ -1,0 +1,43 @@
+{
+  "data": {
+    "search": {
+      "repositoryCount": 0,
+      "issueCount": 2,
+      "userCount": 0,
+      "nodes": [
+        {
+          "__typename": "Issue",
+          "number": 12,
+          "title": "Support offline drafts",
+          "updatedAt": "2026-11-16T12:00:00Z",
+          "repository": {
+            "owner": {
+              "login": "octo-org"
+            },
+            "name": "hello-mobile"
+          },
+          "stateReason": null,
+          "issueState": "OPEN"
+        },
+        {
+          "__typename": "PullRequest",
+          "number": 13,
+          "title": "Improve mobile navigation",
+          "updatedAt": "2026-11-16T12:00:00Z",
+          "repository": {
+            "owner": {
+              "login": "octo-org"
+            },
+            "name": "hello-mobile"
+          },
+          "isDraft": false,
+          "pullRequestState": "MERGED"
+        }
+      ],
+      "pageInfo": {
+        "endCursor": null,
+        "hasNextPage": false
+      }
+    }
+  }
+}

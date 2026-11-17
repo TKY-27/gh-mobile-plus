@@ -1,0 +1,121 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "statusCheckRollup": {
+          "contexts": {
+            "pageInfo": {
+              "hasNextPage": false,
+              "endCursor": "NQ"
+            },
+            "nodes": [
+              {
+                "__typename": "CheckRun",
+                "id": "CR_kwDOJx1cRc8AAAAHNl1aB1",
+                "databaseId": 31000000001,
+                "name": "build",
+                "status": "COMPLETED",
+                "conclusion": "SUCCESS",
+                "startedAt": "2026-11-04T09:11:00Z",
+                "completedAt": "2026-11-04T09:14:30Z",
+                "detailsUrl": "https://github.com/octo-org/hello-mobile/actions/runs/12000000001/job/31000000001",
+                "checkSuite": {
+                  "id": "CS_kwDOJx1cRc8AAAAG1aB2",
+                  "app": {
+                    "name": "GitHub Actions",
+                    "slug": "github-actions"
+                  },
+                  "workflowRun": {
+                    "databaseId": 12000000001,
+                    "workflow": {
+                      "name": "CI"
+                    }
+                  }
+                }
+              },
+              {
+                "__typename": "CheckRun",
+                "id": "CR_kwDOJx1cRc8AAAAHNl1aB2",
+                "databaseId": 31000000002,
+                "name": "test (ubuntu-latest)",
+                "status": "COMPLETED",
+                "conclusion": "FAILURE",
+                "startedAt": "2026-11-04T09:11:05Z",
+                "completedAt": "2026-11-04T09:16:40Z",
+                "detailsUrl": "https://github.com/octo-org/hello-mobile/actions/runs/12000000001/job/31000000002",
+                "checkSuite": {
+                  "id": "CS_kwDOJx1cRc8AAAAG1aB2",
+                  "app": {
+                    "name": "GitHub Actions",
+                    "slug": "github-actions"
+                  },
+                  "workflowRun": {
+                    "databaseId": 12000000001,
+                    "workflow": {
+                      "name": "CI"
+                    }
+                  }
+                }
+              },
+              {
+                "__typename": "CheckRun",
+                "id": "CR_kwDOJx1cRc8AAAAHNl1aB3",
+                "databaseId": 31000000003,
+                "name": "e2e (webkit)",
+                "status": "IN_PROGRESS",
+                "conclusion": null,
+                "startedAt": "2026-11-04T09:12:00Z",
+                "completedAt": null,
+                "detailsUrl": "https://github.com/octo-org/hello-mobile/actions/runs/12000000002/job/31000000003",
+                "checkSuite": {
+                  "id": "CS_kwDOJx1cRc8AAAAG1aB3",
+                  "app": {
+                    "name": "GitHub Actions",
+                    "slug": "github-actions"
+                  },
+                  "workflowRun": {
+                    "databaseId": 12000000002,
+                    "workflow": {
+                      "name": "End-to-end"
+                    }
+                  }
+                }
+              },
+              {
+                "__typename": "CheckRun",
+                "id": "CR_kwDOJx1cRc8AAAAHNl1aB4",
+                "databaseId": 31000000004,
+                "name": "codecov/patch",
+                "status": "COMPLETED",
+                "conclusion": "NEUTRAL",
+                "startedAt": "2026-11-04T09:17:00Z",
+                "completedAt": "2026-11-04T09:17:02Z",
+                "detailsUrl": "https://app.codecov.io/gh/octo-org/hello-mobile/pull/43",
+                "checkSuite": {
+                  "id": "CS_kwDOJx1cRc8AAAAG1aB4",
+                  "app": {
+                    "name": "Codecov",
+                    "slug": "codecov"
+                  },
+                  "workflowRun": null
+                }
+              },
+              {
+                "__typename": "StatusContext",
+                "context": "ci/circleci: deploy-preview",
+                "state": "PENDING",
+                "targetUrl": "https://circleci.com/gh/octo-org/hello-mobile/1234",
+                "description": "Your tests are queued behind your running builds"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "rateLimit": {
+      "limit": 5000,
+      "remaining": 4969,
+      "resetAt": "2026-11-17T12:00:00Z"
+    }
+  }
+}

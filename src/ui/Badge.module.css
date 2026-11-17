@@ -1,0 +1,23 @@
+.badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding-inline: 0.375rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.badge[data-tone="accent"] {
+  background: var(--accent-fill);
+  color: var(--on-accent);
+}
+
+.badge[data-tone="neutral"] {
+  background: var(--color-fill);
+  color: var(--color-text-secondary);
+}

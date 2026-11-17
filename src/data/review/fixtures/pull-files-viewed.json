@@ -1,0 +1,25 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "baseRefOid": "297a006e97b465721c81308eb831187eeea4af57",
+        "headRefOid": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+        "changedFiles": 8,
+        "files": {
+          "nodes": [
+            { "path": "src/greeting.ts", "viewerViewedState": "UNVIEWED" },
+            { "path": "src/i18n.ts", "viewerViewedState": "VIEWED" },
+            { "path": "src/names.ts", "viewerViewedState": "DISMISSED" },
+            { "path": "docs/old-guide.md", "viewerViewedState": "VIEWED" },
+            { "path": "README.md", "viewerViewedState": "UNVIEWED" },
+            { "path": "pnpm-lock.yaml", "viewerViewedState": "UNVIEWED" },
+            { "path": "assets/logo.png", "viewerViewedState": "UNVIEWED" },
+            { "path": "src/legacy/format.ts", "viewerViewedState": "UNVIEWED" }
+          ],
+          "pageInfo": { "hasNextPage": false, "endCursor": "Y3Vyc29yOnYyOpHOAAAACA==" }
+        }
+      }
+    },
+    "rateLimit": { "limit": 5000, "remaining": 4987, "resetAt": "2026-11-17T12:00:00Z" }
+  }
+}

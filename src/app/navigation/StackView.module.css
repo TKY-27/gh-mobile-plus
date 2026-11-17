@@ -1,0 +1,37 @@
+.stack {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  visibility: hidden;
+  content-visibility: hidden;
+}
+
+.stack[data-active] {
+  visibility: visible;
+  content-visibility: visible;
+}
+
+.layer {
+  position: absolute;
+  inset: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  background: var(--color-bg);
+  touch-action: pan-y pinch-zoom;
+  contain: strict;
+  box-shadow: -8px 0 24px rgb(0 0 0 / 0.12);
+}
+
+.layer[data-hidden] {
+  visibility: hidden;
+  content-visibility: hidden;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+}

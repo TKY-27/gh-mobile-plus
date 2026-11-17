@@ -1,0 +1,43 @@
+{
+  "data": {
+    "repositoryOwner": {
+      "__typename": "User",
+      "login": "hubot",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/2?v=4",
+      "name": "Hubot",
+      "bio": "Building mobile tools",
+      "company": "@octo-org",
+      "location": "Tokyo",
+      "websiteUrl": "https://github.com/mona",
+      "isViewer": false,
+      "viewerIsFollowing": false,
+      "followers": {
+        "totalCount": 10
+      },
+      "following": {
+        "totalCount": 7
+      },
+      "repository": null,
+      "pinnedItems": {
+        "nodes": [
+          {
+            "__typename": "Repository",
+            "owner": {
+              "login": "octo-org"
+            },
+            "name": "hello-mobile",
+            "description": "A mobile GitHub client fixture",
+            "isPrivate": false,
+            "isFork": false,
+            "stargazerCount": 128,
+            "primaryLanguage": {
+              "name": "TypeScript",
+              "color": "#3178c6"
+            },
+            "updatedAt": "2026-11-16T10:30:00Z"
+          }
+        ]
+      }
+    }
+  }
+}

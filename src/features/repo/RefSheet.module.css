@@ -1,0 +1,12 @@
+.controls {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-4) 0;
+}
+
+.check {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--accent);
+}

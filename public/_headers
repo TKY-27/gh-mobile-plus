@@ -1,0 +1,6 @@
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://avatars.githubusercontent.com https://camo.githubusercontent.com https://raw.githubusercontent.com https://user-images.githubusercontent.com https://private-user-images.githubusercontent.com https://github.com https://objects.githubusercontent.com https://repository-images.githubusercontent.com https://opengraph.githubassets.com; media-src 'self' https://github.com https://user-images.githubusercontent.com https://private-user-images.githubusercontent.com https://objects.githubusercontent.com; connect-src 'self' https://api.github.com https://*.actions.githubusercontent.com https://*.blob.core.windows.net; worker-src 'self' blob:; font-src 'self'; frame-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self' https://github.com; object-src 'none'; upgrade-insecure-requests
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Content-Type-Options: nosniff
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Cross-Origin-Opener-Policy: same-origin

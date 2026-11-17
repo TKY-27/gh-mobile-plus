@@ -1,0 +1,220 @@
+{
+  "data": {
+    "repository": {
+      "name": "hello-mobile",
+      "owner": {
+        "login": "octo-org"
+      },
+      "isArchived": false,
+      "viewerPermission": "WRITE",
+      "mergeCommitAllowed": true,
+      "squashMergeAllowed": true,
+      "rebaseMergeAllowed": false,
+      "viewerDefaultMergeMethod": "REBASE",
+      "issueOrPullRequest": {
+        "__typename": "PullRequest",
+        "id": "PR_kwDOJx1cRc5vX9aB",
+        "author": {
+          "login": "mona",
+          "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+        },
+        "bodyHTML": "<p>Stores the last notification page in IndexedDB. Fixes <a href=\"https://github.com/octo-org/hello-mobile/issues/42\">#42</a>.</p>",
+        "createdAt": "2026-11-04T09:30:00Z",
+        "viewerCanReact": true,
+        "reactionGroups": [
+          {
+            "content": "THUMBS_UP",
+            "viewerHasReacted": false,
+            "reactors": {
+              "totalCount": 0
+            }
+          },
+          {
+            "content": "ROCKET",
+            "viewerHasReacted": false,
+            "reactors": {
+              "totalCount": 2
+            }
+          }
+        ],
+        "viewerCanLabel": true,
+        "labels": {
+          "nodes": [
+            {
+              "name": "offline",
+              "color": "0e8a16",
+              "description": null
+            }
+          ]
+        },
+        "assignees": {
+          "nodes": []
+        },
+        "locked": false,
+        "viewerSubscription": "SUBSCRIBED",
+        "viewerCanClose": true,
+        "viewerCanReopen": true,
+        "url": "https://github.com/octo-org/hello-mobile/pull/43",
+        "number": 43,
+        "title": "Cache notifications for offline mode",
+        "milestone": null,
+        "state": "OPEN",
+        "isDraft": false,
+        "baseRefName": "main",
+        "headRefName": "mona/offline-cache",
+        "headRefOid": "e5bd3914e2e596debea16f433f57875b5b90bcd6",
+        "headRepository": {
+          "name": "hello-mobile",
+          "owner": {
+            "login": "octo-org"
+          }
+        },
+        "headRef": {
+          "id": "REF_kwDOJx1cRc_bW9uYS9vZmZsaW5lLWNhY2hl"
+        },
+        "additions": 182,
+        "deletions": 24,
+        "changedFiles": 6,
+        "commits": {
+          "totalCount": 3
+        },
+        "reviewDecision": "CHANGES_REQUESTED",
+        "reviewRequests": {
+          "nodes": [
+            {
+              "requestedReviewer": {
+                "__typename": "User",
+                "login": "octocat",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/583231?v=4"
+              }
+            },
+            {
+              "requestedReviewer": {
+                "__typename": "Team",
+                "combinedSlug": "octo-org/mobile-reviewers"
+              }
+            }
+          ]
+        },
+        "latestReviews": {
+          "nodes": [
+            {
+              "author": {
+                "login": "hubot",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/480938?v=4"
+              },
+              "state": "CHANGES_REQUESTED"
+            },
+            {
+              "author": {
+                "login": "octocat",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/583231?v=4"
+              },
+              "state": "COMMENTED"
+            }
+          ]
+        },
+        "statusCheckRollup": {
+          "state": "FAILURE"
+        },
+        "mergeable": "MERGEABLE",
+        "mergeStateStatus": "BLOCKED",
+        "viewerCanUpdate": true,
+        "viewerCanUpdateBranch": false,
+        "viewerCanDeleteHeadRef": true,
+        "mergeHeadline": "Merge pull request #43 from octo-org/mona/offline-cache",
+        "squashHeadline": "Cache notifications for offline mode (#43)",
+        "rebaseHeadline": "",
+        "mergeBody": "Cache notifications for offline mode",
+        "squashBody": "* Store notification pages in IndexedDB\n\n* Read cached page when offline\n\n* Add offline banner",
+        "rebaseBody": "",
+        "timelineItems": {
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpPPAAABk3B1bGw="
+          },
+          "nodes": [
+            {
+              "__typename": "PullRequestCommit",
+              "id": "PURC_lADOJx1cRc5vX9aB2gAoNmRjYjA5YjU",
+              "commit": {
+                "oid": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+                "messageHeadline": "Store notification pages in IndexedDB",
+                "committedDate": "2026-11-04T09:10:00Z",
+                "author": {
+                  "user": {
+                    "login": "mona",
+                    "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+                  }
+                }
+              }
+            },
+            {
+              "__typename": "LabeledEvent",
+              "id": "LE_lADOJx1cRc5vX9aBzwAAAAJk1aC0",
+              "actor": {
+                "login": "mona",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+              },
+              "createdAt": "2026-11-04T09:31:00Z",
+              "label": {
+                "name": "offline",
+                "color": "0e8a16",
+                "description": null
+              }
+            },
+            {
+              "__typename": "PullRequestReview",
+              "id": "PRR_kwDOJx1cRc6Lm3n4",
+              "author": {
+                "login": "hubot",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/480938?v=4"
+              },
+              "createdAt": "2026-11-05T08:00:00Z",
+              "submittedAt": "2026-11-05T08:05:00Z",
+              "state": "CHANGES_REQUESTED",
+              "bodyHTML": "<p>Please evict entries older than seven days.</p>"
+            },
+            {
+              "__typename": "PullRequestReview",
+              "id": "PRR_kwDOJx1cRc6Lm3n5",
+              "author": {
+                "login": "mona",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+              },
+              "createdAt": "2026-11-05T09:00:00Z",
+              "submittedAt": null,
+              "state": "PENDING",
+              "bodyHTML": ""
+            },
+            {
+              "__typename": "IssueComment",
+              "id": "IC_kwDOJx1cRc6Q1w4G",
+              "author": {
+                "login": "octocat",
+                "avatarUrl": "https://avatars.githubusercontent.com/u/583231?v=4"
+              },
+              "bodyHTML": "<p>Looks good on Android.</p>",
+              "createdAt": "2026-11-05T10:00:00Z",
+              "viewerCanReact": true,
+              "reactionGroups": [
+                {
+                  "content": "HEART",
+                  "viewerHasReacted": true,
+                  "reactors": {
+                    "totalCount": 1
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "rateLimit": {
+      "limit": 5000,
+      "remaining": 4970,
+      "resetAt": "2026-11-17T12:00:00Z"
+    }
+  }
+}

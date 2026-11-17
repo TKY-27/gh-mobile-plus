@@ -1,0 +1,98 @@
+.diff {
+  display: grid;
+  margin-inline: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.row > * + * {
+  border-left: var(--border-width) solid var(--color-separator);
+}
+
+.heading {
+  padding: var(--space-2);
+  border-bottom: var(--border-width) solid var(--color-separator);
+  font-family: var(--font-sans);
+  font-size: var(--text-footnote);
+  font-weight: var(--weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.cell {
+  display: flex;
+  height: 100%;
+  min-width: 0;
+}
+
+.cell[data-empty] {
+  background: var(--color-bg-secondary);
+}
+
+.cell[data-changed][data-side="left"] {
+  background: color-mix(in srgb, var(--status-failure) 12%, transparent);
+}
+
+.cell[data-changed][data-side="right"] {
+  background: color-mix(in srgb, var(--status-success) 12%, transparent);
+}
+
+.number {
+  flex: none;
+  min-width: 3ch;
+  padding-inline: var(--space-1);
+  color: var(--color-text-tertiary);
+  text-align: end;
+}
+
+.marker {
+  flex: none;
+  width: 1.5ch;
+  font-weight: var(--weight-bold);
+}
+
+.cell[data-side="left"] .marker {
+  color: var(--status-failure);
+}
+
+.cell[data-side="right"] .marker {
+  color: var(--status-success);
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  padding-inline-end: var(--space-1);
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.gap {
+  padding: var(--space-1) var(--space-2);
+  border-block: var(--border-width) solid var(--color-separator);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--text-footnote);
+  text-align: center;
+}
+
+.loading {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.same {
+  padding: var(--space-4);
+  color: var(--color-text-secondary);
+}

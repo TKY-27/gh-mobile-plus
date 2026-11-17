@@ -1,0 +1,47 @@
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--hit-target);
+  min-width: var(--hit-target);
+  cursor: pointer;
+}
+
+.box {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.375rem;
+  height: 1.375rem;
+  border: 1.5px solid var(--color-text-tertiary);
+  border-radius: var(--radius-full);
+  color: transparent;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.box svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  stroke-width: 3;
+}
+
+.checkbox[data-selected] .box {
+  border-color: var(--accent-fill);
+  background: var(--accent-fill);
+  color: var(--on-accent);
+}
+
+.checkbox[data-focus-visible] {
+  outline: none;
+}
+
+.checkbox[data-focus-visible] .box {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.checkbox[data-disabled] {
+  opacity: 0.4;
+}

@@ -1,0 +1,30 @@
+.body {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+}
+
+.table th,
+.table td {
+  padding: var(--space-1) var(--space-2);
+  border-bottom: var(--border-width) solid var(--color-separator);
+  text-align: start;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.table td:first-child {
+  color: var(--status-failure);
+  font-weight: var(--weight-semibold);
+}
+
+.table td[data-ok] {
+  color: var(--status-success);
+}

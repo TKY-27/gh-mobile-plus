@@ -1,0 +1,12 @@
+node_modules
+dist
+dev-dist
+coverage
+playwright-report
+test-results
+.wrangler
+schema
+pnpm-lock.yaml
+pnpm-workspace.yaml
+src/data/graphql-env.d.ts
+**/*.md

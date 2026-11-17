@@ -1,0 +1,23 @@
+{
+  "back": "戻る",
+  "cancel": "キャンセル",
+  "clear": "消去",
+  "close": "閉じる",
+  "continue": "続ける",
+  "copied": "コピーしました",
+  "copyDetails": "詳細をコピー",
+  "copyFailed": "クリップボードにコピーできませんでした",
+  "dismiss": "閉じる",
+  "loading": "読み込み中",
+  "moreActions": "その他の操作",
+  "notifications": "お知らせ",
+  "openOnGitHub": "GitHubで開く",
+  "retry": "再試行",
+  "undo": "取り消す",
+  "status.success": "成功",
+  "status.failure": "失敗",
+  "status.pending": "保留中",
+  "status.merged": "マージ済み",
+  "status.closed": "クローズ",
+  "status.draft": "下書き"
+}

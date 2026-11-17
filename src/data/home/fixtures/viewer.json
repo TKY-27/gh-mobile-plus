@@ -1,0 +1,34 @@
+{
+  "viewer": {
+    "login": "mona",
+    "avatarUrl": "https://avatars.githubusercontent.com/u/1",
+    "name": "Mona Lisa",
+    "followers": {
+      "totalCount": 12
+    },
+    "following": {
+      "totalCount": 7
+    },
+    "contributionsCollection": {
+      "contributionCalendar": {
+        "totalContributions": 42,
+        "weeks": [
+          {
+            "contributionDays": [
+              {
+                "date": "2026-11-16",
+                "contributionCount": 4,
+                "contributionLevel": "SECOND_QUARTILE"
+              },
+              {
+                "date": "2026-11-17",
+                "contributionCount": 0,
+                "contributionLevel": "NONE"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

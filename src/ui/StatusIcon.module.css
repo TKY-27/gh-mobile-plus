@@ -1,0 +1,27 @@
+.icon {
+  flex: none;
+}
+
+.icon[data-status="success"] {
+  color: var(--status-success);
+}
+
+.icon[data-status="failure"] {
+  color: var(--status-failure);
+}
+
+.icon[data-status="pending"] {
+  color: var(--status-pending);
+}
+
+.icon[data-status="merged"] {
+  color: var(--status-merged);
+}
+
+.icon[data-status="closed"] {
+  color: var(--status-closed);
+}
+
+.icon[data-status="draft"] {
+  color: var(--status-draft);
+}

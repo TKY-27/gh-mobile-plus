@@ -1,0 +1,203 @@
+.branches {
+  color: var(--color-text-secondary);
+  font-size: var(--text-subhead);
+  line-height: 1.9;
+}
+
+.branch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  max-width: 100%;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-fill);
+  color: var(--color-text);
+  font-size: var(--text-footnote);
+  overflow-wrap: anywhere;
+  vertical-align: 1px;
+}
+
+.branch svg {
+  flex: none;
+  width: 0.8125rem;
+  height: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.diffStat {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-footnote);
+  font-variant-numeric: tabular-nums;
+}
+
+.diffStat svg {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.additions {
+  color: var(--status-success);
+  font-weight: var(--weight-semibold);
+}
+
+.deletions {
+  color: var(--status-failure);
+  font-weight: var(--weight-semibold);
+}
+
+.banner {
+  margin: var(--space-2) var(--space-4);
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+.tabs {
+  padding: var(--space-2) max(var(--space-4), env(safe-area-inset-right)) var(--space-2)
+    max(var(--space-4), env(safe-area-inset-left));
+}
+
+.mergeItem {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-top: var(--border-width) solid var(--color-separator);
+}
+
+.mergeItem:first-child {
+  border-top: none;
+}
+
+.mergeStatus {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.mergeHeadline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--weight-semibold);
+}
+
+.reasons {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.reason {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-subhead);
+}
+
+.reason svg {
+  margin-top: 0.15em;
+}
+
+.mergeNote {
+  color: var(--color-text-secondary);
+  font-size: var(--text-footnote);
+}
+
+.mergeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.mergeSheet {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-4) 0;
+}
+
+.split {
+  display: flex;
+  gap: 1px;
+}
+
+.split > :first-child {
+  flex: 1;
+}
+
+.split:has(.splitToggle) > :first-child {
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.splitToggle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--hit-target);
+  min-height: var(--hit-target);
+  border: none;
+  border-start-end-radius: var(--radius-md);
+  border-end-end-radius: var(--radius-md);
+  background: var(--accent-fill);
+  color: var(--on-accent);
+  cursor: pointer;
+}
+
+.splitToggle svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.splitToggle[data-pressed] {
+  opacity: 0.8;
+}
+
+.splitToggle[data-disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.reviewState {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-footnote);
+}
+
+.externalIcon {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-text-tertiary);
+}
+
+.skeleton {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.checksSummary {
+  padding: var(--space-2) var(--space-4) 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-subhead);
+}
+
+.commitMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
+}
+
+.commitMeta code {
+  font-size: var(--text-footnote);
+}
+
+.commitList {
+  margin-top: var(--space-2);
+}

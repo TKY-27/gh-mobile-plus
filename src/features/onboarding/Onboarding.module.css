@@ -1,0 +1,156 @@
+.onboarding {
+  display: flex;
+  min-height: 100dvh;
+  padding: calc(env(safe-area-inset-top) + var(--space-8)) var(--space-6)
+    calc(env(safe-area-inset-bottom) + var(--space-6));
+}
+
+/* Keep actions within thumb reach. */
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: min(100%, 26rem);
+  margin: 0 auto;
+}
+
+.step > :first-child {
+  margin-top: auto;
+}
+
+.mark {
+  align-self: flex-start;
+  margin-bottom: var(--space-2);
+  border-radius: 22%;
+}
+
+.title {
+  outline: none;
+  font-size: var(--text-large-title);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+}
+
+.lead {
+  color: var(--color-text-secondary);
+  font-size: var(--text-headline);
+}
+
+.note {
+  color: var(--color-text-secondary);
+  font-size: var(--text-footnote);
+}
+
+.error {
+  color: var(--status-failure);
+  font-size: var(--text-footnote);
+}
+
+.actions {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-6);
+}
+
+.guide {
+  display: grid;
+  gap: var(--space-4);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.guide li {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  align-items: center;
+  gap: var(--space-3);
+  counter-increment: step;
+}
+
+.guide li span::before {
+  content: counter(step) ". ";
+  font-weight: var(--weight-semibold);
+}
+
+.option {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2) var(--space-3);
+  align-items: start;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
+}
+
+.option > :last-child {
+  grid-column: 2;
+  justify-self: start;
+}
+
+.optionIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--accent);
+}
+
+.optionTitle {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+}
+
+.illustration {
+  width: 100%;
+  height: auto;
+}
+
+.device {
+  fill: var(--color-bg-secondary);
+  stroke: var(--color-separator);
+}
+
+.screen {
+  fill: var(--color-fill);
+}
+
+.toolbar {
+  fill: var(--color-fill-pressed);
+}
+
+.glyph {
+  stroke: var(--color-text-tertiary);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.highlight {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.highlightRow {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.accentGlyph {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.accentStroke {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+.accentFill {
+  fill: var(--accent);
+}

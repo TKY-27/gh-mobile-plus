@@ -1,0 +1,22 @@
+{
+  "segment.label": "作業キュー",
+  "segment.reviewRequested": "レビュー依頼",
+  "segment.myPrs": "自分の PR",
+  "segment.assigned": "担当",
+  "segment.ciFailing": "CI 失敗",
+  "checks.success": "チェック成功",
+  "checks.failure": "チェック失敗",
+  "checks.pending": "チェック実行中",
+  "review.approved": "承認済み",
+  "review.changesRequested": "変更をリクエスト",
+  "review.reviewRequired": "レビュー待ち",
+  "more": "{count} 件のうち、最近更新された {shown} 件を表示しています。",
+  "empty.reviewRequested.title": "作業キューは空です",
+  "empty.reviewRequested.message": "あなたのレビューを待っている人はいません。新しい依頼はここに表示されます。",
+  "empty.myPrs.title": "オープン中のプルリクエストはありません",
+  "empty.myPrs.message": "作成したプルリクエストは、マージまたはクローズされるまでここに表示されます。",
+  "empty.assigned.title": "担当はありません",
+  "empty.assigned.message": "あなたが担当する Issue とプルリクエストがここに表示されます。",
+  "empty.ciFailing.title": "すべてのチェックが成功しています",
+  "empty.ciFailing.message": "オープン中のプルリクエストで失敗しているチェックはありません。"
+}

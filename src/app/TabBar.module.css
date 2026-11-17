@@ -1,0 +1,85 @@
+.bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: 0 calc(-1 * var(--border-width)) 0 var(--color-separator);
+  transition: transform var(--duration-base) var(--ease-out);
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.bar[data-hidden] {
+  transform: translateY(100%);
+  visibility: hidden;
+}
+
+.tab {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 2px;
+  min-height: var(--tab-bar-min-height);
+  padding: var(--space-1) 0 2px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.tab[aria-current="page"] {
+  color: var(--accent-text);
+}
+
+.tab[data-pressed] .icon {
+  transform: scale(0.9);
+}
+
+.tab[data-focus-visible] {
+  outline-offset: -4px;
+  border-radius: var(--radius-md);
+}
+
+.icon {
+  position: relative;
+  display: grid;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.label {
+  font-size: 0.6875rem;
+  font-weight: var(--weight-medium);
+  line-height: 1.1;
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  left: calc(100% - 8px);
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding-inline: 4px;
+  border-radius: var(--radius-full);
+  background: var(--status-failure);
+  color: var(--color-bg);
+  font-size: 0.6875rem;
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.125rem;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--glass-solid-bg);
+}

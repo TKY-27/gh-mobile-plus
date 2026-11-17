@@ -1,0 +1,22 @@
+{
+  "segment.label": "Work queue",
+  "segment.reviewRequested": "Review requested",
+  "segment.myPrs": "My PRs",
+  "segment.assigned": "Assigned",
+  "segment.ciFailing": "CI failing",
+  "checks.success": "Checks passed",
+  "checks.failure": "Checks failed",
+  "checks.pending": "Checks running",
+  "review.approved": "Approved",
+  "review.changesRequested": "Changes requested",
+  "review.reviewRequired": "Review required",
+  "more": "Showing the {shown} most recently updated of {count}.",
+  "empty.reviewRequested.title": "Work queue clear",
+  "empty.reviewRequested.message": "Nobody is waiting on your review. New requests show up here.",
+  "empty.myPrs.title": "No open pull requests",
+  "empty.myPrs.message": "Pull requests you open appear here until they’re merged or closed.",
+  "empty.assigned.title": "Nothing assigned",
+  "empty.assigned.message": "Issues and pull requests assigned to you appear here.",
+  "empty.ciFailing.title": "All checks passing",
+  "empty.ciFailing.message": "None of your open pull requests has failing checks."
+}

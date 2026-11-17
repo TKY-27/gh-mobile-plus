@@ -1,0 +1,63 @@
+{
+  "data": {
+    "repository": {
+      "pullRequests": {
+        "nodes": [
+          {
+            "number": 40,
+            "title": "Add pull-to-refresh to the inbox",
+            "state": "MERGED",
+            "isDraft": false,
+            "updatedAt": "2026-11-04T15:00:00Z",
+            "author": {
+              "login": "mona",
+              "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4"
+            },
+            "labels": {
+              "nodes": [
+                {
+                  "name": "enhancement",
+                  "color": "a2eeef",
+                  "description": "New feature or request"
+                }
+              ]
+            },
+            "comments": {
+              "totalCount": 1
+            },
+            "statusCheckRollup": {
+              "state": "SUCCESS"
+            }
+          },
+          {
+            "number": 38,
+            "title": "Experiment with a bottom sheet for filters",
+            "state": "CLOSED",
+            "isDraft": true,
+            "updatedAt": "2026-10-28T11:20:00Z",
+            "author": {
+              "login": "hubot",
+              "avatarUrl": "https://avatars.githubusercontent.com/u/480938?v=4"
+            },
+            "labels": {
+              "nodes": []
+            },
+            "comments": {
+              "totalCount": 0
+            },
+            "statusCheckRollup": null
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Y3Vyc29yOnYyOpK5MjAyNi0xMC0yOA=="
+        }
+      }
+    },
+    "rateLimit": {
+      "limit": 5000,
+      "remaining": 4978,
+      "resetAt": "2026-11-17T12:00:00Z"
+    }
+  }
+}

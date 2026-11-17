@@ -1,0 +1,27 @@
+{
+  "data": {
+    "node": {
+      "__typename": "Issue",
+      "labels": {
+        "nodes": [
+          {
+            "id": "LA_kwDOJx1cRc8AAAABf1aB01",
+            "name": "bug"
+          },
+          {
+            "id": "LA_kwDOJx1cRc8AAAABf1aB03",
+            "name": "offline"
+          }
+        ]
+      },
+      "assignees": {
+        "nodes": [
+          {
+            "id": "U_kgDOAAAAAQ",
+            "login": "mona"
+          }
+        ]
+      }
+    }
+  }
+}

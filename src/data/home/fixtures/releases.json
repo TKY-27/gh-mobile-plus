@@ -1,0 +1,40 @@
+{
+  "viewer": {
+    "starredRepositories": {
+      "nodes": [
+        {
+          "name": "hello-mobile",
+          "owner": {
+            "login": "octo-org"
+          },
+          "releases": {
+            "nodes": [
+              {
+                "tagName": "v1.0.0",
+                "name": "Mobile release",
+                "publishedAt": "2026-11-16T12:00:00Z",
+                "isPrerelease": false,
+                "isDraft": false,
+                "author": {
+                  "login": "mona",
+                  "avatarUrl": "https://avatars.githubusercontent.com/u/1"
+                }
+              },
+              {
+                "tagName": "v0.1.0",
+                "name": null,
+                "publishedAt": "2026-10-01T12:00:00Z",
+                "isPrerelease": false,
+                "isDraft": false,
+                "author": {
+                  "login": "mona",
+                  "avatarUrl": "https://avatars.githubusercontent.com/u/1"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,65 @@
+.form {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-2) max(var(--space-4), env(safe-area-inset-right)) var(--space-4)
+    max(var(--space-4), env(safe-area-inset-left));
+}
+
+.templateRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--text-subhead);
+}
+
+.group {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.legend,
+.selectField > label {
+  padding: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-footnote);
+  font-weight: var(--weight-medium);
+}
+
+.description {
+  color: var(--color-text-secondary);
+  font-size: var(--text-footnote);
+}
+
+.error {
+  color: var(--status-failure);
+  font-size: var(--text-footnote);
+}
+
+.selectField {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.select {
+  width: 100%;
+  min-height: var(--hit-target);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-separator);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  font-size: max(16px, var(--text-body));
+}
+
+.select[aria-invalid] {
+  border-color: var(--status-failure);
+}
+
+.codeField textarea {
+  font-family: var(--font-mono);
+}

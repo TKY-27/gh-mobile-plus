@@ -1,0 +1,22 @@
+.skeleton {
+  display: block;
+  border-radius: var(--radius-sm);
+  background: var(--color-skeleton);
+  animation: pulse 1.4s var(--ease-in-out) infinite alternate;
+}
+
+.skeleton[data-round] {
+  border-radius: var(--radius-full);
+}
+
+@keyframes pulse {
+  to {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}

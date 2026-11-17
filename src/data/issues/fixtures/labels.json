@@ -1,0 +1,39 @@
+{
+  "data": {
+    "repository": {
+      "id": "R_kgDOJx1cRc",
+      "labels": {
+        "nodes": [
+          {
+            "id": "LA_kwDOJx1cRc8AAAABf1aB01",
+            "name": "bug",
+            "color": "d73a4a",
+            "description": "Something isn't working"
+          },
+          {
+            "id": "LA_kwDOJx1cRc8AAAABf1aB02",
+            "name": "enhancement",
+            "color": "a2eeef",
+            "description": "New feature or request"
+          },
+          {
+            "id": "LA_kwDOJx1cRc8AAAABf1aB03",
+            "name": "offline",
+            "color": "0e8a16",
+            "description": null
+          },
+          {
+            "id": "LA_kwDOJx1cRc8AAAABf1aB04",
+            "name": "triage",
+            "color": "fbca04",
+            "description": "Needs triage"
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false,
+          "endCursor": "Mw"
+        }
+      }
+    }
+  }
+}

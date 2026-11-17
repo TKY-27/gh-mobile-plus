@@ -1,0 +1,45 @@
+{
+  "data": {
+    "repositoryOwner": {
+      "__typename": "User",
+      "login": "mona",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/1?v=4",
+      "name": "Mona Octocat",
+      "bio": "Building mobile tools",
+      "company": "@octo-org",
+      "location": "Tokyo",
+      "websiteUrl": "https://github.com/mona",
+      "isViewer": true,
+      "viewerIsFollowing": false,
+      "followers": {
+        "totalCount": 42
+      },
+      "following": {
+        "totalCount": 7
+      },
+      "repository": {
+        "isPrivate": false
+      },
+      "pinnedItems": {
+        "nodes": [
+          {
+            "__typename": "Repository",
+            "owner": {
+              "login": "octo-org"
+            },
+            "name": "hello-mobile",
+            "description": "A mobile GitHub client fixture",
+            "isPrivate": false,
+            "isFork": false,
+            "stargazerCount": 128,
+            "primaryLanguage": {
+              "name": "TypeScript",
+              "color": "#3178c6"
+            },
+            "updatedAt": "2026-11-16T10:30:00Z"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "data": {
+    "viewer": {
+      "organizations": {
+        "nodes": [
+          {
+            "login": "octo-org",
+            "name": "Octo Organization",
+            "avatarUrl": "https://avatars.githubusercontent.com/u/3?v=4"
+          }
+        ],
+        "pageInfo": {
+          "endCursor": null,
+          "hasNextPage": false
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "clean": {
+    "fields": {
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "CLEAN",
+      "reviewDecision": "APPROVED",
+      "statusCheckRollup": {
+        "state": "SUCCESS"
+      }
+    },
+    "blockedReasons": []
+  },
+  "unstable": {
+    "fields": {
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "UNSTABLE",
+      "reviewDecision": null,
+      "statusCheckRollup": {
+        "state": "FAILURE"
+      }
+    },
+    "blockedReasons": []
+  },
+  "reviewRequiredChecksPending": {
+    "fields": {
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "BLOCKED",
+      "reviewDecision": "REVIEW_REQUIRED",
+      "statusCheckRollup": {
+        "state": "PENDING"
+      }
+    },
+    "blockedReasons": ["reviewRequired", "checksPending"]
+  },
+  "changesRequestedChecksFailing": {
+    "fields": {
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "BLOCKED",
+      "reviewDecision": "CHANGES_REQUESTED",
+      "statusCheckRollup": {
+        "state": "FAILURE"
+      }
+    },
+    "blockedReasons": ["changesRequested", "checksFailing"]
+  },
+  "conflicts": {
+    "fields": {
+      "mergeable": "CONFLICTING",
+      "mergeStateStatus": "DIRTY",
+      "reviewDecision": "APPROVED",
+      "statusCheckRollup": {
+        "state": "SUCCESS"
+      }
+    },
+    "blockedReasons": ["conflicts"]
+  },
+  "behind": {
+    "fields": {
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "BEHIND",
+      "reviewDecision": "APPROVED",
+      "statusCheckRollup": {
+        "state": "SUCCESS"
+      }
+    },
+    "blockedReasons": ["behind"]
+  },
+  "draft": {
+    "fields": {
+      "isDraft": true,
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "DRAFT",
+      "reviewDecision": null,
+      "statusCheckRollup": {
+        "state": "SUCCESS"
+      }
+    },
+    "blockedReasons": ["draft"]
+  },
+  "blockedByRule": {
+    "fields": {
+      "mergeable": "MERGEABLE",
+      "mergeStateStatus": "BLOCKED",
+      "reviewDecision": "APPROVED",
+      "statusCheckRollup": {
+        "state": "SUCCESS"
+      }
+    },
+    "blockedReasons": ["blockedByRule"]
+  },
+  "merged": {
+    "fields": {
+      "state": "MERGED",
+      "mergeable": "UNKNOWN",
+      "mergeStateStatus": "UNKNOWN",
+      "reviewDecision": "APPROVED",
+      "statusCheckRollup": {
+        "state": "SUCCESS"
+      }
+    },
+    "blockedReasons": []
+  }
+}

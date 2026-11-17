@@ -1,0 +1,23 @@
+{
+  "back": "Back",
+  "cancel": "Cancel",
+  "clear": "Clear",
+  "close": "Close",
+  "continue": "Continue",
+  "copied": "Copied",
+  "copyDetails": "Copy details",
+  "copyFailed": "Couldn’t copy to the clipboard",
+  "dismiss": "Dismiss",
+  "loading": "Loading",
+  "moreActions": "More actions",
+  "notifications": "Notifications",
+  "openOnGitHub": "Open on GitHub",
+  "retry": "Retry",
+  "undo": "Undo",
+  "status.success": "Succeeded",
+  "status.failure": "Failed",
+  "status.pending": "Pending",
+  "status.merged": "Merged",
+  "status.closed": "Closed",
+  "status.draft": "Draft"
+}

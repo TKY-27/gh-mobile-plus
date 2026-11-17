@@ -1,0 +1,67 @@
+.segments {
+  padding: 0 var(--space-4) var(--space-1);
+}
+
+/* Four counted labels overflow phone widths. */
+@media (max-width: 559px) {
+  .segments > :first-child {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.title {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  font-weight: var(--weight-medium);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-2);
+  font-size: var(--text-footnote);
+}
+
+.repo {
+  overflow-wrap: anywhere;
+}
+
+.review {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.review[data-review="approved"] {
+  color: var(--status-success);
+}
+
+.review[data-review="changesRequested"] {
+  color: var(--status-failure);
+}
+
+.review[data-review="reviewRequired"] {
+  color: var(--status-pending);
+}
+
+.review > span {
+  display: inline-grid;
+}
+
+.checks {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+}
+
+.kind {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+}

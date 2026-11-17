@@ -1,0 +1,112 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "reviewThreads": {
+          "nodes": [
+            {
+              "id": "PRRT_kwDOKx3l5c5Gm1Aa",
+              "path": "src/greeting.ts",
+              "line": 2,
+              "startLine": null,
+              "diffSide": "RIGHT",
+              "isResolved": false,
+              "isOutdated": false,
+              "viewerCanResolve": true,
+              "viewerCanUnresolve": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOKx3l5c6Ab0001",
+                    "author": {
+                      "login": "hubot",
+                      "avatarUrl": "https://avatars.githubusercontent.com/u/480938?v=4"
+                    },
+                    "body": "Should this import be lazy?",
+                    "bodyHTML": "<p dir=\"auto\">Should this import be lazy?</p>",
+                    "createdAt": "2026-11-16T09:12:44Z"
+                  },
+                  {
+                    "id": "PRRC_kwDOKx3l5c6Ab0002",
+                    "author": {
+                      "login": "mona",
+                      "avatarUrl": "https://avatars.githubusercontent.com/u/583231?v=4"
+                    },
+                    "body": "It is tiny, so no.",
+                    "bodyHTML": "<p dir=\"auto\">It is tiny, so no.</p>",
+                    "createdAt": "2026-11-16T10:03:01Z"
+                  }
+                ],
+                "pageInfo": {
+                  "hasNextPage": false
+                }
+              }
+            },
+            {
+              "id": "PRRT_kwDOKx3l5c5Gm1Ab",
+              "path": "src/greeting.ts",
+              "line": 11,
+              "startLine": 9,
+              "diffSide": "RIGHT",
+              "isResolved": true,
+              "isOutdated": false,
+              "viewerCanResolve": false,
+              "viewerCanUnresolve": true,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOKx3l5c6Ab0003",
+                    "author": {
+                      "login": "hubot",
+                      "avatarUrl": "https://avatars.githubusercontent.com/u/480938?v=4"
+                    },
+                    "body": "Keep the locale explicit:\r\n\r\n```suggestion\r\nexport function greet(name: string, locale: string = DEFAULT_LOCALE): Greeting {\r\n  const text = translate(locale, \"hello\", { name: formatName(name) });\r\n  return { text, locale };\r\n```",
+                    "bodyHTML": "<p dir=\"auto\">Keep the locale explicit:</p>\n<div class=\"js-suggested-changes-blob\"><table><tbody><tr><td class=\"blob-code-deletion\">export function greet(name: string, locale = DEFAULT_LOCALE): Greeting {</td></tr><tr><td class=\"blob-code-addition\">export function greet(name: string, locale: string = DEFAULT_LOCALE): Greeting {</td></tr></tbody></table></div>",
+                    "createdAt": "2026-11-16T11:30:00Z"
+                  }
+                ],
+                "pageInfo": {
+                  "hasNextPage": true
+                }
+              }
+            },
+            {
+              "id": "PRRT_kwDOKx3l5c5Gm1Ac",
+              "path": "README.md",
+              "line": null,
+              "startLine": null,
+              "diffSide": "LEFT",
+              "isResolved": false,
+              "isOutdated": true,
+              "viewerCanResolve": true,
+              "viewerCanUnresolve": false,
+              "comments": {
+                "nodes": [
+                  {
+                    "id": "PRRC_kwDOKx3l5c6Ab0004",
+                    "author": null,
+                    "body": "Typo in the old sentence.",
+                    "bodyHTML": "<p dir=\"auto\">Typo in the old sentence.</p>",
+                    "createdAt": "2026-11-15T08:00:00Z"
+                  }
+                ],
+                "pageInfo": {
+                  "hasNextPage": false
+                }
+              }
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": "Y3Vyc29yOnYyOpHOBQAAAw=="
+          }
+        }
+      }
+    },
+    "rateLimit": {
+      "limit": 5000,
+      "remaining": 4986,
+      "resetAt": "2026-11-17T12:00:00Z"
+    }
+  }
+}
