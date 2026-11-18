@@ -13,7 +13,7 @@ import enActions from "../src/i18n/messages/en/actions.json" with { type: "json"
 import enCommon from "../src/i18n/messages/en/common.json" with { type: "json" };
 import enErrors from "../src/i18n/messages/en/errors.json" with { type: "json" };
 import { API_ORIGIN, expect, githubGraphql, signIn, test } from "./support/github.ts";
-import { tapInSheet } from "./support/accounts.ts";
+import { tapInSheet, waitForSheetControl } from "./support/accounts.ts";
 import { openInApp } from "./support/screens.ts";
 
 const HTTP_NOT_FOUND = 404;
@@ -255,7 +255,9 @@ test("dispatches a filtered ref beyond the initial limit with typed inputs", asy
   await page.getByRole("button", { name: enActions["dispatch.open"] }).click();
 
   const sheet = page.getByRole("dialog", { name: enActions["dispatch.title"] });
-  await sheet.getByLabel(enActions["dispatch.workflow"], { exact: true }).selectOption("Deploy");
+  const workflow = sheet.getByLabel(enActions["dispatch.workflow"], { exact: true });
+  await waitForSheetControl(workflow);
+  await workflow.selectOption("Deploy");
   await sheet.getByRole("searchbox", { name: enActions["dispatch.filterRefs"] }).fill("mobile");
   const refPicker = sheet.getByLabel(enActions["dispatch.ref"], { exact: true });
   await expect(refPicker.locator(`option[value="${branchRef}"]`)).toHaveText(releaseRef);
@@ -316,7 +318,9 @@ test("shows the org approval link inside a rejected dispatch sheet", async ({
   await openInApp(page, `${REPO}/actions`);
   await page.getByRole("button", { name: enActions["dispatch.open"] }).click();
   const sheet = page.getByRole("dialog", { name: enActions["dispatch.title"] });
-  await sheet.getByLabel(enActions["dispatch.workflow"], { exact: true }).selectOption("Deploy");
+  const workflow = sheet.getByLabel(enActions["dispatch.workflow"], { exact: true });
+  await waitForSheetControl(workflow);
+  await workflow.selectOption("Deploy");
   await sheet.getByRole("textbox", { name: /version/ }).fill("v2.0.0");
   await sheet.getByRole("button", { name: enActions["dispatch.submit"] }).click();
 
@@ -367,7 +371,9 @@ test("a failed environments request shows Retry instead of an empty picker", asy
   await openInApp(page, `${REPO}/actions`);
   await page.getByRole("button", { name: enActions["dispatch.open"] }).click();
   const sheet = page.getByRole("dialog", { name: enActions["dispatch.title"] });
-  await sheet.getByLabel(enActions["dispatch.workflow"], { exact: true }).selectOption("Deploy");
+  const workflow = sheet.getByLabel(enActions["dispatch.workflow"], { exact: true });
+  await waitForSheetControl(workflow);
+  await workflow.selectOption("Deploy");
 
   await expect(sheet.getByRole("alert")).toContainText(enErrors["forbidden.title"]);
   await expect(sheet.getByRole("button", { name: enCommon.retry })).toBeVisible();

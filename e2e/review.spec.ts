@@ -135,7 +135,16 @@ test("reviews with line, range and suggestion comments that survive a restart", 
   await page.getByRole("button", { name: enReview["bar.suggest"] }).click();
   await expect(page.getByRole("button", { name: enReview["comment.add"] })).toBeInViewport();
   const editor = page.getByRole("textbox", { name: enReview["comment.suggestionLabel"] });
+  const selectAll = await page.evaluate(() =>
+    /iPhone|iPad/.test(navigator.userAgent) || /Mac/.test(navigator.platform)
+      ? "Meta+a"
+      : "Control+a",
+  );
+  await editor.press(selectAll);
+  await editor.press("Backspace");
+  await expect(editor).toHaveText("");
   await editor.fill('export const DEFAULT_LOCALE = "en";');
+  await expect(editor).toHaveText('export const DEFAULT_LOCALE = "en";');
   await tapInSheet(page.getByRole("button", { name: enReview["comment.add"] }));
 
   const reviewButton = page.getByRole("button", {

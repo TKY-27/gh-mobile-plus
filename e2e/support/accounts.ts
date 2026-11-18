@@ -16,7 +16,7 @@ export function accountSheet(page: Page): Locator {
 }
 
 // Wait to avoid dismissing the sheet.
-export async function tapInSheet(target: Locator) {
+export async function waitForSheetControl(target: Locator) {
   let previous = "";
   await expect
     .poll(async () => {
@@ -27,6 +27,10 @@ export async function tapInSheet(target: Locator) {
     })
     .toBe(true);
   await expect(target).toBeInViewport({ ratio: 1 });
+}
+
+export async function tapInSheet(target: Locator) {
+  await waitForSheetControl(target);
   await target.click();
 }
 
