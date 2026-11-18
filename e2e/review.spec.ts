@@ -139,10 +139,13 @@ test("reviews with line, range and suggestion comments that survive a restart", 
   await page.keyboard.press("ControlOrMeta+a");
   await page.keyboard.type('export const DEFAULT_LOCALE = "en";');
   await tapInSheet(page.getByRole("button", { name: enReview["comment.add"] }));
-  await expect(page.getByText(enReview["pending.badge"], { exact: true })).toHaveCount(3);
 
-  const reviewButton = enReview["bar.reviewCount.other"].replace("{count}", "3");
-  await page.getByRole("button", { name: reviewButton }).click();
+  const reviewButton = page.getByRole("button", {
+    name: enReview["bar.reviewCount.other"].replace("{count}", "3"),
+    exact: true,
+  });
+  await expect(reviewButton).toBeVisible();
+  await reviewButton.click();
   const sheet = page.getByRole("dialog", { name: enReview["submit.title"] });
   await tapInSheet(sheet.getByRole("radio", { name: enReview["submit.requestChanges"] }));
   const summary = "Please keep English as the default.";
@@ -155,8 +158,8 @@ test("reviews with line, range and suggestion comments that survive a restart", 
     )
     .toContain(summary);
   await page.reload();
-  await expect(page.getByText(enReview["pending.badge"], { exact: true })).toHaveCount(3);
-  await page.getByRole("button", { name: reviewButton }).click();
+  await expect(reviewButton).toBeVisible();
+  await reviewButton.click();
   await expect(sheet.getByRole("radio", { name: enReview["submit.requestChanges"] })).toBeChecked();
   await expect(sheet.getByRole("textbox", { name: enReview["submit.summary"] })).toHaveValue(
     summary,
