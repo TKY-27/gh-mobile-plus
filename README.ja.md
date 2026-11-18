@@ -42,7 +42,7 @@ Cloudflare Pagesの無料枠で動作します。
 
 `public/_headers` がContent Security Policyとセキュリティヘッダーを設定し、`public/_routes.json` がFunctionsを `/auth/*` に限定します。変数として `GHM_GITHUB_CLIENT_ID`、`GHM_TOKEN_MODE`(`expiring`)、`GHM_COOKIE_ACTIVE_KID` を、シークレットとして `GHM_GITHUB_CLIENT_SECRET` と `GHM_COOKIE_KEYS` を設定します。Cookie鍵は `openssl rand -base64 32` で生成し、`{"k1":"<鍵>"}` の形式で保存します。`GHM_DEV_INSECURE_COOKIES`、`GHM_GITHUB_OAUTH_ORIGIN`、`GHM_GITHUB_API_ORIGIN` はローカル開発とテスト専用なので、本番では設定しないでください。About画面から公開リポジトリにリンクしたい場合は、任意のリポジトリ変数 `VITE_GHM_SOURCE_URL` を設定します。
 
-`main` にプッシュしてCIの両ジョブが通ると、GitHub Actionsが検査済みのビルドをデプロイします。リポジトリ変数に `CLOUDFLARE_ACCOUNT_ID`、Actionsシークレットに Cloudflare Pages Edit 権限の `CLOUDFLARE_API_TOKEN` を設定します。OAuthのシークレットはCloudflare Pagesで管理します。
+`main` にプッシュしてCIの全ジョブが通ると、GitHub Actionsが検査済みのビルドをデプロイします。リポジトリ変数に `CLOUDFLARE_ACCOUNT_ID`、Actionsシークレットに Cloudflare Pages Edit 権限の `CLOUDFLARE_API_TOKEN` を設定します。OAuthのシークレットはCloudflare Pagesで管理します。
 
 手動デプロイの場合は以下を実行します。
 

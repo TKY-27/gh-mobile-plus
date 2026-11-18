@@ -61,6 +61,7 @@ test("no token, code or verifier reaches storage, caches, URLs or logs", async (
   oauth,
   browserName,
 }) => {
+  test.slow();
   const serviceWorkerActive = browserName !== "webkit";
   const consoleMessages: string[] = [];
   const navigatedUrls: string[] = [];

@@ -594,7 +594,7 @@ Each spike's result is recorded in a new ADR, and this spec is updated.
 
 The local file `.dev.vars` is git-ignored, and `.dev.vars.example` documents the keys. Local development needs its own OAuth App, with callback URL `http://localhost:8788/auth/callback`. Production needs a second OAuth App with callback URL `https://<project>.pages.dev/auth/callback`.
 
-The production URL is `https://gh-mobile-plus.pages.dev`. A push to `main` deploys the checked build to the existing Direct Upload project after both CI jobs pass. OAuth and cookie secrets stay in Cloudflare Pages (ADR 0015).
+The production URL is `https://gh-mobile-plus.pages.dev`. A push to `main` deploys the checked build to the existing Direct Upload project after all CI jobs pass. OAuth and cookie secrets stay in Cloudflare Pages (ADR 0015).
 
 ---
 

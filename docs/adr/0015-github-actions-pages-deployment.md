@@ -9,7 +9,7 @@ The production URL and OAuth callback belong to the existing Cloudflare Pages Di
 
 ## Decision
 
-On pushes to `main`, GitHub Actions saves the checked build and deploys it with the repository's pinned Wrangler after the check and E2E jobs succeed. The deploy step receives a token with Cloudflare Pages Edit on the hosting account. OAuth and cookie secrets stay in the existing Cloudflare Pages project.
+On pushes to `main`, GitHub Actions saves the checked build and deploys it with the repository's pinned Wrangler after the check and all browser E2E jobs succeed. The deploy step receives a token with Cloudflare Pages Edit on the hosting account. OAuth and cookie secrets stay in the existing Cloudflare Pages project.
 
 ## Consequences
 

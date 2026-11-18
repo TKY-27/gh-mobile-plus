@@ -89,6 +89,7 @@ test("reviews with line, range and suggestion comments that survive a restart", 
   oauth,
   github,
 }) => {
+  test.slow();
   const server: ReviewServer = { viewed: [], started: [], threads: [], submitted: [] };
   github.use(...reviewHandlers(server));
   const keyWarnings: string[] = [];

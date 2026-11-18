@@ -29,12 +29,15 @@ function screen(page: Page, href: string) {
 }
 
 async function makeScrollable(page: Page, href: string) {
-  await screen(page, href).evaluate((layer, offset) => {
+  await expect.poll(() => focusedScreen(page)).toBe(href);
+  const scroller = screen(page, href);
+  await scroller.evaluate((layer, offset) => {
     const filler = document.createElement("div");
     filler.style.height = "3000px";
     layer.append(filler);
     layer.scrollTop = offset;
   }, SCROLL_OFFSET);
+  await expect.poll(() => scroller.evaluate((layer) => layer.scrollTop)).toBe(SCROLL_OFFSET);
 }
 
 async function jumpTo(page: Page, query: string) {

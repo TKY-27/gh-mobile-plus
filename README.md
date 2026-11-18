@@ -42,7 +42,7 @@ GH Mobile+ runs on the Cloudflare Pages free tier.
 
 `public/_headers` sets the Content Security Policy and security headers, and `public/_routes.json` limits Functions to `/auth/*`. Set `GHM_GITHUB_CLIENT_ID`, `GHM_TOKEN_MODE` (`expiring`) and `GHM_COOKIE_ACTIVE_KID` as variables, and `GHM_GITHUB_CLIENT_SECRET` and `GHM_COOKIE_KEYS` as secrets. Generate a cookie key with `openssl rand -base64 32` and store it as `{"k1":"<key>"}`. Never set `GHM_DEV_INSECURE_COOKIES`, `GHM_GITHUB_OAUTH_ORIGIN` or `GHM_GITHUB_API_ORIGIN` in production; they are for local development and tests only. Optionally set the repository variable `VITE_GHM_SOURCE_URL` to your public repository URL so About links to it.
 
-GitHub Actions deploys the checked build after both CI jobs pass on a push to `main`. Set the repository variable `CLOUDFLARE_ACCOUNT_ID` and the Actions secret `CLOUDFLARE_API_TOKEN` with the Cloudflare Pages Edit permission. Keep the OAuth secrets in Cloudflare Pages.
+GitHub Actions deploys the checked build after all CI jobs pass on a push to `main`. Set the repository variable `CLOUDFLARE_ACCOUNT_ID` and the Actions secret `CLOUDFLARE_API_TOKEN` with the Cloudflare Pages Edit permission. Keep the OAuth secrets in Cloudflare Pages.
 
 For a manual deployment:
 

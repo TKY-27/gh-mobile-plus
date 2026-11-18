@@ -46,6 +46,16 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: iphone
+            engine: webkit
+          - project: pixel
+            engine: chromium
+          - project: desktop
+            engine: chromium
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -54,12 +64,12 @@ jobs:
           node-version: lts/*
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps webkit chromium
-      - run: pnpm e2e
+      - run: pnpm exec playwright install --with-deps ${{ matrix.engine }}
+      - run: pnpm e2e --project ${{ matrix.project }}
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: playwright-report/
           retention-days: 7
 
