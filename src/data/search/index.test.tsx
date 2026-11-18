@@ -336,7 +336,7 @@ describe("recent searches", () => {
     const { search, Wrapper } = await setup();
     const first = renderHook(() => search.useRecentSearches(), { wrapper: Wrapper });
     await waitFor(() => {
-      expect(first.result.current?.searches).toEqual([]);
+      expect(first.result.current.searches).toEqual([]);
     });
     act(() => {
       for (let index = 0; index < 22; index++)
@@ -366,7 +366,7 @@ describe("recent searches", () => {
     const { search, session, Wrapper } = await setup();
     const { result } = renderHook(() => search.useRecentSearches(), { wrapper: Wrapper });
     await waitFor(() => {
-      expect(result.current?.searches).toEqual([]);
+      expect(result.current.searches).toEqual([]);
     });
     act(() => {
       result.current.add({ scope: "users", query: "mona" });
@@ -375,7 +375,7 @@ describe("recent searches", () => {
       session.switchAccount(2);
     });
     await waitFor(() => {
-      expect(result.current?.searches).toEqual([]);
+      expect(result.current.searches).toEqual([]);
     });
     act(() => {
       result.current.add({ scope: "issues", query: "is:open" });
@@ -388,7 +388,7 @@ describe("recent searches", () => {
       session.switchAccount(1);
     });
     await waitFor(() => {
-      expect(result.current?.searches).toEqual([{ scope: "users", query: "mona" }]);
+      expect(result.current.searches).toEqual([{ scope: "users", query: "mona" }]);
     });
   });
 
@@ -397,7 +397,7 @@ describe("recent searches", () => {
     const { search, Wrapper } = await setup();
     const { result } = renderHook(() => search.useRecentSearches(), { wrapper: Wrapper });
     await waitFor(() => {
-      expect(result.current?.searches).toEqual([]);
+      expect(result.current.searches).toEqual([]);
     });
     act(() => {
       localStorage.setItem(
