@@ -585,12 +585,16 @@ Each spike's result is recorded in a new ADR, and this spec is updated.
 | `GHM_COOKIE_KEYS` | Pages secret | JSON map `kid → base64 32-byte key` |
 | `GHM_COOKIE_ACTIVE_KID` | Pages env var | Kid used for new cookies |
 | `GHM_TOKEN_MODE` | Pages env var | `expiring` (default) or `persistent` |
-| `VITE_GHM_SOURCE_URL` | Build environment | Public source-code URL shown in About. Optional. |
+| `VITE_GHM_SOURCE_URL` | Build environment or GitHub Actions variable | Public source-code URL shown in About. Optional. |
+| `CLOUDFLARE_ACCOUNT_ID` | GitHub Actions variable | Cloudflare account that owns the Pages project |
+| `CLOUDFLARE_API_TOKEN` | GitHub Actions secret | Account-scoped Cloudflare Pages Edit token for deploying |
 | `GHM_DEV_INSECURE_COOKIES` | `.dev.vars` only | `1` to allow non-`Secure` cookies on localhost |
 | `GHM_GITHUB_OAUTH_ORIGIN` | End-to-end tests only | Overrides `https://github.com` so tests can use a mock OAuth server. Honored only for `localhost` and `127.0.0.1` requests. |
 | `GHM_GITHUB_API_ORIGIN` | End-to-end tests only | Overrides `https://api.github.com` for the Worker's own calls. Honored only for `localhost` and `127.0.0.1` requests. |
 
 The local file `.dev.vars` is git-ignored, and `.dev.vars.example` documents the keys. Local development needs its own OAuth App, with callback URL `http://localhost:8788/auth/callback`. Production needs a second OAuth App with callback URL `https://<project>.pages.dev/auth/callback`.
+
+The production URL is `https://gh-mobile-plus.pages.dev`. A push to `main` deploys the checked build to the existing Direct Upload project after both CI jobs pass. OAuth and cookie secrets stay in Cloudflare Pages (ADR 0015).
 
 ---
 
@@ -601,3 +605,4 @@ The local file `.dev.vars` is git-ignored, and `.dev.vars.example` documents the
 - 2026-11-17: Accent text and fill tokens for contrast (ADR 0010). `account_limit` sign-in error in the client. Local non-secret storage keys listed in 5.3. `user:follow` scope for following users. `VITE_GHM_SOURCE_URL` build setting. Profile list routes. Tab roots load on first visit, so cold Home, Work and Inbox stay within 6 requests. Shiki grammars load per language with the CSS-variables theme (ADR 0011). Diff gutter touch-target exception in §8.
 - 2026-11-18: Spikes S1–S3 not yet run; defaults and fallbacks in force (ADR 0012). Offline privacy setting excludes all repository content when off (ADR 0013). `ghm-pending-logout` key. Known v1 limits: each Work segment lists its first 50 items (the count is exact); New releases reads up to 10 releases per starred repository; a release notification opens the repository's releases list; pending review comments are saved immediately rather than debounced, so none is lost. A desktop Chromium Playwright project runs the auth spec for the desktop-tab part of 4.8. Inbox Unsubscribe ignores the thread subscription, because deleting it keeps notifications from watched repositories.
 - 2026-11-18: Profile READMEs load independently. Repository README representations and direct PR tab data load concurrently (ADR 0014). PR states use consistent icons and colors across screens.
+- 2026-11-18: GitHub Actions deploys successful `main` builds to the existing Cloudflare Pages project (ADR 0015).

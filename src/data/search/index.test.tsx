@@ -52,8 +52,11 @@ async function setup() {
   vi.resetModules();
   const session = await import("../session");
   const search = await import("./index");
+  const { useIsRestoring } = await import("@tanstack/react-query");
   function SignedIn(props: { children: ReactNode }): ReactNode {
-    return session.useSession().activeAccount ? props.children : null;
+    const { activeAccount } = session.useSession();
+    const restoring = useIsRestoring();
+    return activeAccount && !restoring ? props.children : null;
   }
   function Wrapper(props: { children: ReactNode }): ReactNode {
     return (
@@ -333,7 +336,7 @@ describe("recent searches", () => {
     const { search, Wrapper } = await setup();
     const first = renderHook(() => search.useRecentSearches(), { wrapper: Wrapper });
     await waitFor(() => {
-      expect(first.result.current).toBeDefined();
+      expect(first.result.current?.searches).toEqual([]);
     });
     act(() => {
       for (let index = 0; index < 22; index++)
@@ -363,7 +366,7 @@ describe("recent searches", () => {
     const { search, session, Wrapper } = await setup();
     const { result } = renderHook(() => search.useRecentSearches(), { wrapper: Wrapper });
     await waitFor(() => {
-      expect(result.current).toBeDefined();
+      expect(result.current?.searches).toEqual([]);
     });
     act(() => {
       result.current.add({ scope: "users", query: "mona" });
@@ -371,7 +374,9 @@ describe("recent searches", () => {
     act(() => {
       session.switchAccount(2);
     });
-    expect(result.current.searches).toEqual([]);
+    await waitFor(() => {
+      expect(result.current?.searches).toEqual([]);
+    });
     act(() => {
       result.current.add({ scope: "issues", query: "is:open" });
     });
@@ -382,7 +387,9 @@ describe("recent searches", () => {
     act(() => {
       session.switchAccount(1);
     });
-    expect(result.current.searches).toEqual([{ scope: "users", query: "mona" }]);
+    await waitFor(() => {
+      expect(result.current?.searches).toEqual([{ scope: "users", query: "mona" }]);
+    });
   });
 
   it("repairs malformed storage and adopts another tab's changes", async () => {
@@ -390,9 +397,8 @@ describe("recent searches", () => {
     const { search, Wrapper } = await setup();
     const { result } = renderHook(() => search.useRecentSearches(), { wrapper: Wrapper });
     await waitFor(() => {
-      expect(result.current).toBeDefined();
+      expect(result.current?.searches).toEqual([]);
     });
-    expect(result.current.searches).toEqual([]);
     act(() => {
       localStorage.setItem(
         "ghm-recent-searches-1",

@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Successful GitHub Actions runs on `main` deploy the checked build to the existing Cloudflare Pages project.
 - PR state icons and colors are consistent in details, repository lists, Work and search.
 - Public profile READMEs load separately. Repository README requests and direct PR tab requests run in parallel.
 

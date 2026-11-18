@@ -37,26 +37,18 @@ Open the public preview at [gh-mobile-plus.pages.dev](https://gh-mobile-plus.pag
 GH Mobile+ runs on the Cloudflare Pages free tier.
 
 1. Create a GitHub **OAuth App**, with the callback URL `https://<your-project>.pages.dev/auth/callback`. Enable expiring user tokens.
-2. Create a Cloudflare Pages project from this repository.
+2. Create a Cloudflare Pages Direct Upload project with production branch `main`. Set `name` in `wrangler.toml` to your Pages project name.
 3. Set the environment variables and secrets listed in [docs/SPEC.md §14](docs/SPEC.md#14-configuration).
 
-Cloudflare Pages build settings:
+`public/_headers` sets the Content Security Policy and security headers, and `public/_routes.json` limits Functions to `/auth/*`. Set `GHM_GITHUB_CLIENT_ID`, `GHM_TOKEN_MODE` (`expiring`) and `GHM_COOKIE_ACTIVE_KID` as variables, and `GHM_GITHUB_CLIENT_SECRET` and `GHM_COOKIE_KEYS` as secrets. Generate a cookie key with `openssl rand -base64 32` and store it as `{"k1":"<key>"}`. Never set `GHM_DEV_INSECURE_COOKIES`, `GHM_GITHUB_OAUTH_ORIGIN` or `GHM_GITHUB_API_ORIGIN` in production; they are for local development and tests only. Optionally set the repository variable `VITE_GHM_SOURCE_URL` to your public repository URL so About links to it.
 
-| Setting | Value |
-|---|---|
-| Framework preset | None |
-| Build command | `pnpm build` |
-| Build output directory | `dist` |
-| Root directory | `/` |
-| Node.js version | 26 (set `NODE_VERSION=26`) |
+GitHub Actions deploys the checked build after both CI jobs pass on a push to `main`. Set the repository variable `CLOUDFLARE_ACCOUNT_ID` and the Actions secret `CLOUDFLARE_API_TOKEN` with the Cloudflare Pages Edit permission. Keep the OAuth secrets in Cloudflare Pages.
 
-`public/_headers` sets the Content Security Policy and security headers, and `public/_routes.json` limits Functions to `/auth/*`. Set `GHM_GITHUB_CLIENT_ID`, `GHM_TOKEN_MODE` (`expiring`) and `GHM_COOKIE_ACTIVE_KID` as variables, and `GHM_GITHUB_CLIENT_SECRET` and `GHM_COOKIE_KEYS` as secrets. Generate a cookie key with `openssl rand -base64 32` and store it as `{"k1":"<key>"}`. Never set `GHM_DEV_INSECURE_COOKIES`, `GHM_GITHUB_OAUTH_ORIGIN` or `GHM_GITHUB_API_ORIGIN` in production; they are for local development and tests only. Optionally set `VITE_GHM_SOURCE_URL` to your repository URL so About links to it.
-
-To deploy from your machine instead of Git integration:
+For a manual deployment:
 
 ```sh
 pnpm build
-pnpm exec wrangler pages deploy dist --project-name <project>
+pnpm exec wrangler pages deploy dist --branch main
 ```
 
 To rotate the cookie key, add a new kid to `GHM_COOKIE_KEYS`, point `GHM_COOKIE_ACTIVE_KID` at it, and remove the old kid after the longest session you want to keep (refresh tokens last up to six months).

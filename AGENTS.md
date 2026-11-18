@@ -73,11 +73,11 @@ Tests
 - Every user-facing string goes through the i18n catalogs, in both `en` and `ja`.
 - Every gesture has a non-gesture alternative.
 
-## 4. Git rules (local-first, single final commit)
+## 4. Git and deployment
 
-- This repository has **no remote** during the build. Never add a remote and never push. The operator pushes when v1 is done.
-- `git init -b main` at the start. You may make local checkpoint commits on `main` at clean stopping points; use Conventional Commits in English.
-- At the end, squash the whole history into **exactly one commit** with the message `feat: GH Mobile+ v1`. To do this, run `git reset --soft` to the root commit, then `git commit --amend`. Verify with `git log --oneline` that only one commit exists.
+- The published v1 commit starts the shared Git history. Keep shared commits intact and use Conventional Commits in English.
+- Pull requests run CI. A successful `main` push runs the production Cloudflare Pages deployment after all checks.
+- Treat every push to `main` as a production deployment and obtain the operator's authorization.
 - Never commit secrets: `.dev.vars` stays ignored, and only `.dev.vars.example` is committed.
 - Keep the working tree passing `pnpm ci:all` at every checkpoint.
 

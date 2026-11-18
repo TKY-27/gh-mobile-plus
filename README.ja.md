@@ -37,26 +37,18 @@
 Cloudflare Pagesの無料枠で動作します。
 
 1. GitHubで**OAuth App**を作成します。コールバックURLは`https://<プロジェクト名>.pages.dev/auth/callback`にし、期限付きユーザートークン(expiring user tokens)を有効にします。
-2. このリポジトリからCloudflare Pagesのプロジェクトを作成します。
+2. Cloudflare PagesでDirect Uploadプロジェクトを作成し、本番ブランチを `main` にします。`wrangler.toml` の `name` にプロジェクト名を設定します。
 3. [docs/SPEC.md §14](docs/SPEC.md#14-configuration)に記載の環境変数とシークレットを設定します。
 
-Cloudflare Pagesのビルド設定:
+`public/_headers` がContent Security Policyとセキュリティヘッダーを設定し、`public/_routes.json` がFunctionsを `/auth/*` に限定します。変数として `GHM_GITHUB_CLIENT_ID`、`GHM_TOKEN_MODE`(`expiring`)、`GHM_COOKIE_ACTIVE_KID` を、シークレットとして `GHM_GITHUB_CLIENT_SECRET` と `GHM_COOKIE_KEYS` を設定します。Cookie鍵は `openssl rand -base64 32` で生成し、`{"k1":"<鍵>"}` の形式で保存します。`GHM_DEV_INSECURE_COOKIES`、`GHM_GITHUB_OAUTH_ORIGIN`、`GHM_GITHUB_API_ORIGIN` はローカル開発とテスト専用なので、本番では設定しないでください。About画面から公開リポジトリにリンクしたい場合は、任意のリポジトリ変数 `VITE_GHM_SOURCE_URL` を設定します。
 
-| 項目 | 値 |
-|---|---|
-| Framework preset | None |
-| Build command | `pnpm build` |
-| Build output directory | `dist` |
-| Root directory | `/` |
-| Node.js | 26(`NODE_VERSION=26` を設定) |
+`main` にプッシュしてCIの両ジョブが通ると、GitHub Actionsが検査済みのビルドをデプロイします。リポジトリ変数に `CLOUDFLARE_ACCOUNT_ID`、Actionsシークレットに Cloudflare Pages Edit 権限の `CLOUDFLARE_API_TOKEN` を設定します。OAuthのシークレットはCloudflare Pagesで管理します。
 
-`public/_headers` がContent Security Policyとセキュリティヘッダーを設定し、`public/_routes.json` がFunctionsを `/auth/*` に限定します。変数として `GHM_GITHUB_CLIENT_ID`、`GHM_TOKEN_MODE`(`expiring`)、`GHM_COOKIE_ACTIVE_KID` を、シークレットとして `GHM_GITHUB_CLIENT_SECRET` と `GHM_COOKIE_KEYS` を設定します。Cookie鍵は `openssl rand -base64 32` で生成し、`{"k1":"<鍵>"}` の形式で保存します。`GHM_DEV_INSECURE_COOKIES`、`GHM_GITHUB_OAUTH_ORIGIN`、`GHM_GITHUB_API_ORIGIN` はローカル開発とテスト専用なので、本番では設定しないでください。About画面からリポジトリにリンクしたい場合は、任意で `VITE_GHM_SOURCE_URL` を設定します。
-
-Git連携ではなく手元からデプロイする場合:
+手動デプロイの場合は以下を実行します。
 
 ```sh
 pnpm build
-pnpm exec wrangler pages deploy dist --project-name <プロジェクト名>
+pnpm exec wrangler pages deploy dist --branch main
 ```
 
 Cookie鍵を入れ替えるときは、新しいkidを `GHM_COOKIE_KEYS` に追加して `GHM_COOKIE_ACTIVE_KID` をそれに向け、残したいセッションの最長期間(リフレッシュトークンは最長6か月)が過ぎてから古いkidを削除します。
