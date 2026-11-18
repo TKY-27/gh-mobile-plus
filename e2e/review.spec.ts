@@ -135,9 +135,7 @@ test("reviews with line, range and suggestion comments that survive a restart", 
   await page.getByRole("button", { name: enReview["bar.suggest"] }).click();
   await expect(page.getByRole("button", { name: enReview["comment.add"] })).toBeInViewport();
   const editor = page.getByRole("textbox", { name: enReview["comment.suggestionLabel"] });
-  await editor.click();
-  await page.keyboard.press("ControlOrMeta+a");
-  await page.keyboard.type('export const DEFAULT_LOCALE = "en";');
+  await editor.fill('export const DEFAULT_LOCALE = "en";');
   await tapInSheet(page.getByRole("button", { name: enReview["comment.add"] }));
 
   const reviewButton = page.getByRole("button", {
