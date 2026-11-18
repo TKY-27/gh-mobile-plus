@@ -1,13 +1,13 @@
 import type { HistoryLocation, RouterHistory } from "@tanstack/react-router";
 
-export type Tab = "home" | "work" | "inbox" | "search" | "account";
+export type Tab = "home" | "repositories" | "work" | "search" | "account";
 
-export const TABS: readonly Tab[] = ["home", "work", "inbox", "search", "account"];
+export const TABS: readonly Tab[] = ["home", "repositories", "work", "search", "account"];
 
 export const TAB_ROOTS: Readonly<Record<Tab, string>> = {
   home: "/",
   work: "/pulls",
-  inbox: "/notifications",
+  repositories: "/repositories",
   search: "/search",
   account: "/account",
 };
@@ -67,7 +67,7 @@ export function initialState(location: HistoryLocation): NavigationState {
   const stacks: Record<Tab, readonly StackEntry[]> = {
     home: [rootEntry("home")],
     work: [rootEntry("work")],
-    inbox: [rootEntry("inbox")],
+    repositories: [rootEntry("repositories")],
     search: [rootEntry("search")],
     account: [rootEntry("account")],
   };

@@ -1,3 +1,5 @@
+export const EDGE_BACK_WIDTH_PX = 20;
+
 const iosNavigator = "standalone" in window.navigator ? window.navigator : null;
 
 export const isIOS = iosNavigator !== null;

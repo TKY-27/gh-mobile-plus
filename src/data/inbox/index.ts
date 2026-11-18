@@ -96,34 +96,41 @@ function mapThread(thread: NotificationResponse): InboxThread {
   const repo = { owner: thread.repository.owner.login, name: thread.repository.name };
   const base = `https://github.com/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.name)}`;
   const type = subjectType(thread.subject.type);
-  let webUrl = thread.repository.html_url;
-  let appPath: string | null = null;
-  const apiUrl = thread.subject.url === null ? null : new URL(thread.subject.url);
-  const suffix =
-    apiUrl?.origin === "https://api.github.com" ? apiUrl.pathname.split("/").at(-1) : undefined;
-  if (suffix) {
-    switch (type) {
-      case "Issue":
-        webUrl = `${base}/issues/${suffix}`;
-        appPath = toAppPath(webUrl);
-        break;
-      case "PullRequest":
-        webUrl = `${base}/pull/${suffix}`;
-        appPath = toAppPath(webUrl);
-        break;
-      case "Commit":
-        webUrl = `${base}/commit/${suffix}`;
-        appPath = toAppPath(webUrl);
-        break;
-      case "Release":
-        webUrl = `${base}/releases`;
-        appPath = toAppPath(webUrl);
-        break;
-      case "Discussion":
-        webUrl = `${base}/discussions/${suffix}`;
-        break;
+  const subjectUrl = thread.subject.url;
+  const apiUrl = subjectUrl && URL.canParse(subjectUrl) ? new URL(subjectUrl) : null;
+  const pathname = apiUrl?.origin === "https://api.github.com" ? apiUrl.pathname : "";
+  const suffix = pathname.split("/").at(-1);
+  let webUrl = base;
+  switch (type) {
+    case "Issue":
+      webUrl = suffix ? `${base}/issues/${suffix}` : `${base}/issues`;
+      break;
+    case "PullRequest":
+      webUrl = suffix ? `${base}/pull/${suffix}` : `${base}/pulls`;
+      break;
+    case "Commit":
+      if (suffix) webUrl = `${base}/commit/${suffix}`;
+      break;
+    case "Release":
+      webUrl = `${base}/releases`;
+      break;
+    case "Discussion":
+      webUrl = suffix ? `${base}/discussions/${suffix}` : `${base}/discussions`;
+      break;
+    case "CheckSuite": {
+      // Check suite IDs differ from run IDs.
+      const run = /\/actions\/runs\/(\d+)$/.exec(pathname)?.[1];
+      webUrl = run ? `${base}/actions/runs/${run}` : `${base}/actions`;
+      break;
     }
+    case "RepositoryVulnerabilityAlert":
+      webUrl = `${base}/security/dependabot`;
+      break;
+    case "Other":
+      webUrl = `https://github.com/notifications?query=${encodeURIComponent(`repo:${repo.owner}/${repo.name}`)}`;
+      break;
   }
+  const appPath = webUrl === base ? null : toAppPath(webUrl);
   return {
     id: thread.id,
     repo,
@@ -170,8 +177,9 @@ export function useInbox(
   const client = useQueryClient();
   const [pollMs, setPollMs] = useState(MIN_POLL_INTERVAL_MS);
   const interval = usePollingInterval(pollMs);
+  const queryKey = accountKey(account.id, "inbox", filter);
   return useInfiniteQuery({
-    queryKey: accountKey(account.id, "inbox", filter),
+    queryKey,
     initialPageParam: "1",
     staleTime: STALE_TIME.list,
     meta: PRIVATE_QUERY,
@@ -187,11 +195,11 @@ export function useInbox(
           per_page: INBOX_PAGE_SIZE,
           page: pageParam,
         },
-        revalidate: true,
+        revalidate: !client.getQueryState(queryKey)?.isInvalidated,
         signal,
       });
       setPollMs(pollIntervalFrom(response.headers));
-      const cached = client.getQueryData<InboxPages>(accountKey(account.id, "inbox", filter));
+      const cached = client.getQueryData<InboxPages>(queryKey);
       const cachedIndex = cached?.pageParams.indexOf(pageParam) ?? -1;
       const cachedPage = cached?.pages[cachedIndex];
       if (response.notModified && cachedPage) return overlayPending(client, filter, cachedPage);
@@ -223,7 +231,8 @@ export function useUnreadCount(): number | null {
       const request = {
         path: "/notifications",
         query: { per_page: UNREAD_COUNT_PAGE_SIZE },
-        revalidate: true,
+        // Reading needn't change notification timestamps.
+        revalidate: !client.getQueryState(queryKey)?.isInvalidated,
         signal,
       };
       let response = await rest<NotificationResponse[]>(account.id, request);
@@ -365,6 +374,10 @@ export function useThreadAction(): (
           clearTimeout(timer);
           pending.delete(threadId);
           rollback(client, snapshots);
+          // Filters opened during Undo have no snapshot.
+          void client
+            .invalidateQueries({ queryKey: accountKey(account.id, "inbox") })
+            .catch(reportError);
           resolve();
         };
       });

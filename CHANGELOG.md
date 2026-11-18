@@ -20,11 +20,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Home shows contributions, recently pushed repositories and following activity. Notifications and settings open from its header. The Repositories tab opens the signed-in account’s list.
+- Repository and profile lists have a bounded reading width. Search suggests qualifiers for each result type. Notification rows expose a one-tap read action.
+
 - Successful GitHub Actions runs on `main` deploy the checked build to the existing Cloudflare Pages project.
 - PR state icons and colors are consistent in details, repository lists, Work and search.
 - Public profile READMEs load separately. Repository README requests and direct PR tab requests run in parallel.
 
 ### Fixed
+
+- Virtualized rows stay visible during deep scrolling and when returning to a list.
+- Notification swipes and edge navigation no longer compete. Unread counts refresh after a thread action.
+- Edits made while submitting an issue are saved when switching to its detail screen, including when the detail is still loading.
 
 - A missing profile README repository no longer blocks the profile.
 - GitHub's HTML media type renders correctly in READMEs and Markdown file views.

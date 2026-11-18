@@ -124,6 +124,25 @@ describe("inbox reads", () => {
     expect(result.current.data?.pages[0]?.nextCursor).toBe("2");
     expect(requests).toBe(2);
   });
+  it("opens check suites in Actions without mistaking suite IDs for run IDs", async () => {
+    const base = "https://api.github.com/repos/octo-org/hello-mobile";
+    const urls = [null, `${base}/check-suites/123`, `${base}/actions/runs/456`];
+    const threads = urls.map((url, index) => ({
+      ...notifications[0],
+      id: String(index),
+      reason: "ci_activity",
+      subject: { type: "CheckSuite", url, title: "CI failed", latest_comment_url: null },
+    }));
+    server.use(http.get("https://api.github.com/notifications", () => HttpResponse.json(threads)));
+    const { result } = renderHook(() => useInbox("unread"), { wrapper });
+    await waitFor(() => {
+      expect(result.current.data?.pages[0]?.items.map((thread) => thread.appPath)).toEqual([
+        "/octo-org/hello-mobile/actions",
+        "/octo-org/hello-mobile/actions",
+        "/octo-org/hello-mobile/actions/runs/456",
+      ]);
+    });
+  });
   it("loads an exact unread count without mounting the Inbox screen", async () => {
     server.use(
       http.get("https://api.github.com/notifications", ({ request }) => {
@@ -288,13 +307,16 @@ describe("inbox reads", () => {
     async (action) => {
       let unread = 237;
       server.use(
-        http.get("https://api.github.com/notifications", () =>
-          HttpResponse.json([notifications[0]], {
+        http.get("https://api.github.com/notifications", ({ request }) => {
+          if (request.headers.has("if-modified-since"))
+            return new HttpResponse(null, { status: 304 });
+          return HttpResponse.json([notifications[0]], {
             headers: {
+              "Last-Modified": "Tue, 17 Nov 2026 10:00:00 GMT",
               Link: `<https://api.github.com/notifications?per_page=1&page=${String(unread)}>; rel="last"`,
             },
-          }),
-        ),
+          });
+        }),
         http.patch("https://api.github.com/notifications/threads/1", () => {
           unread--;
           return new HttpResponse(null, { status: 205 });

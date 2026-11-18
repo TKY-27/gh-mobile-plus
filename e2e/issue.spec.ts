@@ -196,6 +196,16 @@ test("preserves edits made while creating an issue", async ({ page, oauth, githu
   await page.getByRole("textbox", { name: enIssue["new.title"] }).fill("First title");
   const body = page.getByRole("textbox", { name: enIssue["new.body"] });
   await body.fill("First body");
+  let resumeScripts = () => {};
+  let loadingDetail = false;
+  const scriptsPaused = new Promise<void>((resolve) => {
+    resumeScripts = resolve;
+  });
+  await page.route("**/assets/*.js", async (route) => {
+    loadingDetail = true;
+    await scriptsPaused;
+    await route.continue();
+  });
   await page.getByRole("button", { name: enIssue["new.submit"] }).click();
   try {
     await expect
@@ -207,8 +217,14 @@ test("preserves edits made while creating an issue", async ({ page, oauth, githu
   }
   await expect(page).toHaveURL(ISSUE_PATH);
 
-  await openInApp(page, NEW_ISSUE_PATH);
-  await expect(body).toHaveValue("Follow-up details");
+  try {
+    await expect.poll(() => loadingDetail).toBe(true);
+    await openInApp(page, NEW_ISSUE_PATH);
+    await expect(body).toHaveValue("Follow-up details");
+  } finally {
+    resumeScripts();
+    await page.unrouteAll({ behavior: "wait" });
+  }
 });
 
 test("shows the SSO link inside a restricted Markdown preview", async ({ page, oauth, github }) => {

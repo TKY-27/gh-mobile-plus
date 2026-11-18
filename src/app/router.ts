@@ -27,6 +27,15 @@ export const starredReleasesRoute = createRoute({
   path: "dashboard/releases",
   component: lazy(() => import("@/features/home/StarredReleasesScreen.tsx")),
 });
+export const repositoriesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "repositories",
+  component: lazy(() =>
+    import("@/features/account/profile/ProfileScreen.tsx").then((module) => ({
+      default: module.MyRepositoriesScreen,
+    })),
+  ),
+});
 export const workRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "pulls",
@@ -195,6 +204,7 @@ const diagnosticsRoute = import.meta.env.DEV
 const routeTree = rootRoute.addChildren([
   homeRoute,
   starredReleasesRoute,
+  repositoriesRoute,
   workRoute,
   inboxRoute,
   searchRoute,

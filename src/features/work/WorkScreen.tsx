@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PartyPopper } from "lucide-react";
+import { GitPullRequest } from "lucide-react";
 import { Page } from "@/app/Page.tsx";
 import type { ChecksState, ReviewDecision } from "@/data/types";
 import { useWorkQueue, type WorkItem, type WorkSegment } from "@/data/work";
@@ -126,10 +126,9 @@ export default function WorkScreen() {
   } else if (!current || current.items.length === 0) {
     body = (
       <EmptyState
-        icon={<PartyPopper />}
+        icon={<GitPullRequest />}
         title={t(text.emptyTitle)}
         message={t(text.emptyMessage)}
-        celebrate
       />
     );
   } else {

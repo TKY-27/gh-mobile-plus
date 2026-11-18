@@ -6,13 +6,14 @@ An unofficial, free and open-source GitHub client for your phone, delivered as a
 
 ## Why
 
-The official mobile app is good at notifications and quick actions, and not much else. GH Mobile+ redesigns the mobile GitHub workflow from scratch. Code review is the core experience, the notification inbox is built for one-thumb triage, and the work queue tells you what needs your attention. It installs from the browser, runs on iPhone and Android with the same design, and stores nothing about you on any server.
+Use GH Mobile+ to review a diff, check notifications or find a repository on your phone. It installs from the browser and keeps session and offline data on your device.
 
 ## Features
 
-- **Home:** your profile and contribution graph, new releases from starred repositories, and an activity feed.
-- **Work:** review requests, your open PRs, assigned issues and failing CI, as a queue that reaches zero.
-- **Inbox:** notifications with swipe-to-done, filters and bulk actions.
+- **Home:** your contribution calendar, recently pushed repositories, activity from people you follow, and releases from starred repositories.
+- **Repositories and search:** open your repositories from the tab bar, or search GitHub by type with qualifiers.
+- **Work:** review requests, your open PRs, assigned issues and failing CI, in one place.
+- **Notifications:** open the bell on Home to read threads, mark individual notifications as read, or act on a selection.
 - **Code review:** mark files viewed, step through hunks, comment on lines and ranges, suggest changes, and submit reviews.
 - **Pull requests and issues:** timelines, composer with preview and autocomplete, labels, assignees and merge. PR state icons and colors match across lists, search and detail.
 - **Code:** browse with syntax highlighting, edit a file, and commit directly or through a branch, fork and PR.

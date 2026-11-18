@@ -47,7 +47,7 @@
   "help.suspended.title": "You may need to sign in again after the app was suspended",
   "help.suspended.body": "If your phone suspends the app at the exact moment it renews your session with GitHub, the renewed session is lost. Sign in again to continue; nothing else is affected.",
   "help.push.title": "No push notifications",
-  "help.push.body": "The inbox and the icon badge update only while the app is open. GH Mobile+ doesn’t deliver notifications in the background.",
+  "help.push.body": "Notifications and the app icon badge update while the app is open.",
   "help.feed.title": "The activity feed can be delayed",
   "help.feed.body": "GitHub’s events feed can lag from 30 seconds to 6 hours, keeps at most 300 events from the last 30 days, and doesn’t include starred repositories.",
   "help.iosSignIn.title": "On iPhone, the Home Screen app signs in separately",

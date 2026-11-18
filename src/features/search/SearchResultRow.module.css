@@ -11,13 +11,8 @@
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.row::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: var(--space-4);
-  border-bottom: var(--border-width) solid var(--color-separator);
+.row[data-hovered] {
+  background: var(--color-bg-secondary);
 }
 
 .row[data-pressed] {
@@ -37,26 +32,14 @@
 }
 
 .title {
+  color: var(--color-text);
+  font-weight: var(--weight-semibold);
   overflow-wrap: anywhere;
 }
 
 .title .inlineIcon {
   margin-inline-start: var(--space-1);
   vertical-align: -0.125em;
-}
-
-.title strong {
-  font-weight: var(--weight-semibold);
-}
-
-.description {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  color: var(--color-text-secondary);
-  font-size: var(--text-subhead);
 }
 
 .meta {
@@ -70,24 +53,11 @@
   overflow-wrap: anywhere;
 }
 
-.metaItem {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-}
-
 .inlineIcon {
   flex: none;
   width: 0.875rem;
   height: 0.875rem;
   color: var(--color-text-secondary);
-}
-
-.language {
-  width: 0.625rem;
-  height: 0.625rem;
-  border-radius: var(--radius-full);
-  background: var(--color-text-tertiary);
 }
 
 .codeIcon {

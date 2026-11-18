@@ -71,11 +71,14 @@ test("each tab keeps its own stack and scroll position", async ({ page }) => {
   await expect(page).toHaveURL(DETAIL);
   await makeScrollable(page, DETAIL);
 
-  await page.getByRole("button", { name: "Inbox" }).click();
-  await expect(page).toHaveURL("/notifications");
-  await expect(page.getByRole("heading", { name: "Inbox", level: 1 })).toBeVisible();
+  await page.getByRole("button", { name: "Repositories" }).click();
+  await expect(page).toHaveURL("/repositories");
+  await expect(page.getByRole("heading", { name: "Repositories", level: 1 })).toBeVisible();
 
-  await page.getByRole("button", { name: "Home" }).click();
+  await page
+    .getByRole("navigation", { name: "Tabs" })
+    .getByRole("button", { name: "Home", exact: true })
+    .click();
   await expect(page).toHaveURL(DETAIL);
   await expect(screen(page, DETAIL)).toBeVisible();
   expect(await screen(page, DETAIL).evaluate((layer) => layer.scrollTop)).toBe(SCROLL_OFFSET);
@@ -88,18 +91,28 @@ test("re-tapping the active tab scrolls to top, then pops to root", async ({ pag
   await expect(page).toHaveURL(DETAIL);
   await makeScrollable(page, DETAIL);
 
-  await page.getByRole("button", { name: "Home" }).click();
+  await page
+    .getByRole("navigation", { name: "Tabs" })
+    .getByRole("button", { name: "Home", exact: true })
+    .click();
   await expect.poll(() => screen(page, DETAIL).evaluate((layer) => layer.scrollTop)).toBe(0);
   await expect(page).toHaveURL(DETAIL);
 
-  await page.getByRole("button", { name: "Home" }).click();
+  await page
+    .getByRole("navigation", { name: "Tabs" })
+    .getByRole("button", { name: "Home", exact: true })
+    .click();
   await expect(page).toHaveURL("/");
   await expect(page.getByRole("heading", { name: "Home", level: 1 })).toBeVisible();
 });
 
 test("a cold deep link opens over its tab root and Back returns to it", async ({ page }) => {
   await page.goto("/octocat/hello-world/pull/7");
-  await expect(page.getByRole("button", { name: "Home" })).toHaveAttribute("aria-current", "page");
+  await expect(
+    page
+      .getByRole("navigation", { name: "Tabs" })
+      .getByRole("button", { name: "Home", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
   await page.getByRole("button", { name: "Back" }).click();
   await expect(page).toHaveURL("/");
   await expect(page.getByRole("heading", { name: "Home", level: 1 })).toBeVisible();
@@ -107,7 +120,7 @@ test("a cold deep link opens over its tab root and Back returns to it", async ({
 
 test("browser back pops the active stack", async ({ page }) => {
   await page.goto("/notifications");
-  await expect(page.getByRole("heading", { name: "Inbox", level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Notifications", level: 1 })).toBeVisible();
   await page.getByRole("button", { name: "Search" }).click();
   await expect(page).toHaveURL("/search");
   await page.getByRole("button", { name: "Open command palette" }).click();
@@ -133,9 +146,12 @@ test("unvisited tabs stay unmounted and fetch nothing", async ({ page }) => {
   await expect(screen(page, "/pulls")).toHaveCount(0);
   expect(accountQueries).toEqual([]);
 
-  await page.getByRole("button", { name: "Inbox" }).click();
-  await page.getByRole("button", { name: "Home" }).click();
-  await expect(screen(page, "/notifications")).toHaveCount(1);
+  await page.getByRole("button", { name: "Repositories" }).click();
+  await page
+    .getByRole("navigation", { name: "Tabs" })
+    .getByRole("button", { name: "Home", exact: true })
+    .click();
+  await expect(screen(page, "/repositories")).toHaveCount(1);
   await expect(screen(page, "/account")).toHaveCount(0);
 });
 

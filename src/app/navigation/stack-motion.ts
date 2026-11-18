@@ -16,12 +16,12 @@ export function createStackMotion() {
 
   const width = () => container?.clientWidth ?? window.innerWidth;
 
-  function paint(moving: HTMLElement, under: HTMLElement | undefined, x: number) {
-    const fraction = Math.min(1, Math.max(0, x / width()));
+  function paint(moving: HTMLElement, under: HTMLElement | undefined, x: number, span: number) {
+    const fraction = Math.min(1, Math.max(0, x / span));
     position = x;
     moving.style.transform = `translate3d(${String(x)}px, 0, 0)`;
     if (under) {
-      under.style.transform = `translate3d(${String((x - width()) * PARALLAX)}px, 0, 0)`;
+      under.style.transform = `translate3d(${String((x - span) * PARALLAX)}px, 0, 0)`;
     }
     if (scrim) scrim.style.opacity = String((1 - fraction) * SCRIM_OPACITY);
   }
@@ -59,12 +59,13 @@ export function createStackMotion() {
       onDone();
       return;
     }
+    const span = width();
     animation = runSpring(
       position,
       target,
       velocity,
       (x) => {
-        paint(moving, under, x);
+        paint(moving, under, x, span);
       },
       () => {
         animation = null;

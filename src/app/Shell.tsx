@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Gauge, WifiOff } from "lucide-react";
 import { useIsRateLimitLow, useIsShowingCachedData, useRateLimit } from "@/data/status";
 import { useFormatters, useT } from "@/i18n/index.tsx";
@@ -42,6 +42,7 @@ export function Shell(props: { unreadCount: number | null }) {
 
   const actions = useMemo<ShellActions>(
     () => ({
+      unreadCount: props.unreadCount,
       openCommandPalette: () => {
         setPaletteOpen(true);
       },
@@ -49,7 +50,7 @@ export function Shell(props: { unreadCount: number | null }) {
         setSwitcherOpen(true);
       },
     }),
-    [],
+    [props.unreadCount],
   );
 
   useEffect(() => {
@@ -74,10 +75,10 @@ export function Shell(props: { unreadCount: number | null }) {
     }
   };
 
-  const register = (key: string, element: HTMLDivElement | null) => {
+  const register = useCallback((key: string, element: HTMLDivElement | null) => {
     if (element) scrollers.current.set(key, element);
     else scrollers.current.delete(key);
-  };
+  }, []);
 
   return (
     <ShellContext value={actions}>
@@ -107,7 +108,6 @@ export function Shell(props: { unreadCount: number | null }) {
         <TabBar
           active={state.activeTab}
           hidden={keyboardOpen}
-          unreadCount={props.unreadCount}
           onSelect={navigator.selectTab}
           onReselect={reselect}
           onAccountLongPress={() => {

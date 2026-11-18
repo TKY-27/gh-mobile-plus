@@ -41,6 +41,22 @@ export const defaultGitHubHandlers: RequestHandler[] = [
   http.get(`${API_ORIGIN}/users/:login/received_events`, () => HttpResponse.json(homeEvents)),
   http.get(`${API_ORIGIN}/notifications`, () => HttpResponse.json(inboxNotifications)),
   githubGraphql.query("ViewerOrganizations", () => HttpResponse.json(organizations)),
+  githubGraphql.query<object, { login: string }>("RepositoriesOf", ({ variables }) =>
+    HttpResponse.json({
+      data: {
+        repositoryOwner: {
+          __typename: "User",
+          repositories: {
+            nodes: profile.data.repositoryOwner.pinnedItems.nodes.map((repo) => ({
+              ...repo,
+              owner: { login: variables.login },
+            })),
+            pageInfo: { hasNextPage: false, endCursor: null },
+          },
+        },
+      },
+    }),
+  ),
   githubGraphql.query("Profile", () => HttpResponse.json(profile)),
   githubGraphql.query("Repository", () => HttpResponse.json(repository)),
   githubGraphql.query("RepositoryRefs", () => HttpResponse.json(refs)),

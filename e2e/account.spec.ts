@@ -91,3 +91,99 @@ test("Account shows the profile while GitHub is still rendering its README", asy
   await expect(ownerScreen.getByText(PROFILE.name, { exact: true })).toBeVisible();
   await expect(ownerScreen.getByText("Profile README content")).toBeHidden();
 });
+
+test("the repositories tab finds a fork by name in the signed-in account", async ({
+  page,
+  oauth,
+  github,
+}) => {
+  const searches: string[] = [];
+  github.use(
+    githubGraphql.query<object, { query: string }>("Search", ({ variables }) => {
+      searches.push(variables.query);
+      return HttpResponse.json({
+        data: {
+          search: {
+            repositoryCount: 1,
+            nodes: [
+              {
+                ...PROFILE.pinnedItems.nodes[0],
+                owner: { login: "mona" },
+                name: "archived-fork",
+                isFork: true,
+              },
+            ],
+            pageInfo: { endCursor: null, hasNextPage: false },
+          },
+        },
+      });
+    }),
+  );
+  await signIn(page, oauth);
+  await page.locator('[data-tab="repositories"]').click();
+  await expect(page).toHaveURL("/repositories");
+  const screen = page.locator('[data-stack-screen="/repositories"]');
+  const original = screen.getByRole("link", { name: /hello-mobile/ });
+  await expect(original).toHaveAttribute("href", "/mona/hello-mobile");
+  const field = screen.getByRole("searchbox");
+  await field.fill("archived-fork");
+  await expect(screen.getByRole("link", { name: /archived-fork/ })).toHaveAttribute(
+    "href",
+    "/mona/archived-fork",
+  );
+  expect(searches).toHaveLength(1);
+  for (const clause of ["user:mona", "in:name", "fork:true", "archived-fork"]) {
+    expect(searches[0]).toContain(clause);
+  }
+  await field.clear();
+  await expect(original).toBeVisible();
+  await page.context().setOffline(true);
+  await field.fill("archived-fork");
+  await expect(screen.getByRole("link", { name: /archived-fork/ })).toBeVisible();
+  expect(searches).toHaveLength(1);
+});
+
+test("offline name filtering searches saved repositories and reports a partial list", async ({
+  page,
+  context,
+  oauth,
+  github,
+}) => {
+  const nodes = Array.from({ length: 50 }, (_, index) => ({
+    ...PROFILE.pinnedItems.nodes[0],
+    owner: { login: "mona" },
+    name: index === 0 ? "Saved-Fork" : `project-${String(index)}`,
+  }));
+  github.use(
+    githubGraphql.query("RepositoriesOf", () =>
+      HttpResponse.json({
+        data: {
+          repositoryOwner: {
+            __typename: "User",
+            repositories: { nodes, pageInfo: { endCursor: "next", hasNextPage: true } },
+          },
+        },
+      }),
+    ),
+  );
+  await signIn(page, oauth);
+  await page.locator('[data-tab="repositories"]').click();
+  const screen = page.locator('[data-stack-screen="/repositories"]');
+  const fork = screen.getByRole("link", { name: /Saved-Fork/ });
+  const project = screen.getByRole("link", { name: /project-1\b/ });
+  await expect(project).toBeVisible();
+  await context.setOffline(true);
+  const field = screen.getByRole("searchbox");
+  await field.fill("saved-fork");
+  await expect(fork).toHaveAttribute("href", "/mona/Saved-Fork");
+  await expect(project).toHaveCount(0);
+  await expect(screen.getByRole("status")).toContainText("Only repositories saved on this device");
+  await field.fill("missing-fork");
+  await expect(
+    screen.getByRole("heading", { name: "No saved repositories match “missing-fork”" }),
+  ).toBeVisible();
+  await screen.getByRole("button", { name: "Clear", exact: true }).click();
+  await expect(project).toBeVisible();
+  await context.setOffline(false);
+  await expect(screen.getByText("Recently updated")).toBeVisible();
+});

@@ -21,7 +21,7 @@ import { SegmentedControl } from "@/ui/SegmentedControl.tsx";
 import { Spinner } from "@/ui/Spinner.tsx";
 import { dismissToast, showToast } from "@/ui/Toast.tsx";
 import { showErrorToast } from "@/ui/error-toast.ts";
-import { openExternal } from "@/ui/external.ts";
+import { useIsOffline } from "@/data/status";
 import { BulkBar, type BulkRun } from "./BulkBar.tsx";
 import { InboxRow, THREAD_ROW_ESTIMATE_PX } from "./InboxRow.tsx";
 import type { SwipeAction } from "./swipe.ts";
@@ -71,7 +71,7 @@ function EmptyInbox(props: { filter: InboxFilter; onShowAll: () => void }) {
         icon={<CheckCheck />}
         title={t("inbox.empty.unread.title")}
         message={t("inbox.empty.unread.message")}
-        celebrate
+        action={<Button onPress={props.onShowAll}>{t("inbox.empty.showAll")}</Button>}
       />
     );
   }
@@ -99,6 +99,7 @@ export default function InboxScreen() {
   const formatters = useFormatters();
   const router = useRouter();
   const now = useNow();
+  const offline = useIsOffline();
   const [filter, setFilter] = useState<InboxFilter>("unread");
   const [grouped, setGrouped] = useState(false);
   const [selection, setSelection] = useState<ReadonlySet<string> | null>(null);
@@ -166,8 +167,8 @@ export default function InboxScreen() {
 
   const open = (thread: InboxThread) => {
     if (thread.appPath) router.history.push(thread.appPath);
-    else openExternal(thread.webUrl);
-    if (thread.unread) perform("read", thread, false);
+    else setActionsFor({ thread: { ...thread, unread: offline && thread.unread }, open: true });
+    if (!offline && thread.unread) perform("read", thread, false);
   };
 
   const unsubscribeFrom = (thread: InboxThread) => {
@@ -258,6 +259,7 @@ export default function InboxScreen() {
             <InboxRow
               thread={entry.thread}
               selecting={selecting}
+              offline={offline}
               selected={selectedIds.has(entry.thread.id)}
               removesOnRead={filter === "unread"}
               onSelectedChange={(selected) => {
@@ -284,14 +286,14 @@ export default function InboxScreen() {
 
   return (
     <Page
-      title={t("app.tabs.inbox")}
+      title={t("inbox.listLabel")}
       largeTitle
       openOnGitHub
       actions={
         threads.length > 0 || selecting ? (
           <Button
             variant="plain"
-            isDisabled={running}
+            isDisabled={running || (offline && !selecting)}
             onPress={() => {
               setSelection(selecting ? null : new Set());
               setOutcome(null);
@@ -337,7 +339,9 @@ export default function InboxScreen() {
           </Button>
         </div>
       ) : null}
-      <div aria-busy={inbox.isFetching || undefined}>{body}</div>
+      <div className={styles.threads} aria-busy={inbox.isFetching || undefined}>
+        {body}
+      </div>
       {isFetchingNextPage ? (
         <div className={styles.loadingMore}>
           <Spinner size="small" />
@@ -349,6 +353,7 @@ export default function InboxScreen() {
       {selecting ? (
         <BulkBar
           selectedCount={selectedThreads.length}
+          offline={offline}
           run={bulk.progress?.running ? { action: bulkAction, progress: bulk.progress } : outcome}
           onRun={runBulk}
         />
@@ -363,6 +368,7 @@ export default function InboxScreen() {
           perform(action, thread, true);
         }}
         onUnsubscribe={unsubscribeFrom}
+        offline={offline}
       />
     </Page>
   );

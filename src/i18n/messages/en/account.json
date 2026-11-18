@@ -32,5 +32,14 @@
   "repo.fork": "Fork",
   "repo.stars.one": "{count} star",
   "repo.stars.other": "{count} stars",
-  "repo.updated": "Updated"
+  "repo.updated": "Updated",
+  "profile.sections": "Profile navigation",
+  "repositories.find": "Find a repository…",
+  "repositories.updatedOrder": "Recently updated",
+  "starred.order": "Recently starred",
+  "repositories.notSaved": "No repositories saved on this device",
+  "repositories.noSavedMatch": "No saved repositories match “{query}”",
+  "repositories.reconnect": "Reconnect to load the full repository list.",
+  "repositories.savedOnly": "Only repositories saved on this device are shown.",
+  "repositories.changeFilter": "Try a different repository name."
 }
