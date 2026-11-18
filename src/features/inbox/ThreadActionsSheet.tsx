@@ -4,17 +4,14 @@ import type { InboxThread } from "@/data/inbox";
 import { useT } from "@/i18n/index.tsx";
 import { ListRow, ListSection } from "@/ui/ListRow.tsx";
 import { Sheet } from "@/ui/Sheet.tsx";
+import { RelativeTime } from "@/ui/RelativeTime.tsx";
+import styles from "./InboxScreen.module.css";
 import type { SwipeAction } from "./swipe.ts";
-
-const MAX_TITLE_CHARS = 80;
-
-function sheetTitle(title: string): string {
-  return title.length > MAX_TITLE_CHARS ? `${title.slice(0, MAX_TITLE_CHARS - 1)}…` : title;
-}
 
 export function ThreadActionsSheet(props: {
   thread: InboxThread | null;
   isOpen: boolean;
+  offline: boolean;
   onClose: () => void;
   onAction: (thread: InboxThread, action: SwipeAction) => void;
   onUnsubscribe: (thread: InboxThread) => void;
@@ -32,39 +29,51 @@ export function ThreadActionsSheet(props: {
       onOpenChange={(open) => {
         if (!open) props.onClose();
       }}
-      title={sheetTitle(thread?.title ?? "")}
+      title={thread?.title ?? ""}
     >
       {thread ? (
-        <ListSection>
-          <ListRow
-            leading={<Check aria-hidden />}
-            title={t("inbox.action.markDone")}
-            onPress={run((target) => {
-              props.onAction(target, "done");
-            })}
-          />
-          {thread.unread ? (
+        <>
+          <p className={styles.sheetMeta}>
+            <span>
+              {thread.repo.owner}/{thread.repo.name}
+            </span>
+            <RelativeTime date={thread.updatedAt} />
+          </p>
+          <ListSection>
             <ListRow
-              leading={<MailOpen aria-hidden />}
-              title={t("inbox.action.markRead")}
+              leading={<ExternalLink aria-hidden />}
+              title={t("common.openOnGitHub")}
               onPress={run((target) => {
-                props.onAction(target, "read");
+                openExternal(target.webUrl);
               })}
             />
-          ) : null}
-          <ListRow
-            leading={<BellOff aria-hidden />}
-            title={t("inbox.action.unsubscribe")}
-            onPress={run(props.onUnsubscribe)}
-          />
-          <ListRow
-            leading={<ExternalLink aria-hidden />}
-            title={t("common.openOnGitHub")}
-            onPress={run((target) => {
-              openExternal(target.webUrl);
-            })}
-          />
-        </ListSection>
+            {props.offline ? null : (
+              <>
+                <ListRow
+                  leading={<Check aria-hidden />}
+                  title={t("inbox.action.markDone")}
+                  onPress={run((target) => {
+                    props.onAction(target, "done");
+                  })}
+                />
+                {thread.unread ? (
+                  <ListRow
+                    leading={<MailOpen aria-hidden />}
+                    title={t("inbox.action.markRead")}
+                    onPress={run((target) => {
+                      props.onAction(target, "read");
+                    })}
+                  />
+                ) : null}
+                <ListRow
+                  leading={<BellOff aria-hidden />}
+                  title={t("inbox.action.unsubscribe")}
+                  onPress={run(props.onUnsubscribe)}
+                />
+              </>
+            )}
+          </ListSection>
+        </>
       ) : null}
     </Sheet>
   );

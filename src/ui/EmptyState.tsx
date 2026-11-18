@@ -6,10 +6,9 @@ export function EmptyState(props: {
   title: string;
   message: string;
   action?: ReactNode;
-  celebrate?: boolean;
 }) {
   return (
-    <div className={styles.empty} data-celebrate={props.celebrate || undefined}>
+    <div className={styles.empty}>
       <span className={styles.icon} aria-hidden>
         {props.icon}
       </span>

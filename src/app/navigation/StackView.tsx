@@ -1,5 +1,6 @@
 import {
   Suspense,
+  useCallback,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -9,6 +10,7 @@ import {
 import { useRouter } from "@tanstack/react-router";
 import { NotFoundScreen } from "../NotFoundScreen.tsx";
 import { ScreenBoundary } from "../ScreenBoundary.tsx";
+import { EDGE_BACK_WIDTH_PX } from "../platform.ts";
 import { useNavigator } from "./context.ts";
 import type { StackEntry } from "./navigator.ts";
 import { ScreenContext, type ScreenValue } from "./screen.ts";
@@ -17,7 +19,6 @@ import { ScreenSkeleton } from "./ScreenSkeleton.tsx";
 import { createStackMotion, type StackMotion } from "./stack-motion.ts";
 import styles from "./StackView.module.css";
 
-const EDGE_WIDTH_PX = 20;
 const SLOP_PX = 10;
 const VELOCITY_WINDOW_MS = 100;
 const PROJECTION_MS = 120;
@@ -28,6 +29,7 @@ interface Drag {
   startX: number;
   startY: number;
   offset: number;
+  width: number;
   engaged: boolean;
   samples: { x: number; time: number }[];
 }
@@ -47,8 +49,18 @@ function Layer(props: {
   register: (key: string, element: HTMLDivElement | null) => void;
 }) {
   const scroller = useRef<HTMLDivElement | null>(null);
+  const [mounted, setMounted] = useState(false);
   const savedScroll = useRef(0);
-  const { entry, isRoot, isTop, visible } = props;
+  const { entry, isRoot, isTop, visible, register } = props;
+
+  const attach = useCallback(
+    (node: HTMLDivElement | null) => {
+      scroller.current = node;
+      if (node) setMounted(true);
+      register(entry.key, node);
+    },
+    [entry.key, register],
+  );
 
   // WebKit can lose offsets when hidden.
   useLayoutEffect(() => {
@@ -66,10 +78,7 @@ function Layer(props: {
   const Screen = route.match.routeId === ROOT_ROUTE_ID ? NotFoundScreen : route.component;
   return (
     <div
-      ref={(element) => {
-        scroller.current = element;
-        props.register(entry.key, element);
-      }}
+      ref={attach}
       className={styles.layer}
       data-stack-screen={entry.href}
       data-hidden={props.hidden || undefined}
@@ -79,11 +88,13 @@ function Layer(props: {
         if (visible) savedScroll.current = event.currentTarget.scrollTop;
       }}
     >
-      <ScreenContext value={screen}>
-        <ScreenBoundary>
-          <Suspense fallback={<ScreenSkeleton />}>{Screen ? <Screen /> : null}</Suspense>
-        </ScreenBoundary>
-      </ScreenContext>
+      {mounted ? (
+        <ScreenContext value={screen}>
+          <ScreenBoundary key={route.match.routeId}>
+            <Suspense fallback={<ScreenSkeleton />}>{Screen ? <Screen /> : null}</Suspense>
+          </ScreenBoundary>
+        </ScreenContext>
+      ) : null}
     </div>
   );
 }
@@ -134,15 +145,18 @@ export function StackView(props: {
   const previousTop = useRef<string | null>(null);
   const focusOrigins = useRef(new Map<string, HTMLElement>());
   const focusTarget = useRef<string | null>(null);
-  const { entries, leaving, active } = props;
+  const { entries, leaving, active, register: registerScroller } = props;
   const top = entries.at(-1);
   const below = entries.at(-2);
 
-  const register = (key: string, element: HTMLDivElement | null) => {
-    if (element) motion.layers.set(key, element);
-    else motion.layers.delete(key);
-    props.register(key, element);
-  };
+  const register = useCallback(
+    (key: string, element: HTMLDivElement | null) => {
+      if (element) motion.layers.set(key, element);
+      else motion.layers.delete(key);
+      registerScroller(key, element);
+    },
+    [motion, registerScroller],
+  );
 
   useLayoutEffect(() => {
     const key = top?.key ?? null;
@@ -158,7 +172,8 @@ export function StackView(props: {
     if (pushed && topLayer) {
       const under = motion.layers.get(previous);
       motion.reveal(under);
-      motion.paint(topLayer, under, motion.width());
+      const width = motion.width();
+      motion.paint(topLayer, under, width, width);
       motion.animateTo(topLayer, under, 0, 0, () => {
         motion.settle(topLayer, under);
       });
@@ -186,21 +201,24 @@ export function StackView(props: {
       return;
     }
     motion.reveal(under);
-    motion.paint(leavingLayer, under, motion.position());
-    motion.animateTo(leavingLayer, under, motion.width(), 0, finish);
+    const width = motion.width();
+    motion.paint(leavingLayer, under, motion.position(), width);
+    motion.animateTo(leavingLayer, under, width, 0, finish);
   }, [leaving, top, active, navigator, motion]);
 
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
-    if (!props.swipeEnabled || !below || !top || event.button !== 0 || !event.isPrimary) return;
+    if (!props.swipeEnabled || leaving || !below || !top || event.button !== 0 || !event.isPrimary)
+      return;
     const fromEdge = event.clientX - event.currentTarget.getBoundingClientRect().left;
-    const interrupting = motion.isAnimating() && motion.position() > 0 && !leaving;
-    if (fromEdge > EDGE_WIDTH_PX && !interrupting) return;
+    if (fromEdge > EDGE_BACK_WIDTH_PX) return;
+    const interrupting = motion.isAnimating() && motion.position() > 0;
     motion.stop();
     drag.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
       offset: motion.position(),
+      width: motion.width(),
       engaged: interrupting,
       samples: [{ x: event.clientX, time: event.timeStamp }],
     };
@@ -227,8 +245,8 @@ export function StackView(props: {
     );
     const topLayer = motion.layers.get(top.key);
     if (!topLayer) return;
-    const x = Math.min(motion.width(), Math.max(0, current.offset + dx));
-    motion.paint(topLayer, motion.layers.get(below.key), x);
+    const x = Math.min(current.width, Math.max(0, current.offset + dx));
+    motion.paint(topLayer, motion.layers.get(below.key), x, current.width);
   }
 
   function release(event: ReactPointerEvent<HTMLDivElement>, cancelled: boolean) {
@@ -243,8 +261,8 @@ export function StackView(props: {
     const measured = first && elapsed > 0 ? (event.clientX - first.x) / elapsed : 0;
     const velocity = Math.max(-MAX_VELOCITY_PX_PER_MS, Math.min(MAX_VELOCITY_PX_PER_MS, measured));
     const projected = motion.position() + velocity * PROJECTION_MS;
-    const complete = !cancelled && projected > motion.width() / 2;
-    motion.animateTo(topLayer, under, complete ? motion.width() : 0, velocity, () => {
+    const complete = !cancelled && projected > current.width / 2;
+    motion.animateTo(topLayer, under, complete ? current.width : 0, velocity, () => {
       if (!complete) {
         motion.settle(topLayer, under);
         return;

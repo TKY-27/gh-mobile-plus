@@ -32,13 +32,14 @@ function outcomeText(t: ReturnType<typeof useT>, run: BulkRun): string {
 
 export function BulkBar(props: {
   selectedCount: number;
+  offline: boolean;
   run: BulkRun | null;
   onRun: (action: SwipeAction) => void;
 }) {
   const t = useT();
   const { run } = props;
   const running = run?.progress.running ?? false;
-  const disabled = running || props.selectedCount === 0;
+  const disabled = props.offline || running || props.selectedCount === 0;
   return (
     <div className={styles.bar} role="group" aria-label={t("inbox.bulk.label")}>
       {run?.progress.running ? (

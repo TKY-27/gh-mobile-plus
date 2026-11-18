@@ -30,6 +30,7 @@ const RESERVED_OWNERS: ReadonlySet<string> = new Set([
   "orgs",
   "pricing",
   "pulls",
+  "repositories",
   "search",
   "sessions",
   "settings",
@@ -69,6 +70,9 @@ function fromUrl(text: string): string | null {
   if (!webScheme || !GITHUB_HOSTS.has(url.hostname) || url.port || url.username) return null;
   const [owner, repo, ...rest] = url.pathname.split("/").filter(Boolean);
   if (owner === undefined) return "/";
+  if (owner === "notifications" && repo === undefined && !url.search && !url.hash) {
+    return "/notifications";
+  }
   if (repo === undefined) return isOwner(owner) ? `/${owner}` : null;
   return repoPath(owner, repo, rest.join("/"), url.hash);
 }

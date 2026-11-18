@@ -43,13 +43,14 @@ export const API_SCREENS: readonly ApiScreen[] = [
 export const TAB_ROOTS: Readonly<Record<string, string>> = {
   "/": "home",
   "/pulls": "work",
-  "/notifications": "inbox",
+  "/repositories": "repositories",
   "/search": "search",
   "/account": "account",
 };
 
 export const SHELL_PATHS: readonly string[] = [
   ...Object.keys(TAB_ROOTS),
+  "/notifications",
   "/settings",
   "/mona",
   REPO,
@@ -65,6 +66,11 @@ export async function openInApp(page: Page, path: string) {
   const tab = TAB_ROOTS[path];
   if (tab !== undefined) {
     await page.locator(`[data-tab="${tab}"]`).click();
+  } else if (path === "/notifications") {
+    await page.locator('[data-tab="home"]').click();
+    await inScreen(page, "/")
+      .getByRole("link", { name: /^Notifications\b/ })
+      .click();
   } else {
     const link = `https://github.com${path}`;
     // Wait for the shell's shortcut listener.

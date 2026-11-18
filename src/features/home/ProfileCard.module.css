@@ -1,118 +1,165 @@
-.card {
-  display: grid;
-  gap: var(--space-3);
-  margin: var(--space-2) var(--space-4) var(--space-4);
-  padding: var(--space-3) 0 var(--space-4);
-  border-radius: var(--radius-lg);
-  background: var(--color-bg-secondary);
-  overflow: hidden;
-}
-
-.summary {
-  display: flex;
+.identity {
+  display: inline-flex;
   align-items: center;
   gap: var(--space-3);
   min-height: var(--hit-target);
-  margin-inline: var(--space-2);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-md);
+  max-width: 100%;
+  border-radius: var(--radius-sm);
   color: var(--color-text);
   text-decoration: none;
-  cursor: pointer;
-  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.summary[data-pressed] {
-  background: var(--color-fill-pressed);
+.identity[data-hovered] .name {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
 }
 
-.summary[data-focus-visible] {
-  outline-offset: -2px;
-}
-
-.identity {
+.names {
   display: grid;
-  flex: 1;
+  gap: 2px;
   min-width: 0;
+  text-align: start;
+  line-height: var(--leading-tight);
 }
 
-.name {
+.name,
+.login {
   overflow: hidden;
-  font-size: var(--text-headline);
-  font-weight: var(--weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.login,
-.counts {
+.name {
+  font-size: var(--text-title);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.025em;
+}
+
+.login {
   color: var(--color-text-secondary);
-  font-size: var(--text-subhead);
-}
-
-.counts {
-  font-variant-numeric: tabular-nums;
-}
-
-.chevron {
-  flex: none;
-  width: 1rem;
-  height: 1rem;
-  color: var(--color-text-tertiary);
-}
-
-.skeletonText {
-  display: grid;
-  flex: 1;
-  gap: var(--space-2);
+  font-size: var(--text-footnote);
+  font-weight: var(--weight-regular);
 }
 
 .graph {
+  --cell: 0.6875rem;
+  --cell-gap: 3px;
+
   display: grid;
-  gap: var(--space-2);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  margin: var(--space-3) var(--space-4) 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-separator);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
 }
 
-.graphCaption {
-  padding-inline: var(--space-4);
+.graphHeader,
+.graphHeader h2,
+.legend {
+  display: flex;
+  align-items: center;
+}
+
+.graphHeader {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-2);
+}
+
+.graphHeader h2 {
+  gap: var(--space-2);
+  font-size: var(--text-headline);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-tight);
+}
+
+.graphHeader h2 svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--color-text-secondary);
+}
+
+.graphHeader > span {
   color: var(--color-text-secondary);
   font-size: var(--text-footnote);
+  font-variant-numeric: tabular-nums;
 }
 
 .graphScroller {
-  padding: 2px var(--space-4);
   overflow-x: auto;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-separator) transparent;
   overscroll-behavior-x: contain;
 }
 
-.graphScroller::-webkit-scrollbar {
-  display: none;
+.weeks {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: var(--cell);
+  justify-content: space-between;
+  gap: var(--cell-gap);
+  min-width: max-content;
+  padding-bottom: 2px;
 }
 
-.graphScroller:focus-visible {
-  outline-offset: -2px;
+.week {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1.1rem repeat(7, var(--cell));
+  gap: var(--cell-gap);
+  min-width: var(--cell);
 }
 
-.graphScroller svg {
-  display: block;
+.month {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .cell {
-  fill: var(--color-fill);
+  border-radius: 2px;
+  background: light-dark(#dfe5e1, #303733);
 }
 
 .cell[data-level="1"] {
-  fill: color-mix(in srgb, var(--accent) 35%, transparent);
+  background: light-dark(#a4d9ac, #1a4b32);
 }
 
 .cell[data-level="2"] {
-  fill: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: light-dark(#60b776, #257044);
 }
 
 .cell[data-level="3"] {
-  fill: color-mix(in srgb, var(--accent) 78%, transparent);
+  background: light-dark(#32844f, #389359);
 }
 
 .cell[data-level="4"] {
-  fill: var(--accent);
+  background: light-dark(#195b38, #62bf7b);
+}
+
+.legend {
+  justify-content: end;
+  gap: var(--cell-gap);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  line-height: 1;
+}
+
+.legend .cell {
+  width: var(--cell);
+  height: var(--cell);
+}
+
+.legend span:first-child {
+  margin-inline-end: 2px;
+}
+
+.legend span:last-child {
+  margin-inline-start: 2px;
 }

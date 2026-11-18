@@ -9,6 +9,7 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
+import { Link } from "react-aria-components/Link";
 import { useRouter } from "@tanstack/react-router";
 import { toAppPath } from "@/data/links";
 import { useIsOffline } from "@/data/status";
@@ -19,14 +20,13 @@ import { Avatar } from "@/ui/Avatar.tsx";
 import { moduleClass } from "@/ui/module-class.ts";
 import { Button } from "@/ui/Button.tsx";
 import { ErrorState, isFullScreenError } from "@/ui/ErrorState.tsx";
-import { ListRow, ListSection } from "@/ui/ListRow.tsx";
 import { Skeleton } from "@/ui/Skeleton.tsx";
 import { Spinner } from "@/ui/Spinner.tsx";
 import { showErrorToast } from "@/ui/error-toast.ts";
 import { RepoRow } from "./RepoRow.tsx";
 import styles from "./Profile.module.css";
 
-const HEADER_AVATAR_PX = 72;
+const HEADER_AVATAR_PX = 64;
 const WEB_SCHEME = /^https?:\/\//;
 
 function FollowButton(props: { profile: UserProfile }) {
@@ -72,7 +72,9 @@ function ProfileHeader(props: { profile: UserProfile }) {
         <Avatar src={profile.avatarUrl} name={profile.login} size={HEADER_AVATAR_PX} />
         <div className={styles.names}>
           {profile.name ? <p className={styles.name}>{profile.name}</p> : null}
-          <p className={profile.name ? styles.login : styles.name}>{profile.login}</p>
+          <p className={profile.name ? styles.login : styles.name}>
+            {profile.name ? `@${profile.login}` : profile.login}
+          </p>
         </div>
       </div>
       {profile.bio ? <p className={styles.bio}>{profile.bio}</p> : null}
@@ -198,27 +200,18 @@ export function ProfileView(props: { login: string; children?: ReactNode }) {
   return (
     <>
       <ProfileHeader profile={profile} />
-      <ListSection>
-        <ListRow
-          leading={<BookMarked aria-hidden />}
-          title={t("account.lists.repositories")}
-          href={`${base}?tab=repositories`}
-        />
-        {profile.isOrganization ? (
-          <ListRow
-            leading={<Users aria-hidden />}
-            title={t("account.lists.members")}
-            href={`${base}?tab=members`}
-          />
-        ) : (
-          <ListRow
-            leading={<Star aria-hidden />}
-            title={t("account.lists.starred")}
-            href={`${base}?tab=stars`}
-          />
-        )}
-      </ListSection>
-      {props.children}
+      <nav className={styles.profileLinks} aria-label={t("account.profile.sections")}>
+        <Link className={moduleClass(styles.profileLink)} href={`${base}?tab=repositories`}>
+          <BookMarked aria-hidden /> {t("account.lists.repositories")}
+        </Link>
+        <Link
+          className={moduleClass(styles.profileLink)}
+          href={`${base}?tab=${profile.isOrganization ? "members" : "stars"}`}
+        >
+          {profile.isOrganization ? <Users aria-hidden /> : <Star aria-hidden />}
+          {t(profile.isOrganization ? "account.lists.members" : "account.lists.starred")}
+        </Link>
+      </nav>
       {profile.pinned.length > 0 ? (
         <section className={styles.section} aria-labelledby={pinnedId}>
           <h2 id={pinnedId} className={styles.sectionTitle}>
@@ -233,6 +226,7 @@ export function ProfileView(props: { login: string; children?: ReactNode }) {
           </ul>
         </section>
       ) : null}
+      {props.children}
       <Readme profile={profile} />
     </>
   );

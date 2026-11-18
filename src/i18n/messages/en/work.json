@@ -11,12 +11,12 @@
   "review.changesRequested": "Changes requested",
   "review.reviewRequired": "Review required",
   "more": "Showing the {shown} most recently updated of {count}.",
-  "empty.reviewRequested.title": "Work queue clear",
-  "empty.reviewRequested.message": "Nobody is waiting on your review. New requests show up here.",
+  "empty.reviewRequested.title": "No review requests",
+  "empty.reviewRequested.message": "Pull requests awaiting your review appear here.",
   "empty.myPrs.title": "No open pull requests",
   "empty.myPrs.message": "Pull requests you open appear here until they’re merged or closed.",
   "empty.assigned.title": "Nothing assigned",
   "empty.assigned.message": "Issues and pull requests assigned to you appear here.",
-  "empty.ciFailing.title": "All checks passing",
+  "empty.ciFailing.title": "No failing checks",
   "empty.ciFailing.message": "None of your open pull requests has failing checks."
 }

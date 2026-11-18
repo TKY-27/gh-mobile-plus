@@ -3,9 +3,11 @@ import type { ResultOf } from "gql.tada";
 import { graphql } from "../internal/graphql";
 import { graphql as requestGraphQL } from "../internal/client";
 import { DAY_MS } from "../internal/constants";
+import { nodesOf } from "../internal/connection";
+import { mapRepositorySummary, repositorySummaryFragment } from "../internal/repository-summary";
 import { accountKey, PRIVATE_QUERY, STALE_TIME } from "../internal/query";
 import { useActiveAccount } from "../session";
-import type { Release } from "../types";
+import type { Release, RepoSummary } from "../types";
 export { useActivityFeed } from "./feed";
 export type { FeedFilter, FeedGroup, FeedEvent, FeedSummary } from "./feed";
 
@@ -20,35 +22,48 @@ export interface ViewerSummary {
   avatarUrl: string;
   followers: number;
   following: number;
+  recentRepositories?: readonly RepoSummary[];
   contributions: { total: number; weeks: readonly (readonly ContributionDay[])[] };
 }
-const viewerDocument = graphql(`
-  query ViewerSummary {
-    viewer {
-      login
-      name
-      avatarUrl
-      followers {
-        totalCount
-      }
-      following {
-        totalCount
-      }
-      contributionsCollection {
-        contributionCalendar {
-          totalContributions
-          weeks {
-            contributionDays {
-              date
-              contributionCount
-              contributionLevel
+const viewerDocument = graphql(
+  `
+    query ViewerSummary($recentRepositoryLimit: Int!) {
+      viewer {
+        login
+        name
+        avatarUrl
+        followers {
+          totalCount
+        }
+        following {
+          totalCount
+        }
+        repositories(
+          first: $recentRepositoryLimit
+          ownerAffiliations: [OWNER]
+          orderBy: { field: PUSHED_AT, direction: DESC }
+        ) {
+          nodes {
+            ...RepositorySummaryFields
+          }
+        }
+        contributionsCollection {
+          contributionCalendar {
+            totalContributions
+            weeks {
+              contributionDays {
+                date
+                contributionCount
+                contributionLevel
+              }
             }
           }
         }
       }
     }
-  }
-`);
+  `,
+  [repositorySummaryFragment],
+);
 const releasesDocument = graphql(`
   query StarredReleases($releasesPerRepository: Int!) {
     viewer {
@@ -76,6 +91,7 @@ const releasesDocument = graphql(`
     }
   }
 `);
+const RECENT_REPOSITORY_LIMIT = 6;
 const CALENDAR_WEEKS = 52;
 const RELEASE_WINDOW_MS = 14 * DAY_MS;
 const RELEASES_PER_REPOSITORY = 10;
@@ -95,6 +111,7 @@ function mapViewer(response: ResultOf<typeof viewerDocument>): ViewerSummary {
     avatarUrl: viewer.avatarUrl,
     followers: viewer.followers.totalCount,
     following: viewer.following.totalCount,
+    recentRepositories: nodesOf(viewer.repositories).map(mapRepositorySummary),
     contributions: {
       total: calendar.totalContributions,
       weeks: calendar.weeks.slice(-CALENDAR_WEEKS).map((week) =>
@@ -134,18 +151,27 @@ function mapReleases(response: ResultOf<typeof releasesDocument>): readonly Rele
 }
 export function useViewerSummary(): UseQueryResult<ViewerSummary> {
   const account = useActiveAccount();
-  return useQuery({
+  return useQuery<ViewerSummary>({
     queryKey: accountKey(account.id, "home", "viewer"),
-    staleTime: STALE_TIME.calendar,
+    staleTime: (query) =>
+      query.state.data?.recentRepositories === undefined ? 0 : STALE_TIME.calendar,
     meta: PRIVATE_QUERY,
     queryFn: async ({ signal }) =>
-      mapViewer(await requestGraphQL(account.id, viewerDocument, {}, signal)),
+      mapViewer(
+        await requestGraphQL(
+          account.id,
+          viewerDocument,
+          { recentRepositoryLimit: RECENT_REPOSITORY_LIMIT },
+          signal,
+        ),
+      ),
   });
 }
-export function useStarredReleases(): UseQueryResult<readonly Release[]> {
+export function useStarredReleases(enabled = true): UseQueryResult<readonly Release[]> {
   const account = useActiveAccount();
   return useQuery({
     queryKey: accountKey(account.id, "home", "releases"),
+    enabled,
     staleTime: STALE_TIME.list,
     meta: PRIVATE_QUERY,
     queryFn: async ({ signal }) =>

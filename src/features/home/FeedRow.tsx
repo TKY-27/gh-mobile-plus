@@ -1,3 +1,14 @@
+import {
+  Activity,
+  CircleDot,
+  GitBranch,
+  GitFork,
+  GitPullRequest,
+  Plus,
+  Star,
+  Tag,
+  UserPlus,
+} from "lucide-react";
 import { Link } from "react-aria-components/Link";
 import type { FeedGroup, FeedSummary } from "@/data/home";
 import { useT, type Translate } from "@/i18n/index.tsx";
@@ -7,6 +18,17 @@ import { RelativeTime } from "@/ui/RelativeTime.tsx";
 import styles from "./FeedRow.module.css";
 
 const AVATAR_PX = 36;
+const ACTIVITY_ICONS = {
+  star: Star,
+  push: GitBranch,
+  release: Tag,
+  issue: CircleDot,
+  pullRequest: GitPullRequest,
+  fork: GitFork,
+  follow: UserPlus,
+  create: Plus,
+  other: Activity,
+} as const;
 const MAX_DETAILS = 3;
 const ROW_BASE_PX = 76;
 const DETAIL_LINE_PX = 22;
@@ -20,6 +42,8 @@ function issueVerb(action: string): IssueVerb {
 
 function otherSentence(t: Translate, type: string, repo: string): string {
   switch (type) {
+    case "PushEvent":
+      return t("home.feed.pushWithoutCount", { repo });
     case "IssueCommentEvent":
       return t("home.feed.commented", { repo });
     case "PullRequestReviewEvent":
@@ -40,22 +64,30 @@ function createSentence(t: Translate, refType: string, ref: string | null, repo:
   return t("home.feed.createdRepository", { repo });
 }
 
+function pushSentence(t: Translate, group: FeedGroup, reference: string, repo: string): string {
+  let total: number | null = 0;
+  for (const { summary } of group.events) {
+    if (summary.kind !== "push" || !reference || summary.ref !== reference) {
+      return t("home.feed.pushWithoutCount", { repo });
+    }
+    total = total === null || summary.commits === null ? null : total + summary.commits;
+  }
+  const ref = reference.startsWith(BRANCH_PREFIX)
+    ? reference.slice(BRANCH_PREFIX.length)
+    : reference;
+  return total === null
+    ? t("home.feed.pushedToRef", { ref, repo })
+    : t("home.feed.pushed", { count: total, ref, repo });
+}
+
 function sentenceFor(t: Translate, group: FeedGroup, summary: FeedSummary): string {
   const repo = group.repo ? `${group.repo.owner}/${group.repo.name}` : t("home.feed.unknownRepo");
   const count = group.events.length;
   switch (summary.kind) {
     case "star":
       return t("home.feed.starred", { repo });
-    case "push": {
-      const commits = group.events.reduce(
-        (sum, event) => sum + (event.summary.kind === "push" ? event.summary.commits : 0),
-        0,
-      );
-      const ref = summary.ref.startsWith(BRANCH_PREFIX)
-        ? summary.ref.slice(BRANCH_PREFIX.length)
-        : summary.ref;
-      return t("home.feed.pushed", { count: commits, ref, repo });
-    }
+    case "push":
+      return pushSentence(t, group, summary.ref, repo);
     case "release":
       return count > 1
         ? t("home.feed.releasedMany", { count, repo })
@@ -124,32 +156,58 @@ export function FeedRow(props: { group: FeedGroup }) {
   if (!first) return null;
   const details = detailsOf(group);
   const hidden = details.length - MAX_DETAILS;
-  const content = (
+  const target = targetOf(group);
+  const Icon = ACTIVITY_ICONS[group.kind];
+  const repo = group.repo ? `${group.repo.owner}/${group.repo.name}` : null;
+  const sentence = sentenceFor(t, group, first.summary);
+  const split = repo ? sentence.indexOf(repo) : -1;
+  const body = (
     <>
-      <Avatar src={group.actor.avatarUrl} name={group.actor.login} size={AVATAR_PX} />
-      <span className={styles.text}>
-        <span className={styles.header}>
-          <span className={styles.actor}>{group.actor.login}</span>
-          <RelativeTime date={group.createdAt} />
-        </span>
-        <span className={styles.sentence}>{sentenceFor(t, group, first.summary)}</span>
-        {details.slice(0, MAX_DETAILS).map((detail, index) => (
-          <span key={group.events[index]?.id ?? detail} className={styles.detail}>
-            {detail}
-          </span>
-        ))}
-        {hidden > 0 ? (
-          <span className={styles.more}>{t("home.feed.more", { count: hidden })}</span>
-        ) : null}
+      <span className={styles.header}>
+        <span className={styles.actor}>{group.actor.login}</span>
+        <RelativeTime date={group.createdAt} />
       </span>
+      <span className={styles.sentence}>
+        {repo && split >= 0 ? (
+          <>
+            {sentence.slice(0, split)}
+            <strong>{repo}</strong>
+            {sentence.slice(split + repo.length)}
+          </>
+        ) : (
+          sentence
+        )}
+      </span>
+      {details.slice(0, MAX_DETAILS).map((detail, index) => (
+        <span key={group.events[index]?.id ?? detail} className={styles.detail}>
+          {detail}
+        </span>
+      ))}
+      {hidden > 0 ? (
+        <span className={styles.detail}>{t("home.feed.more", { count: hidden })}</span>
+      ) : null}
     </>
   );
-  const target = targetOf(group);
-  return target ? (
-    <Link href={target} className={moduleClass(styles.row)}>
-      {content}
-    </Link>
-  ) : (
-    <div className={styles.row}>{content}</div>
+
+  return (
+    <div className={styles.row}>
+      <Link
+        className={moduleClass(styles.portrait)}
+        href={`/${group.actor.login}`}
+        aria-label={t("home.feed.actorProfile", { user: group.actor.login })}
+      >
+        <Avatar src={group.actor.avatarUrl} name={group.actor.login} size={AVATAR_PX} />
+        <span className={styles.eventIcon} aria-hidden>
+          <Icon />
+        </span>
+      </Link>
+      {target ? (
+        <Link href={target} className={moduleClass(styles.text)}>
+          {body}
+        </Link>
+      ) : (
+        <div className={styles.text}>{body}</div>
+      )}
+    </div>
   );
 }

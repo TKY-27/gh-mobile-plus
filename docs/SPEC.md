@@ -254,13 +254,13 @@ type GitHubError =
 
 ### 6.1 Shell
 
-- **Bottom tab bar** with five tabs, in this order: **Home, Work, Inbox, Search, Account**. It shows icons with labels, uses translucent "glass" material, and respects `env(safe-area-inset-bottom)`.
+- **Primary navigation** has five destinations in order: **Home, Repositories, Work, Search, Account**. On phones a solid bottom bar shows icons with labels above the safe area. From 56 rem wide, the same destinations appear in a side rail beside a bounded reading column.
 - **Independent navigation stack per tab.** Switching tabs preserves each stack and its scroll positions.
 - Re-tapping the active tab scrolls to top if the screen is scrolled; otherwise it pops to the tab root.
 - **Edge-swipe back:** a swipe starting within 20 px of the leading edge pops the stack with an interactive, cancellable transition, at 60 fps on a mid-range device.
-- A top navigation bar with a large-title style that collapses on scroll.
+- Tab roots use a single compact, left-aligned title bar. Long detail titles collapse into the navigation bar on scroll.
 - The tab bar hides while the software keyboard is open (using the `visualViewport` API).
-- Long-pressing the **Account** tab opens the account switcher sheet. Inbox shows the unread count as a tab badge.
+- Long-pressing the **Account** tab opens the account switcher sheet. The notification bell on Home shows unread status and announces the count. The adjacent settings button opens Settings.
 - Deep links: in-app routes mirror GitHub paths (`/:owner/:repo/pull/:n`, etc.), so a pasted github.com URL can be opened by replacing the host. Search accepts pasted github.com URLs.
 - A global **command palette** opens from a button in the Search tab and from the `/` key on hardware keyboards. It jumps to `owner/repo`, `owner/repo#123`, `@user`, and the settings screens.
 - "Open on GitHub" is available from every detail screen's overflow menu.
@@ -269,19 +269,20 @@ type GitHubError =
 
 From top to bottom:
 
-1. **Profile summary card:** avatar, name, login, follower and following counts, and the contribution graph (GraphQL `contributionsCollection.contributionCalendar`, last 52 weeks, horizontally scrollable, scrolled to the current week). Tapping it opens the full profile in Account.
-2. **New releases from starred repositories:** from the 100 most recently starred repositories (`starredRepositories(orderBy: STARRED_AT)`), releases published in the last 14 days, sorted newest first. At most 10 are shown, with "See all". One GraphQL query.
-3. **Activity feed:** `GET /users/{login}/received_events`, grouped per repository and actor where consecutive. It supports filters for All, Releases, Stars, Pushes, Issues & PRs and Follows, uses infinite scroll to the 300-event limit, and shows a footnote that the feed can be delayed by GitHub.
+1. **Account header:** avatar, display name and login link to the profile.
+2. **Contributions:** a green activity calendar for the last 52 weeks, with a yearly total, month markers and a scale. Narrow viewports start at the current week and can scroll back.
+3. **Recent repositories:** up to six repositories owned by the active user, ordered by last push. The viewer query includes these summaries. See all opens the Repositories tab at `/repositories`.
+4. **Activity:** the default Following view groups consecutive received events by actor and repository. Filters cover releases, stars, pushes, issues and PRs, and follows. A separate option shows recent releases from the 100 most recently starred repositories, limited to 10 releases per repository and a 14-day window. The feed uses infinite scroll to the 300-event limit and notes GitHub's delivery delay.
 
-Pull-to-refresh refreshes all three sections.
+Pull-to-refresh and the refresh button update the calendar, repository summaries, activity and releases.
 
-### 6.3 Inbox
+### 6.3 Notifications
 
 #### 6.3.1 List
 
 - Filters: **Unread** (default), **Participating**, **All**. Grouping by repository can be toggled.
 - Each row shows the repository, subject type icon, title, reason (mention, review requested, …), updated time, and an unread dot.
-- **Swipe right → Done** (`DELETE /notifications/threads/{id}`). **Swipe left → Mark read.** The long-press menu offers Unsubscribe, Mark read and Open on GitHub.
+- **Swipe right → Done** (`DELETE /notifications/threads/{id}`). **Swipe left → Mark read.** Each unread row also has a direct Mark as read button. The long-press menu offers Unsubscribe, Mark read and Open on GitHub.
 - Multi-select mode supports bulk Done and bulk Mark read.
 
 #### 6.3.2 Polling
@@ -294,7 +295,7 @@ Bulk actions go through a throttled queue (at most 4 concurrent requests, 250 ms
 
 #### 6.3.4 Opening
 
-Tapping a row opens the subject (issue, PR, release, commit, discussion → Open on GitHub) and marks the thread read. A release opens the repository's releases list, because the notification identifies the release only by id.
+Opening an unread notification online marks it as read. Issue, pull request and commit notifications open in the app. Releases open the repository’s releases list. Actions notifications open the run if its URL is available, or the repository’s run list when GitHub supplies only a check suite ID. For unsupported subjects such as discussions, the app first shows the notification with an explicit Open on GitHub action.
 
 #### 6.3.5 Acceptance criteria
 
@@ -324,7 +325,7 @@ Segmented control: **Review requested**, **My PRs**, **Assigned**, **CI failing*
 
 ### 6.6 Search
 
-- Scopes: **Repositories, Issues & PRs, Users, Code**.
+- Scopes: **Repositories, Issues & PRs, Users, Code**. Each scope offers runnable qualifier examples. Matching qualifiers can be inserted into the search field.
 - Recent searches are stored locally per account.
 - Code search uses the REST code search endpoint. The UI notes that it uses GitHub's API search syntax and a lower rate limit, which may differ from github.com.
 - Pasting a github.com URL or typing `owner/repo#n` offers a direct jump.
@@ -333,7 +334,7 @@ Segmented control: **Review requested**, **My PRs**, **Assigned**, **CI failing*
 
 - The full profile, with profile README rendering (`<login>/<login>` README when present).
 - Profile details and navigation are usable while a public profile README loads independently. A missing namesake repository leaves the profile visible.
-- My repositories, Starred, and Organizations.
+- My repositories, Starred, and Organizations. The Repositories tab searches owned repositories by name, including forks. Offline, it can reuse a saved search or filter the downloaded list and indicate when only part of it is available.
 - **Settings:** language (System / English / 日本語), theme (System / Light / Dark), app lock, unread badge, offline private content, accounts (add, switch, sign out, public-only indicator), about and licenses, and help (including the known limitations from this spec).
 
 ### 6.8 Repository
@@ -498,14 +499,14 @@ upgrade-insecure-requests
 
 ## 8. Design system
 
-- **Character:** near-monochrome surfaces with **one accent color** (token `--accent`, default `#3D7BFF` in light mode and `#5B8FFF` in dark mode). Information-dense, typographically led, and quiet. Translucent "glass" bars use `backdrop-filter: blur(20px) saturate(180%)`, with a solid fallback when `prefers-reduced-transparency` is set or `backdrop-filter` is unsupported.
+- **Character:** near-monochrome surfaces with **one accent color** (token `--accent`, default `#3D7BFF` in light mode and `#5B8FFF` in dark mode). Information-dense, typographically led, and quiet. Where used, translucent bars use `backdrop-filter: blur(20px) saturate(180%)`, with a solid fallback when `prefers-reduced-transparency` is set or `backdrop-filter` is unsupported.
 - **Same design on every platform.** No Material or Cupertino imitation. Platform differences are limited to safe areas and install guidance.
 - **Typography:** the system font stack (`-apple-system, "SF Pro Text", Roboto, "Noto Sans JP", system-ui, sans-serif`) and a monospace stack (`ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace`). Dynamic Type is respected by sizing type with `rem` and honoring the user's font-size setting.
 - **Color:** light and dark themes from tokens, following the system by default. `--accent` is used for indicators and focus (at least 3:1). Accent-colored text and filled buttons use `--accent-text` and `--accent-fill`, which reach 4.5:1 (ADR 0010). Status colors (success, failure, pending, merged, closed, draft) have a contrast ratio of at least 4.5:1 against their background, and are always paired with an icon or shape.
 - **Spacing:** a 4 px grid. Touch targets are at least 44×44 px. The one exception is the diff line-number gutter, whose buttons are at least 24 px tall so dense rows stay readable; long-pressing the full-width line and the "Select range" sheet are the larger alternatives.
 - **Motion:** standard durations of 120 / 200 / 320 ms. Stack transitions are interruptible and physics-based. All non-essential motion is disabled under `prefers-reduced-motion`.
 - **Feedback:** every async action shows pending state within 100 ms. Every optimistic action can be undone from a toast where an undo exists (Done, Mark read, label toggle). GitHub has no API to undo Done or Mark read, so those requests are sent only after the 5-second undo window closes (ADR 0009).
-- **Empty states:** every list has an empty state that says why it is empty and what to do next. Inbox Zero and "Work queue clear" are deliberate, celebratory-but-quiet moments.
+- **Empty states:** every list has an empty state that says why it is empty and what to do next. Notifications and Work name the empty filter in plain language.
 - **Icons:** one open-source icon set (Lucide), tree-shaken.
 
 ---
@@ -606,3 +607,4 @@ The production URL is `https://gh-mobile-plus.pages.dev`. A push to `main` deplo
 - 2026-11-18: Spikes S1–S3 not yet run; defaults and fallbacks in force (ADR 0012). Offline privacy setting excludes all repository content when off (ADR 0013). `ghm-pending-logout` key. Known v1 limits: each Work segment lists its first 50 items (the count is exact); New releases reads up to 10 releases per starred repository; a release notification opens the repository's releases list; pending review comments are saved immediately rather than debounced, so none is lost. A desktop Chromium Playwright project runs the auth spec for the desktop-tab part of 4.8. Inbox Unsubscribe ignores the thread subscription, because deleting it keeps notifications from watched repositories.
 - 2026-11-18: Profile READMEs load independently. Repository README representations and direct PR tab data load concurrently (ADR 0014). PR states use consistent icons and colors across screens.
 - 2026-11-18: GitHub Actions deploys successful `main` builds to the existing Cloudflare Pages project (ADR 0015).
+- 2026-11-18: Repositories becomes a primary destination. Home brings together identity, contributions, recently pushed repositories, activity, notifications and settings. Search offers scoped qualifier examples. Wide screens use a navigation rail (ADR 0016).

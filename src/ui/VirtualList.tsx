@@ -31,25 +31,21 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
   const [scrollMargin, setScrollMargin] = useState(0);
   const { items, getKey, estimateSize, onEndReached, focus } = props;
 
-  const measureMargin = useCallback(() => {
-    const root = scroller.current;
-    const element = list.current;
-    // Hidden background tabs have no layout.
-    if (!root || !element || root.clientHeight === 0) return;
-    const top =
-      element.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop;
-    setScrollMargin(top);
-  }, [scroller]);
-
-  // Content above the list can move it.
   useLayoutEffect(() => {
     const root = scroller.current;
     const element = list.current;
     if (!root || !element) return;
+    const measureMargin = () => {
+      if (root.clientHeight === 0) return;
+      const top =
+        element.getBoundingClientRect().top - root.getBoundingClientRect().top + root.scrollTop;
+      setScrollMargin(top);
+    };
     measureMargin();
     const observer = new ResizeObserver(measureMargin);
-    for (let node = element.parentElement; node && node !== root; node = node.parentElement) {
-      observer.observe(node);
+    observer.observe(root);
+    for (let node: HTMLElement | null = element; node && node !== root; node = node.parentElement) {
+      if (node !== element) observer.observe(node);
       for (
         let sibling = node.previousElementSibling;
         sibling;
@@ -61,7 +57,15 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
     return () => {
       observer.disconnect();
     };
-  }, [scroller, measureMargin]);
+  }, [scroller]);
+
+  const getItemKey = useCallback(
+    (index: number) => {
+      const entry = items[index];
+      return entry === undefined ? index : getKey(entry);
+    },
+    [items, getKey],
+  );
 
   // eslint-disable-next-line react-hooks/incompatible-library -- Virtualizer manages memoization
   const virtualizer = useVirtualizer({
@@ -72,10 +76,7 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
       if (entry === undefined) return 0;
       return typeof estimateSize === "number" ? estimateSize : estimateSize(entry);
     },
-    getItemKey: (index) => {
-      const entry = items[index];
-      return entry === undefined ? index : getKey(entry);
-    },
+    getItemKey,
     overscan: OVERSCAN_ROWS,
     scrollMargin,
     initialRect: { width: window.innerWidth, height: window.innerHeight },
@@ -83,7 +84,6 @@ export function VirtualList<T>(props: VirtualListProps<T>) {
       observeElementRect(instance, (rect) => {
         if (rect.height > 0) report(rect);
       }),
-    onChange: measureMargin,
   });
   const rows = virtualizer.getVirtualItems();
   const lastIndex = rows.at(-1)?.index ?? -1;

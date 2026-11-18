@@ -18,6 +18,7 @@ describe("matchScreen", () => {
     ["/octo/repo/pull/7/files", "/$owner/$repo/pull/$number/files"],
     ["/octo/repo/tree/main/src/app", "/$owner/$repo/tree/$ref/$"],
     ["/octo/repo/tree/feature%2Flogin", "/$owner/$repo/tree/$ref/$"],
+    ["/repositories", "/repositories"],
     ["/notifications?filter=all", "/notifications"],
   ])("%s renders %s", (href, routeId) => {
     expect(matchScreen(router, href).match.routeId).toBe(routeId);

@@ -28,7 +28,7 @@ Record results, and any spike outcomes (SPEC §12), in the release PR.
 
 ## Notifications (spike S1)
 
-- [ ] The Inbox loads, and swipe Done and swipe Mark read both sync with github.com.
+- [ ] The Home bell opens Notifications. Mark an unread row as read, then verify the change on github.com. Verify swipe Done and swipe Mark read as well.
 - [ ] With the badge setting enabled and permission granted, the app icon badge matches the unread count (iOS).
 
 ## Review and editing

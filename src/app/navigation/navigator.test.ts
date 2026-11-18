@@ -15,13 +15,13 @@ describe("navigator", () => {
     const { history, navigator, paths } = start("/");
     history.push("/octo/repo");
     history.push("/octo/repo/pull/1");
-    navigator.selectTab("inbox");
-    expect(history.location.pathname).toBe("/notifications");
+    navigator.selectTab("repositories");
+    expect(history.location.pathname).toBe("/repositories");
     history.push("/octo/repo/issues/2");
     navigator.selectTab("home");
     expect(history.location.pathname).toBe("/octo/repo/pull/1");
     expect(paths("home")).toEqual(["/", "/octo/repo", "/octo/repo/pull/1"]);
-    expect(paths("inbox")).toEqual(["/notifications", "/octo/repo/issues/2"]);
+    expect(paths("repositories")).toEqual(["/repositories", "/octo/repo/issues/2"]);
   });
 
   test("history back pops the active stack and animates the leaving screen", () => {
@@ -64,11 +64,11 @@ describe("navigator", () => {
   });
 
   test("replace updates the top screen without remounting it", () => {
-    const { history, navigator } = start("/notifications");
-    const key = navigator.getState().stacks.inbox[0]?.key;
-    history.replace("/notifications?filter=all");
-    expect(navigator.getState().stacks.inbox).toEqual([
-      { key, href: "/notifications?filter=all", pathname: "/notifications" },
+    const { history, navigator } = start("/repositories");
+    const key = navigator.getState().stacks.repositories[0]?.key;
+    history.replace("/repositories?sort=updated");
+    expect(navigator.getState().stacks.repositories).toEqual([
+      { key, href: "/repositories?sort=updated", pathname: "/repositories" },
     ]);
   });
 
@@ -84,18 +84,19 @@ describe("navigator", () => {
   test("only tabs the user has opened are mounted", () => {
     const { navigator } = start("/");
     expect(navigator.getState().visited).toEqual(["home"]);
-    navigator.selectTab("inbox");
+    navigator.selectTab("repositories");
     navigator.selectTab("home");
-    expect(navigator.getState().visited).toEqual(["home", "inbox"]);
+    expect(navigator.getState().visited).toEqual(["home", "repositories"]);
   });
 
   test("a cold deep link mounts only its own tab", () => {
-    const { navigator } = start("/notifications");
-    expect(navigator.getState().visited).toEqual(["inbox"]);
+    const { navigator } = start("/repositories");
+    expect(navigator.getState().visited).toEqual(["repositories"]);
   });
 
   test.each([
-    ["/notifications", "inbox"],
+    ["/repositories", "repositories"],
+    ["/notifications", "home"],
     ["/pulls", "work"],
     ["/settings/accounts", "account"],
     ["/octo/repo", "home"],

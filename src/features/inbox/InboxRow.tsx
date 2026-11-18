@@ -14,7 +14,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { runSpring, type SpringRun } from "@/app/navigation/spring.ts";
-import { prefersReducedMotion } from "@/app/platform.ts";
+import { useScreen } from "@/app/navigation/screen.ts";
+import { EDGE_BACK_WIDTH_PX, prefersReducedMotion } from "@/app/platform.ts";
 import type { InboxThread, NotificationSubjectType } from "@/data/inbox";
 import { useT, type MessageKey } from "@/i18n/index.tsx";
 import { IconButton } from "@/ui/Button.tsx";
@@ -75,6 +76,7 @@ interface Drag {
   startX: number;
   startY: number;
   engaged: boolean;
+  fromEdge: boolean;
   width: number;
   samples: { x: number; time: number }[];
 }
@@ -100,14 +102,15 @@ function ThreadContent(props: { thread: InboxThread }) {
         />
       </span>
       <span className={styles.text}>
-        <span className={styles.header}>
-          <span className={styles.repo}>
-            {thread.repo.owner}/{thread.repo.name}
-          </span>
-          <RelativeTime date={thread.updatedAt} />
+        <span className={styles.repo}>
+          {thread.repo.owner}/{thread.repo.name}
         </span>
         <span className={styles.title}>{thread.title}</span>
-        <span className={styles.reason}>{t(reasonKey(thread.reason))}</span>
+        <span className={styles.reason}>
+          <span>{t(reasonKey(thread.reason))}</span>
+          <span aria-hidden>·</span>
+          <RelativeTime date={thread.updatedAt} />
+        </span>
       </span>
     </>
   );
@@ -116,6 +119,7 @@ function ThreadContent(props: { thread: InboxThread }) {
 export function InboxRow(props: {
   thread: InboxThread;
   selecting: boolean;
+  offline: boolean;
   selected: boolean;
   removesOnRead: boolean;
   onSelectedChange: (selected: boolean) => void;
@@ -125,6 +129,7 @@ export function InboxRow(props: {
 }) {
   const t = useT();
   const { thread } = props;
+  const { scroller } = useScreen();
   const row = useRef<HTMLDivElement | null>(null);
   const surface = useRef<HTMLDivElement | null>(null);
   const drag = useRef<Drag | null>(null);
@@ -142,7 +147,7 @@ export function InboxRow(props: {
     [],
   );
 
-  const canSwipe = (action: SwipeAction) => action === "done" || thread.unread;
+  const canSwipe = (action: SwipeAction) => !props.offline && (action === "done" || thread.unread);
 
   const paint = (x: number, threshold: number) => {
     offset.current = x;
@@ -191,16 +196,19 @@ export function InboxRow(props: {
     suppressClick.current = false;
     menuShown.current = false;
     if (props.selecting || event.button !== 0 || !event.isPrimary) return;
+    const stackLeft = scroller.current?.parentElement?.getBoundingClientRect().left ?? 0;
+    const fromEdge = event.clientX - stackLeft <= EDGE_BACK_WIDTH_PX;
     settle.current?.cancel();
     drag.current = {
       pointerId: event.pointerId,
       startX: event.clientX - offset.current,
       startY: event.clientY,
       engaged: false,
+      fromEdge,
       width: event.currentTarget.offsetWidth,
       samples: [{ x: event.clientX, time: event.timeStamp }],
     };
-    longPress.current = window.setTimeout(showActions, LONG_PRESS_MS);
+    if (!fromEdge) longPress.current = window.setTimeout(showActions, LONG_PRESS_MS);
   }
 
   function onPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
@@ -212,6 +220,11 @@ export function InboxRow(props: {
       if (Math.abs(dx) < SLOP_PX && Math.abs(dy) < SLOP_PX) return;
       cancelLongPress();
       if (Math.abs(dy) >= Math.abs(dx)) {
+        drag.current = null;
+        return;
+      }
+      if (current.fromEdge || props.offline) {
+        suppressClick.current = true;
         drag.current = null;
         return;
       }
@@ -317,13 +330,26 @@ export function InboxRow(props: {
         <button type="button" className={styles.open} onClick={props.onOpen}>
           <ThreadContent thread={thread} />
         </button>
-        <span className={styles.more}>
+        <span className={styles.controls}>
           <IconButton
             label={t("inbox.actionsFor", { title: thread.title })}
             onPress={props.onShowActions}
           >
             <Ellipsis aria-hidden />
           </IconButton>
+          {thread.unread ? (
+            <button
+              type="button"
+              className={styles.read}
+              disabled={props.offline}
+              onClick={() => {
+                props.onAction("read");
+              }}
+            >
+              <MailOpen aria-hidden />
+              {t("inbox.action.read")}
+            </button>
+          ) : null}
         </span>
       </div>
     </div>

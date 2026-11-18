@@ -43,6 +43,7 @@ test("searches show results and are remembered until cleared", async ({ page }) 
   await field.clear();
   await expect(screen.getByRole("heading", { name: enSearch["recent.title"] })).toBeVisible();
   await screen.getByRole("button", { name: enSearch["recent.clear"] }).click();
+  await expect(screen.getByRole("heading", { name: enSearch["recent.title"] })).toHaveCount(0);
   await expect(screen.getByRole("heading", { name: enSearch["start.title"] })).toBeVisible();
 });
 
@@ -50,6 +51,9 @@ test("code search explains its API syntax and rate limit", async ({ page }) => {
   const screen = page.locator('[data-stack-screen="/search"]');
   await screen.getByRole("radio", { name: enSearch["scope.code"] }).click();
   await expect(screen.getByText(enSearch.codeNote)).toBeVisible();
+  await screen.getByRole("button", { name: "repo:", exact: true }).click();
+  await expect(screen.getByRole("searchbox")).toHaveValue("repo:");
+  await expect(screen.getByRole("searchbox")).toBeFocused();
 });
 
 test("PR search shows a different icon and color for each state", async ({ page, github }) => {
@@ -117,4 +121,19 @@ test("PR search shows a different icon and color for each state", async ({ page,
     await expect(stateIcon).toHaveClass(new RegExp(`\\blucide-${icon}\\b`));
     await expect(stateIcon).toHaveCSS("color", color);
   }
+});
+
+test("a qualifier completes the current term and keeps the search editable", async ({ page }) => {
+  const screen = page.locator('[data-stack-screen="/search"]');
+  const field = screen.getByRole("searchbox");
+  await field.fill("mobile lang");
+  await screen.getByRole("button", { name: "language:TypeScript", exact: true }).click();
+  await expect(field).toHaveValue("mobile language:TypeScript ");
+  await expect(field).toBeFocused();
+  await field.press("Enter");
+  await expect(screen.getByText("32 results")).toBeVisible();
+  await field.clear();
+  await expect(
+    screen.getByRole("button", { name: /mobile language:TypeScript.*Repositories/ }),
+  ).toBeVisible();
 });

@@ -1,15 +1,22 @@
+import { useEffect, useState } from "react";
 import { openExternal } from "@/ui/external.ts";
-import { ExternalLink, FolderGit2, Star, Users } from "lucide-react";
+import { ExternalLink, FolderGit2, Star, Users, ArrowDownWideNarrow } from "lucide-react";
 import { Link } from "react-aria-components/Link";
 import { Page } from "@/app/Page.tsx";
 import { useScreenParams, useScreenSearch } from "@/app/navigation/screen.ts";
 import { ownerRoute } from "@/app/router.ts";
+import { useActiveAccount } from "@/data/session";
+import { useIsOffline } from "@/data/status";
+import type { RepoSummary } from "@/data/types";
 import { useOrganizationMembers, useRepositoriesOf } from "@/data/users";
 import { useT } from "@/i18n/index.tsx";
 import { Avatar } from "@/ui/Avatar.tsx";
 import { EmptyState } from "@/ui/EmptyState.tsx";
 import { moduleClass } from "@/ui/module-class.ts";
-import { InfiniteList } from "@/ui/VirtualList.tsx";
+import { SearchField } from "@/ui/SearchField.tsx";
+import { SkeletonRows } from "@/ui/SkeletonRows.tsx";
+import { SearchResults } from "@/features/search/SearchResults.tsx";
+import { InfiniteList, VirtualList } from "@/ui/VirtualList.tsx";
 import { ProfileView } from "./ProfileView.tsx";
 import { REPO_ROW_ESTIMATE_PX, RepoRow } from "./RepoRow.tsx";
 import styles from "./Profile.module.css";
@@ -17,32 +24,162 @@ import styles from "./Profile.module.css";
 const MEMBER_ROW_ESTIMATE_PX = 56;
 const MEMBER_AVATAR_PX = 32;
 
-function RepositoriesScreen(props: { login: string; kind: "owned" | "starred" }) {
+const FILTER_DELAY_MS = 300;
+
+function RepositoryList(props: {
+  login: string;
+  kind: "owned" | "starred";
+  title: string;
+  offlineFilter?: string;
+}) {
   const t = useT();
   const query = useRepositoriesOf(props.login, props.kind);
   const owned = props.kind === "owned";
-  const title = t(owned ? "account.repositories.title" : "account.starred.title", {
+  const rows = {
+    label: props.title,
+    estimateSize: REPO_ROW_ESTIMATE_PX,
+    getKey: (repo: RepoSummary) => `${repo.owner}/${repo.name}`,
+    renderItem: (repo: RepoSummary) => <RepoRow repo={repo} showOwner={!owned} />,
+  };
+  const empty = (
+    <EmptyState
+      icon={owned ? <FolderGit2 /> : <Star />}
+      title={t(owned ? "account.repositories.empty" : "account.starred.empty")}
+      message={t(owned ? "account.repositories.emptyMessage" : "account.starred.emptyMessage", {
+        owner: props.login,
+      })}
+    />
+  );
+  if (props.offlineFilter !== undefined) {
+    const pages = query.data?.pages;
+    if (!pages?.length)
+      return (
+        <EmptyState
+          icon={<FolderGit2 />}
+          title={t("account.repositories.notSaved")}
+          message={t("account.repositories.reconnect")}
+        />
+      );
+    const term = props.offlineFilter.toLowerCase();
+    const matches = pages.flatMap((page) =>
+      page.items.filter((repo) => repo.name.toLowerCase().includes(term)),
+    );
+    if (!matches.length) {
+      if (!term && !query.hasNextPage) return empty;
+      return (
+        <EmptyState
+          icon={<FolderGit2 />}
+          title={t(
+            query.hasNextPage ? "account.repositories.noSavedMatch" : "search.noResults.title",
+            { query: props.offlineFilter },
+          )}
+          message={t(
+            query.hasNextPage
+              ? "account.repositories.reconnect"
+              : "account.repositories.changeFilter",
+          )}
+        />
+      );
+    }
+    return (
+      <>
+        {query.hasNextPage ? (
+          <p className={styles.listOrder} role="status">
+            {t("account.repositories.savedOnly")}
+          </p>
+        ) : null}
+        <VirtualList {...rows} items={matches} isComplete={!query.hasNextPage} separators />
+      </>
+    );
+  }
+  return (
+    <>
+      <p className={styles.listOrder}>
+        <ArrowDownWideNarrow aria-hidden />
+        {t(owned ? "account.repositories.updatedOrder" : "account.starred.order")}
+      </p>
+      <InfiniteList {...rows} query={query} empty={empty} />
+    </>
+  );
+}
+
+export function MyRepositoriesScreen() {
+  const t = useT();
+  const account = useActiveAccount();
+  const offline = useIsOffline();
+  const [filter, setFilter] = useState("");
+  const [submitted, setSubmitted] = useState("");
+  const typed = filter.trim();
+  useEffect(() => {
+    if (offline || !typed || typed === submitted) return;
+    const timer = window.setTimeout(() => {
+      setSubmitted(typed);
+    }, FILTER_DELAY_MS);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [offline, typed, submitted]);
+  const title = t("account.lists.repositories");
+  return (
+    <Page title={title} largeTitle>
+      <div className={styles.browserHead}>
+        <div className={styles.ownerLine}>
+          <Link href={`/${account.login}`} className={moduleClass(styles.ownerLink)}>
+            <Avatar src={account.avatarUrl} name={account.login} size={MEMBER_AVATAR_PX} />@
+            {account.login}
+          </Link>
+          <Link href={`/${account.login}?tab=stars`} className={moduleClass(styles.starLink)}>
+            <Star aria-hidden /> {t("account.lists.starred")}
+          </Link>
+        </div>
+        <SearchField
+          label={t("account.repositories.find")}
+          placeholder={t("account.repositories.find")}
+          value={filter}
+          onChange={setFilter}
+          onSubmit={(value) => {
+            setSubmitted(value.trim());
+          }}
+        />
+      </div>
+      {!typed ? (
+        <RepositoryList
+          login={account.login}
+          kind="owned"
+          title={title}
+          {...(offline && { offlineFilter: "" })}
+        />
+      ) : offline || typed === submitted ? (
+        <SearchResults
+          scope="repositories"
+          query={`user:${account.login} fork:true in:name ${JSON.stringify(typed)} sort:updated-desc`}
+          displayQuery={typed}
+          offlineFallback={
+            offline ? (
+              <RepositoryList
+                login={account.login}
+                kind="owned"
+                title={title}
+                offlineFilter={typed}
+              />
+            ) : null
+          }
+        />
+      ) : (
+        <SkeletonRows rows={3} />
+      )}
+    </Page>
+  );
+}
+
+function RepositoriesScreen(props: { login: string; kind: "owned" | "starred" }) {
+  const t = useT();
+  const title = t(props.kind === "owned" ? "account.repositories.title" : "account.starred.title", {
     owner: props.login,
   });
   return (
     <Page title={title}>
-      <InfiniteList
-        query={query}
-        label={title}
-        estimateSize={REPO_ROW_ESTIMATE_PX}
-        getKey={(repo) => `${repo.owner}/${repo.name}`}
-        renderItem={(repo) => <RepoRow repo={repo} showOwner={!owned} />}
-        empty={
-          <EmptyState
-            icon={owned ? <FolderGit2 /> : <Star />}
-            title={t(owned ? "account.repositories.empty" : "account.starred.empty")}
-            message={t(
-              owned ? "account.repositories.emptyMessage" : "account.starred.emptyMessage",
-              { owner: props.login },
-            )}
-          />
-        }
-      />
+      <RepositoryList {...props} title={title} />
     </Page>
   );
 }

@@ -1,33 +1,51 @@
-import { useLayoutEffect, useRef } from "react";
-import { ChevronRight } from "lucide-react";
+import { useLayoutEffect, useMemo, useRef } from "react";
+import { CalendarDays } from "lucide-react";
 import { Link } from "react-aria-components/Link";
 import type { ViewerSummary } from "@/data/home";
-import { useFormatters, useT } from "@/i18n/index.tsx";
+import { useLanguage, useT } from "@/i18n/index.tsx";
 import { Avatar } from "@/ui/Avatar.tsx";
 import { moduleClass } from "@/ui/module-class.ts";
-import { Skeleton } from "@/ui/Skeleton.tsx";
 import styles from "./ProfileCard.module.css";
 
-const AVATAR_PX = 56;
-const CELL_PX = 11;
-const GAP_PX = 3;
-const STEP_PX = CELL_PX + GAP_PX;
-const DAYS_PER_WEEK = 7;
+const AVATAR_PX = 40;
+const LEVELS = [0, 1, 2, 3, 4] as const;
 
-function ContributionGraph(props: { contributions: ViewerSummary["contributions"] }) {
+export function ProfileIdentity(props: { login: string; name: string | null; avatarUrl: string }) {
+  return (
+    <Link href={`/${props.login}`} className={moduleClass(styles.identity)}>
+      <Avatar name={props.login} src={props.avatarUrl} size={AVATAR_PX} />
+      <span className={styles.names}>
+        <span className={styles.name}>{props.name || props.login}</span>
+        <span className={styles.login}>@{props.login}</span>
+      </span>
+    </Link>
+  );
+}
+
+export function ContributionGraph(props: { contributions: ViewerSummary["contributions"] }) {
   const t = useT();
+  const language = useLanguage();
   const scroller = useRef<HTMLDivElement | null>(null);
   const { weeks, total } = props.contributions;
+  const month = useMemo(
+    () => new Intl.DateTimeFormat(language, { month: "short", timeZone: "UTC" }),
+    [language],
+  );
 
   useLayoutEffect(() => {
     const element = scroller.current;
     if (element) element.scrollLeft = element.scrollWidth;
   }, [weeks.length]);
 
-  const label = t("home.profile.contributions", { count: total });
   return (
-    <div className={styles.graph}>
-      <p className={styles.graphCaption}>{label}</p>
+    <section className={styles.graph} aria-label={t("home.profile.calendarTitle")}>
+      <div className={styles.graphHeader}>
+        <h2>
+          <CalendarDays aria-hidden />
+          {t("home.profile.calendarTitle")}
+        </h2>
+        <span>{t("home.profile.yearTotal", { count: total })}</span>
+      </div>
       <div
         ref={scroller}
         className={styles.graphScroller}
@@ -35,73 +53,41 @@ function ContributionGraph(props: { contributions: ViewerSummary["contributions"
         role="group"
         aria-label={t("home.profile.contributionGraph")}
       >
-        <svg
-          width={weeks.length * STEP_PX - GAP_PX}
-          height={DAYS_PER_WEEK * STEP_PX - GAP_PX}
+        <div
+          className={styles.weeks}
           role="img"
-          aria-label={label}
+          aria-label={t("home.profile.contributions", { count: total })}
         >
-          {weeks.map((week, column) =>
-            week.map((day) => (
-              <rect
-                key={day.date}
-                x={column * STEP_PX}
-                y={new Date(`${day.date}T00:00:00Z`).getUTCDay() * STEP_PX}
-                width={CELL_PX}
-                height={CELL_PX}
-                rx={2}
-                className={styles.cell}
-                data-level={day.level}
-              />
-            )),
-          )}
-        </svg>
-      </div>
-    </div>
-  );
-}
-
-export function ProfileCardSkeleton() {
-  return (
-    <div className={styles.card} aria-hidden>
-      <div className={styles.summary}>
-        <Skeleton width={`${String(AVATAR_PX)}px`} height={`${String(AVATAR_PX)}px`} round />
-        <div className={styles.skeletonText}>
-          <Skeleton width="60%" height="1.125rem" />
-          <Skeleton width="40%" height="0.875rem" />
+          {weeks.map((week) => {
+            const firstDate = week[0]?.date;
+            if (!firstDate) return null;
+            const start = new Date(firstDate + "T00:00:00Z");
+            return (
+              <div className={styles.week} key={firstDate} aria-hidden>
+                {start.getUTCDate() <= 7 ? (
+                  <span className={styles.month}>{month.format(start)}</span>
+                ) : null}
+                {week.map((day) => (
+                  <span
+                    key={day.date}
+                    className={styles.cell}
+                    style={{ gridRow: new Date(day.date + "T00:00:00Z").getUTCDay() + 2 }}
+                    data-level={day.level}
+                    title={t("home.profile.dayTotal", { date: day.date, count: day.count })}
+                  />
+                ))}
+              </div>
+            );
+          })}
         </div>
       </div>
-      <Skeleton width="100%" height={`${String(DAYS_PER_WEEK * STEP_PX)}px`} />
-    </div>
-  );
-}
-
-export function ProfileCard(props: { viewer: ViewerSummary }) {
-  const t = useT();
-  const formatters = useFormatters();
-  const { viewer } = props;
-  return (
-    <section className={styles.card} aria-label={t("home.profile.title")}>
-      <Link href={`/${viewer.login}`} className={moduleClass(styles.summary)}>
-        <Avatar src={viewer.avatarUrl} name={viewer.login} size={AVATAR_PX} />
-        <span className={styles.identity}>
-          <span className={styles.name}>{viewer.name ?? viewer.login}</span>
-          {viewer.name ? <span className={styles.login}>{viewer.login}</span> : null}
-          <span className={styles.counts}>
-            {t("home.profile.followers", {
-              count: viewer.followers,
-              formatted: formatters.compactNumber(viewer.followers),
-            })}
-            <span aria-hidden> · </span>
-            {t("home.profile.following", {
-              count: viewer.following,
-              formatted: formatters.compactNumber(viewer.following),
-            })}
-          </span>
-        </span>
-        <ChevronRight className={styles.chevron} aria-hidden />
-      </Link>
-      <ContributionGraph contributions={viewer.contributions} />
+      <div className={styles.legend} aria-hidden>
+        <span>{t("home.profile.less")}</span>
+        {LEVELS.map((level) => (
+          <i key={level} className={styles.cell} data-level={level} />
+        ))}
+        <span>{t("home.profile.more")}</span>
+      </div>
     </section>
   );
 }

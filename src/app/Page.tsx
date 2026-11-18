@@ -17,6 +17,7 @@ const OverflowMenu = lazy(() =>
 
 export function Page(props: {
   title: string;
+  headingContent?: ReactNode;
   largeTitle?: boolean;
   actions?: ReactNode;
   menuActions?: readonly MenuAction[];
@@ -28,8 +29,8 @@ export function Page(props: {
   const screen = useScreen();
   const bar = useRef<HTMLElement | null>(null);
   const largeTitle = useRef<HTMLHeadingElement | null>(null);
-  const [collapsed, setCollapsed] = useState(!props.largeTitle);
-  const hasLargeTitle = props.largeTitle ?? false;
+  const [titleOffscreen, setTitleOffscreen] = useState(false);
+  const hasLargeTitle = Boolean(props.largeTitle && !screen.isRoot);
 
   useEffect(() => {
     const title = largeTitle.current;
@@ -37,7 +38,7 @@ export function Page(props: {
     if (!hasLargeTitle || !title || !root) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setCollapsed(entry ? !entry.isIntersecting : false);
+        setTitleOffscreen(entry ? !entry.isIntersecting : false);
       },
       { root, rootMargin: `-${String(bar.current?.offsetHeight ?? 0)}px 0px 0px 0px` },
     );
@@ -61,7 +62,12 @@ export function Page(props: {
 
   return (
     <div className={styles.page}>
-      <header ref={bar} className={styles.bar} data-collapsed={collapsed || undefined}>
+      <header
+        ref={bar}
+        className={styles.bar}
+        data-collapsed={!hasLargeTitle || titleOffscreen || undefined}
+        data-root={screen.isRoot || undefined}
+      >
         <div className={styles.barRow}>
           <div className={styles.leading}>
             {screen.isRoot ? null : (
@@ -81,8 +87,12 @@ export function Page(props: {
               {props.title}
             </span>
           ) : (
-            <h1 className={styles.compactTitle} tabIndex={-1}>
-              {props.title}
+            <h1
+              className={styles.compactTitle}
+              aria-label={props.headingContent ? props.title : undefined}
+              tabIndex={-1}
+            >
+              {props.headingContent ?? props.title}
             </h1>
           )}
           <div className={styles.trailing}>

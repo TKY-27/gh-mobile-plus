@@ -26,7 +26,7 @@ export interface FeedEvent {
   appPath: string | null;
 }
 export type FeedSummary =
-  | { kind: "push"; ref: string; commits: number }
+  | { kind: "push"; ref: string; commits: number | null }
   | { kind: "star" }
   | { kind: "release"; tagName: string }
   | { kind: "issue" | "pullRequest"; action: string; number: number; title: string }
@@ -55,14 +55,10 @@ function summaryFor(event: GitHubEvent): FeedSummary {
       return { kind: "star" };
     case "PushEvent": {
       const size = property(payload, "size");
-      const commits = property(payload, "commits");
-      // Current events can omit commit totals.
-      if (typeof size !== "number" && !Array.isArray(commits))
-        return { kind: "other", type: event.type };
       return {
         kind: "push",
         ref: stringProperty(payload, "ref") ?? "",
-        commits: typeof size === "number" ? size : Array.isArray(commits) ? commits.length : 0,
+        commits: typeof size === "number" ? size : null,
       };
     }
     case "ReleaseEvent":
@@ -146,7 +142,7 @@ function mapFeed(events: readonly GitHubEvent[], filter: FeedFilter): readonly F
   const groups: FeedGroup[] = [];
   for (const event of events) {
     const summary = summaryFor(event);
-    const kind = event.type === "PushEvent" ? "push" : summary.kind;
+    const { kind } = summary;
     if (!matchesFilter(filter, kind)) continue;
     const repo = repoRef(event.repo.name);
     const entry = {

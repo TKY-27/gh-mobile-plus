@@ -57,6 +57,7 @@ describe("toAppPath", () => {
     expect(toAppPath("https://github.com/o/r/wiki")).toBeNull();
     expect(toAppPath("https://github.com/o/../settings")).toBeNull();
     expect(toAppPath("@settings")).toBeNull();
+    expect(toAppPath("https://github.com/notifications?query=repo:octo/app")).toBeNull();
     expect(toAppPath("../..")).toBeNull();
     expect(toAppPath("plain words")).toBeNull();
   });
@@ -87,6 +88,7 @@ describe("refPathCandidates", () => {
 describe("githubUrl", () => {
   it("is the inverse of toAppPath", () => {
     for (const url of [
+      "https://github.com/notifications",
       "https://github.com/octocat/demo/tree/main/src",
       "https://github.com/octocat/demo/pull/3/files",
       "https://github.com/octocat",

@@ -1,6 +1,7 @@
 import { createContext, use } from "react";
 
 export interface ShellActions {
+  unreadCount: number | null;
   openCommandPalette: () => void;
   openAccountSwitcher: () => void;
 }

@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { onlineManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
@@ -26,6 +26,7 @@ beforeAll(() => {
 });
 afterEach(() => {
   cleanup();
+  onlineManager.setOnline(true);
   clients.forEach((client) => {
     client.clear();
   });
@@ -36,11 +37,16 @@ afterAll(() => {
   server.close();
 });
 describe("home queries", () => {
-  it("maps profile totals and contribution levels with one request", async () => {
+  it("loads profile totals, activity levels and recently pushed owned repositories together", async () => {
     let requests = 0;
     server.use(
-      http.post("https://api.github.com/graphql", () => {
+      http.post("https://api.github.com/graphql", async ({ request }) => {
         requests++;
+        const body: unknown = await request.json();
+        expect(property(body, "variables")).toEqual({ recentRepositoryLimit: 6 });
+        const document = property(body, "query");
+        expect(document).toMatch(/ownerAffiliations:\s*\[OWNER\]/);
+        expect(document).toMatch(/orderBy:\s*\{\s*field:\s*PUSHED_AT,?\s+direction:\s*DESC/);
         return HttpResponse.json({ data: viewer });
       }),
     );
@@ -62,7 +68,44 @@ describe("home queries", () => {
         ],
       },
     });
+    expect(result.current.data?.recentRepositories?.map((repo) => repo.name)).toEqual([
+      "pocket-reader",
+      "inkwell",
+      "mona",
+    ]);
     expect(requests).toBe(1);
+  });
+  it("shows an older offline calendar and loads its missing repositories on reconnect", async () => {
+    const client = new QueryClient();
+    clients.push(client);
+    const legacy = {
+      login: "mona",
+      name: "Mona Lisa",
+      avatarUrl: viewer.viewer.avatarUrl,
+      followers: 12,
+      following: 7,
+      contributions: { total: 39, weeks: [] },
+    };
+    client.setQueryData([101, "home", "viewer"], legacy);
+    onlineManager.setOnline(false);
+    server.use(
+      http.post("https://api.github.com/graphql", () => HttpResponse.json({ data: viewer })),
+    );
+
+    const { result } = renderHook(useViewerSummary, {
+      wrapper: ({ children }) => (
+        <QueryClientProvider client={client}>{children}</QueryClientProvider>
+      ),
+    });
+    expect(result.current.data).toEqual(legacy);
+    act(() => {
+      onlineManager.setOnline(true);
+    });
+    await waitFor(() => {
+      expect(result.current.data?.recentRepositories?.[0]?.name).toBe("pocket-reader");
+    });
+    expect(result.current.data?.contributions.total).toBe(42);
+    expect(result.current.isStale).toBe(false);
   });
   it("filters old starred releases in one bounded GraphQL request", async () => {
     vi.setSystemTime(new Date("2026-11-17T12:00:00Z"));
@@ -251,7 +294,13 @@ describe("home queries", () => {
     });
     expect(result.current.data?.pages[0]?.items[0]).toMatchObject({
       kind: "push",
-      events: [{ summary: { kind: "other", type: "PushEvent" } }],
+      createdAt: "2026-11-17T10:00:00Z",
+      events: [
+        {
+          createdAt: "2026-11-17T10:00:00Z",
+          summary: { kind: "push", ref: "refs/heads/main", commits: null },
+        },
+      ],
     });
   });
   it("filters the feed without including other event kinds", async () => {

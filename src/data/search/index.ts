@@ -190,6 +190,7 @@ function mapCodeResult(result: CodeSearchResponse["items"][number]): SearchResul
 export function useSearch(
   scope: SearchScope,
   query: string,
+  enabled = true,
 ): UseInfiniteQueryResult<InfiniteData<SearchPage>> {
   const account = useActiveAccount();
   const normalizedQuery = query.trim();
@@ -197,7 +198,7 @@ export function useSearch(
     queryKey: accountKey(account.id, "search", scope, normalizedQuery),
     staleTime: STALE_TIME.list,
     meta: scope === "users" ? { persist: "user-search" } : PRIVATE_QUERY,
-    enabled: normalizedQuery !== "",
+    enabled: enabled && normalizedQuery !== "",
     initialPageParam: null as string | null,
     queryFn: async ({ pageParam, signal }): Promise<SearchPage> => {
       if (scope === "code") {
