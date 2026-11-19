@@ -10,13 +10,15 @@ Use GH Mobile+ to review a diff, check notifications or find a repository on you
 
 ## Features
 
-- **Home:** your contribution calendar, recently pushed repositories, activity from people you follow, and releases from starred repositories.
+- **Home:** Following opens to activity and releases. Overview shows your contribution calendar and recently pushed repositories. Tap the top-left avatar or swipe right near the left edge to open the navigation menu.
+- **Profile:** edit your profile and social links, share it, or open your repositories, followers and following. Settings and account switching are in the header. GitHub asks for profile-write access when you enable editing.
+- **Repository management:** create a personal repository or fork one. Repository administrators can edit descriptions, homepages, feature switches and PR merge settings.
 - **Repositories and search:** open your repositories from the tab bar, or search GitHub by type with qualifiers.
 - **Work:** review requests, your open PRs, assigned issues and failing CI, in one place.
 - **Notifications:** open the bell on Home to read threads, mark individual notifications as read, or act on a selection.
 - **Code review:** mark files viewed, step through hunks, comment on lines and ranges, suggest changes, and submit reviews.
-- **Pull requests and issues:** timelines, composer with preview and autocomplete, labels, assignees and merge. PR state icons and colors match across lists, search and detail.
-- **Code:** browse with syntax highlighting, edit a file, and commit directly or through a branch, fork and PR.
+- **Pull requests and issues:** timelines, composer with preview and autocomplete, labels, assignees and merge. Compare existing branches and create a pull request or draft. PR state icons and colors match across lists, search and detail.
+- **Code:** browse with syntax highlighting, create or edit a text file on an existing branch, and commit directly or through a branch, fork and PR.
 - **Actions:** runs, jobs, logs, re-run, cancel, and workflow_dispatch with inputs.
 - Multiple accounts, an optional app lock, offline reading of loaded content, and English and Japanese.
 

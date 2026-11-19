@@ -20,6 +20,8 @@
       "repository": {
         "isPrivate": false
       },
+      "socialAccounts": { "nodes": [] },
+      "repositories": { "totalCount": 18 },
       "pinnedItems": {
         "nodes": [
           {

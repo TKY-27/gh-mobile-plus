@@ -16,6 +16,7 @@ export function SegmentedControl<T extends string>(props: {
   selected: T;
   onChange: (id: T) => void;
   columns?: number;
+  appearance?: "underline";
 }) {
   const { columns } = props;
   return (
@@ -30,6 +31,7 @@ export function SegmentedControl<T extends string>(props: {
       }}
       className={moduleClass(styles.group)}
       data-columns={columns}
+      data-appearance={props.appearance}
       {...(columns === undefined
         ? {}
         : { style: { gridTemplateColumns: `repeat(${String(columns)}, minmax(0, 1fr))` } })}

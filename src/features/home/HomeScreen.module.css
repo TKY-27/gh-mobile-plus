@@ -173,3 +173,13 @@
   color: var(--color-text-secondary);
   font-size: var(--text-footnote);
 }
+
+.activity {
+  margin-top: 0;
+}
+
+.overviewRefresh {
+  display: flex;
+  justify-content: flex-end;
+  padding-inline: var(--space-3);
+}

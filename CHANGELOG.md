@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Profile editing, social account management, profile sharing and browsable follower lists. Profile-write consent is requested on demand.
+- Personal repository creation, configurable forks and general repository settings for administrators.
+- Create a new text file from a branch directory, or compare two branches and open a pull request, including drafts.
 - Public preview at [gh-mobile-plus.pages.dev](https://gh-mobile-plus.pages.dev). Desktop Chrome verified GitHub sign-in with expiring tokens, Inbox reads, and a public Actions job log. The installed-device checklist and full OAuth and log-host checks are pending.
 - Stateless `/auth` relay on Cloudflare Pages Functions: OAuth App sign-in with PKCE, encrypted per-account cookies with key rotation, single-use refresh, logout with revocation, and a five-account limit.
 - In-memory token session with single-flight refresh across tabs, an offline-first per-account cache in IndexedDB, and drafts that survive restarts.
@@ -20,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The leading control on every tab opens a left drawer. Home opens to Following with a separate Overview. Account keeps settings, switching and profile actions at the top.
 - Home shows contributions, recently pushed repositories and following activity. Notifications and settings open from its header. The Repositories tab opens the signed-in account’s list.
 - Repository and profile lists have a bounded reading width. Search suggests qualifiers for each result type. Notification rows expose a one-tap read action.
 
@@ -29,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Repeated or cancelled gestures preserve tab stacks, notification actions and review-file navigation. Vertical scrolls and multi-touch cancellation no longer trigger Home refresh.
+- Retrying an interrupted file proposal checks for its existing commit and pull request. A delayed save preserves edits made after dismissing the sheet.
 - Virtualized rows stay visible during deep scrolling and when returning to a list.
 - Notification swipes and edge navigation no longer compete. Unread counts refresh after a thread action.
 - Edits made while submitting an issue are saved when switching to its detail screen, including when the detail is still loading.

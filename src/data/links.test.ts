@@ -19,10 +19,13 @@ describe("toAppPath", () => {
 
   it("maps every supported repository section", () => {
     for (const section of [
+      "new/main",
+      "new/main/src",
       "issues",
       "issues/new",
       "issues/12",
       "pulls",
+      "compare",
       "pull/3",
       "pull/3/files",
       "pull/3/checks",
@@ -30,6 +33,8 @@ describe("toAppPath", () => {
       "actions",
       "actions/runs/99",
       "actions/runs/99/job/100",
+      "settings",
+      "fork",
       "releases",
       "releases/tag/v1.0.0",
       "commit/0123abc",
@@ -89,6 +94,8 @@ describe("githubUrl", () => {
   it("is the inverse of toAppPath", () => {
     for (const url of [
       "https://github.com/notifications",
+      "https://github.com/octocat?tab=followers",
+      "https://github.com/octocat?tab=following",
       "https://github.com/octocat/demo/tree/main/src",
       "https://github.com/octocat/demo/pull/3/files",
       "https://github.com/octocat",

@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  playwright-core@1.65.1: e7c8ac5a27e8332053e1585f6d6a2278a00ce27b3c5fbc9ee6042ac4f2ba017e
+
 importers:
 
   .:
@@ -6660,11 +6663,11 @@ snapshots:
 
   picomatch@4.0.7: {}
 
-  playwright-core@1.65.1: {}
+  playwright-core@1.65.1(patch_hash=e7c8ac5a27e8332053e1585f6d6a2278a00ce27b3c5fbc9ee6042ac4f2ba017e): {}
 
   playwright@1.65.1:
     dependencies:
-      playwright-core: 1.65.1
+      playwright-core: 1.65.1(patch_hash=e7c8ac5a27e8332053e1585f6d6a2278a00ce27b3c5fbc9ee6042ac4f2ba017e)
 
   possible-typed-array-names@1.1.0: {}
 

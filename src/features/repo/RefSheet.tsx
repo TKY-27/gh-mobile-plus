@@ -17,6 +17,7 @@ export function RefSheet(props: {
   owner: string;
   repo: string;
   current: string;
+  branchesOnly?: boolean;
   onSelect: (ref: string) => void;
   onClose: () => void;
 }) {
@@ -30,7 +31,7 @@ export function RefSheet(props: {
     (results.data?.tags.includes(props.current) && !results.data.branches.includes(props.current)
       ? "tags"
       : "branches");
-  const kind = pickedKind ?? currentKind;
+  const kind = props.branchesOnly ? "branches" : (pickedKind ?? currentKind);
   const names = results[kind];
   const Icon = kind === "branches" ? GitBranch : Tag;
 
@@ -74,18 +75,20 @@ export function RefSheet(props: {
       onOpenChange={(isOpen) => {
         if (!isOpen) props.onClose();
       }}
-      title={t("repo.refs.title")}
+      title={t(props.branchesOnly ? "repo.refs.branches" : "repo.refs.title")}
     >
       <div className={styles.controls}>
-        <SegmentedControl
-          label={t("repo.refs.kind")}
-          segments={[
-            { id: "branches", label: t("repo.refs.branches") },
-            { id: "tags", label: t("repo.refs.tags") },
-          ]}
-          selected={kind}
-          onChange={setKind}
-        />
+        {props.branchesOnly ? null : (
+          <SegmentedControl
+            label={t("repo.refs.kind")}
+            segments={[
+              { id: "branches", label: t("repo.refs.branches") },
+              { id: "tags", label: t("repo.refs.tags") },
+            ]}
+            selected={kind}
+            onChange={setKind}
+          />
+        )}
         <SearchField
           label={t("repo.refs.filter")}
           placeholder={t("repo.refs.filter")}

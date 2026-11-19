@@ -30,7 +30,7 @@
 }
 
 .name {
-  font-size: var(--text-title);
+  font-size: var(--text-headline);
   font-weight: var(--weight-semibold);
   letter-spacing: -0.025em;
 }

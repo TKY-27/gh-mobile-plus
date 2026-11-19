@@ -16,7 +16,7 @@ export type MockUserName = keyof typeof MOCK_USERS;
 
 export interface MockBehavior {
   user: MockUserName;
-  consent: "approve" | "deny";
+  consent: "approve" | "deny" | "prompt";
   failNextExchange: boolean;
   rejectRefresh: boolean;
   accessTokenLifetimeSeconds: number;

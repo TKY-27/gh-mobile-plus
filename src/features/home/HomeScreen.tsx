@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { Activity, Bell, ChevronDown, ChevronRight, RotateCw, Settings, Tag } from "lucide-react";
 import { Link } from "react-aria-components/Link";
+import { SegmentedControl } from "@/ui/SegmentedControl.tsx";
 import { Page } from "@/app/Page.tsx";
 import { useShell } from "@/app/shell-context.ts";
 import {
@@ -70,7 +71,7 @@ function ReleasesSection(props: { releases: ReturnType<typeof useStarredReleases
   const t = useT();
   const { releases } = props;
   if (releases.isPending) return <SkeletonRows />;
-  if (releases.isError && !releases.data) {
+  if (releases.isLoadingError) {
     return <ErrorState error={releases.error} onRetry={() => void releases.refetch()} />;
   }
   if (!releases.data.length) {
@@ -113,6 +114,9 @@ function Feed(props: { filter: FeedFilter; feed: ReturnType<typeof useActivityFe
   }
   return (
     <>
+      {feed.isRefetchError ? (
+        <ErrorState error={feed.error} onRetry={() => void feed.refetch()} />
+      ) : null}
       {groups.length > 0 ? (
         <div className={styles.timeline}>
           <VirtualList
@@ -160,8 +164,9 @@ export default function HomeScreen() {
   const account = useActiveAccount();
   const { unreadCount } = useShell();
   const viewer = useViewerSummary();
+  const [section, setSection] = useState<"activity" | "overview">("activity");
   const [view, setView] = useState<ActivityView>("all");
-  const releases = useStarredReleases(view === "starredReleases");
+  const releases = useStarredReleases(section === "activity" && view === "starredReleases");
   const filter = view === "starredReleases" ? "all" : view;
   const feed = useActivityFeed(filter);
   const [refreshing, setRefreshing] = useState(false);
@@ -170,10 +175,16 @@ export default function HomeScreen() {
   const { refetch: refetchFeed } = feed;
   const refresh = useCallback(() => {
     setRefreshing(true);
-    void Promise.all([refetchViewer(), refetchReleases(), refetchFeed()]).finally(() => {
+    const refreshContent =
+      section === "overview"
+        ? refetchViewer
+        : view === "starredReleases"
+          ? refetchReleases
+          : refetchFeed;
+    void refreshContent().finally(() => {
       setRefreshing(false);
     });
-  }, [refetchViewer, refetchReleases, refetchFeed]);
+  }, [section, view, refetchViewer, refetchReleases, refetchFeed]);
 
   const notifications = t("app.tabs.inbox");
   const unread = unreadCount ?? 0;
@@ -181,13 +192,7 @@ export default function HomeScreen() {
   return (
     <Page
       title={t("app.tabs.home")}
-      headingContent={
-        <ProfileIdentity
-          login={profile.login}
-          avatarUrl={profile.avatarUrl}
-          name={viewer.data?.name ?? null}
-        />
-      }
+      headingContent={<ProfileIdentity login={profile.login} name={viewer.data?.name ?? null} />}
       actions={
         <>
           <Link
@@ -212,59 +217,90 @@ export default function HomeScreen() {
         </>
       }
     >
+      <SegmentedControl
+        appearance="underline"
+        label={t("app.tabs.home")}
+        columns={2}
+        selected={section}
+        segments={[
+          { id: "activity", label: t("home.following") },
+          { id: "overview", label: t("home.overview") },
+        ]}
+        onChange={setSection}
+      />
       <PullToRefresh refreshing={refreshing} onRefresh={refresh}>
-        {viewer.data ? (
+        {section === "overview" ? (
           <>
-            <ContributionGraph contributions={viewer.data.contributions} />
-            {viewer.data.recentRepositories ? (
-              <RecentRepositories repositories={viewer.data.recentRepositories} />
-            ) : null}
-          </>
-        ) : viewer.isError ? (
-          <ErrorState error={viewer.error} onRetry={() => void viewer.refetch()} />
-        ) : (
-          <div className={styles.loading} aria-busy>
-            <Skeleton width="100%" height="10rem" />
-          </div>
-        )}
-        <section className={styles.activity}>
-          <div className={styles.sectionHeader}>
-            <h2>{t("home.feed.title")}</h2>
-            <div className={styles.controls}>
-              <label className={styles.filter}>
-                <span aria-hidden>
-                  {t(
-                    ACTIVITY_VIEWS.find((choice) => choice.id === view)?.label ??
-                      "home.feed.filter.all",
-                  )}
-                </span>
-                <ChevronDown aria-hidden />
-                <select
-                  aria-label={t("home.feed.filter.label")}
-                  value={view}
-                  onChange={(event) => {
-                    const choice = ACTIVITY_VIEWS.find((entry) => entry.id === event.target.value);
-                    if (choice) setView(choice.id);
-                  }}
-                >
-                  {ACTIVITY_VIEWS.map((entry) => (
-                    <option key={entry.id} value={entry.id}>
-                      {t(entry.label)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+            {viewer.data ? (
+              <>
+                {viewer.isRefetchError ? (
+                  <ErrorState error={viewer.error} onRetry={() => void viewer.refetch()} />
+                ) : null}
+                <ContributionGraph contributions={viewer.data.contributions} />
+                {viewer.data.recentRepositories ? (
+                  <RecentRepositories repositories={viewer.data.recentRepositories} />
+                ) : null}
+              </>
+            ) : viewer.isError ? (
+              <ErrorState error={viewer.error} onRetry={() => void viewer.refetch()} />
+            ) : (
+              <div className={styles.loading} aria-busy>
+                <Skeleton width="100%" height="10rem" />
+              </div>
+            )}
+            <div className={styles.overviewRefresh}>
               <IconButton label={t("home.refresh")} onPress={refresh} isPending={refreshing}>
                 <RotateCw aria-hidden />
               </IconButton>
             </div>
-          </div>
-          {view === "starredReleases" ? (
-            <ReleasesSection releases={releases} />
-          ) : (
-            <Feed filter={filter} feed={feed} />
-          )}
-        </section>
+          </>
+        ) : (
+          <section className={styles.activity}>
+            <div className={styles.sectionHeader}>
+              <h2>{t("home.feed.title")}</h2>
+              <div className={styles.controls}>
+                <label className={styles.filter}>
+                  <span aria-hidden>
+                    {t(
+                      ACTIVITY_VIEWS.find((choice) => choice.id === view)?.label ??
+                        "home.feed.filter.all",
+                    )}
+                  </span>
+                  <ChevronDown aria-hidden />
+                  <select
+                    aria-label={t("home.feed.filter.label")}
+                    value={view}
+                    onChange={(event) => {
+                      const choice = ACTIVITY_VIEWS.find(
+                        (entry) => entry.id === event.target.value,
+                      );
+                      if (choice) setView(choice.id);
+                    }}
+                  >
+                    {ACTIVITY_VIEWS.map((entry) => (
+                      <option key={entry.id} value={entry.id}>
+                        {t(entry.label)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <IconButton label={t("home.refresh")} onPress={refresh} isPending={refreshing}>
+                  <RotateCw aria-hidden />
+                </IconButton>
+              </div>
+            </div>
+            {view === "starredReleases" ? (
+              <>
+                {releases.isRefetchError ? (
+                  <ErrorState error={releases.error} onRetry={() => void releases.refetch()} />
+                ) : null}
+                <ReleasesSection releases={releases} />
+              </>
+            ) : (
+              <Feed filter={filter} feed={feed} />
+            )}
+          </section>
+        )}
       </PullToRefresh>
     </Page>
   );

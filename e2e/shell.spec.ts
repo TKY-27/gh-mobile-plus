@@ -229,6 +229,49 @@ test.describe("edge swipe", () => {
       .toBe("");
   });
 
+  test("only a rightward edge swipe on the root opens the navigation menu", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Home", level: 1 })).toBeVisible();
+    const drawer = page.getByRole("dialog", { name: "Navigation menu" });
+    await page.mouse.move(4, 200);
+    await page.mouse.down();
+    await page.mouse.move(20, 300, { steps: 3 });
+    await page.mouse.move(160, 300, { steps: 3 });
+    await page.mouse.up();
+    await expect(drawer).toHaveCount(0);
+    await swipeFromEdge(page, 0.7);
+    await expect(drawer).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(drawer).toHaveCount(0);
+    await swipeFromEdge(page, 0.7);
+    await expect(drawer).toBeVisible();
+  });
+
+  test("switching tabs during a back gesture preserves both stacks", async ({ page }) => {
+    await page.goto(DETAIL);
+    await expect(screen(page, DETAIL)).toBeVisible();
+    const search = "/octocat/hello-world/issues/42";
+    await page.locator('[data-tab="search"]').click();
+    await jumpTo(page, "octocat/hello-world#42");
+    await expect(page).toHaveURL(search);
+    await page.locator('[data-tab="home"]').click();
+    await expect(page).toHaveURL(DETAIL);
+
+    await page.mouse.move(4, 300);
+    await page.mouse.down();
+    await page.mouse.move(160, 300, { steps: 4 });
+    await page.locator('[data-tab="search"]').focus();
+    await page.keyboard.press("Enter");
+    await page.mouse.up();
+    await expect(page).toHaveURL(search);
+    await page.locator('[data-tab="home"]').click();
+    await expect(page).toHaveURL(DETAIL);
+    const layer = screen(page, DETAIL);
+    await expect.poll(() => layer.evaluate((node) => node.getBoundingClientRect().left)).toBe(0);
+    await swipeFromEdge(page, 0.7);
+    await expect(page).toHaveURL("/");
+  });
+
   test.describe("with reduced motion", () => {
     test.use({ reducedMotion: "reduce" });
 

@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { Button as AriaButton } from "react-aria-components/Button";
 import { useT, type MessageKey } from "@/i18n/index.tsx";
+import { useActiveAccount } from "@/data/session";
+import { Avatar } from "@/ui/Avatar.tsx";
 import { TABS, type Tab } from "./navigation/navigator.ts";
 import { moduleClass } from "@/ui/module-class.ts";
 import styles from "./TabBar.module.css";
@@ -41,6 +43,7 @@ export function TabBar(props: {
   onAccountLongPress: () => void;
 }) {
   const t = useT();
+  const account = useActiveAccount();
   const longPressTimer = useRef<number | undefined>(undefined);
   const longPressed = useRef(false);
 
@@ -98,7 +101,7 @@ export function TabBar(props: {
             }}
             onPressEnd={cancelLongPress}
             onPress={() => {
-              if (longPressed.current) {
+              if (tab === "account" && longPressed.current) {
                 longPressed.current = false;
                 return;
               }
@@ -107,7 +110,14 @@ export function TabBar(props: {
             }}
           >
             <span className={styles.icon}>
-              <Icon aria-hidden strokeWidth={props.active === tab ? ACTIVE_STROKE : IDLE_STROKE} />
+              {tab === "account" ? (
+                <Avatar src={account.avatarUrl} name={account.login} size={24} />
+              ) : (
+                <Icon
+                  aria-hidden
+                  strokeWidth={props.active === tab ? ACTIVE_STROKE : IDLE_STROKE}
+                />
+              )}
             </span>
             <span className={styles.label}>{label}</span>
           </AriaButton>

@@ -8,6 +8,7 @@ import {
   getRequest,
   grantResponse,
   mockGitHub,
+  signIn,
   startLogin,
   testEnv,
   TOKEN_URL,
@@ -58,6 +59,19 @@ describe("GET /auth/login", () => {
   test("omits the account picker for re-authentication", async () => {
     const { authorize } = await startLogin("mode=reauth&account=7");
     expect(authorize.searchParams.has("prompt")).toBe(false);
+  });
+
+  test("profile consent preserves the account's repository visibility", async () => {
+    const jar = new CookieJar();
+    await signIn(7, jar, { query: "mode=add&public=1" });
+    const { authorize } = await startLogin("mode=profile&account=7&public=0", jar);
+    expect(authorize.searchParams.get("scope")).toBe(
+      "public_repo notifications workflow read:org user",
+    );
+    expect(authorize.searchParams.get("login")).toBe("user7");
+    const response = await callAuth(getRequest("/auth/login?mode=profile&account=8", jar));
+    expect(response.status).toBe(400);
+    expect(response.headers.has("Location")).toBe(false);
   });
 
   test("uses fresh state and verifier for each attempt", async () => {

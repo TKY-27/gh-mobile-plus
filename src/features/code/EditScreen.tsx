@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FileX, GitBranch, History, Trash2 } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
 import { Page } from "@/app/Page.tsx";
-import { useScreenParams } from "@/app/navigation/screen.ts";
+import { useScreen, useScreenParams } from "@/app/navigation/screen.ts";
 import { editRoute } from "@/app/router.ts";
 import { useSoftKeyboardOpen } from "@/app/keyboard.ts";
 import { useComposerActive } from "@/app/updates.ts";
@@ -39,7 +39,8 @@ function outcomePath(outcome: CommitOutcome): string {
 export default function EditScreen() {
   const t = useT();
   const router = useRouter();
-  const { login } = useActiveAccount();
+  const { isTop } = useScreen();
+  const { login, publicOnly } = useActiveAccount();
   const { softWrap } = usePreferences();
   const keyboardOpen = useSoftKeyboardOpen();
   const { owner, repo, ref: branch, _splat: path = "" } = useScreenParams(editRoute);
@@ -71,6 +72,9 @@ export default function EditScreen() {
         baseOid: hasDraft ? draft.baseOid : source.headOid,
       }
     : null;
+
+  const canCommit =
+    repository.data?.viewerCanEditFiles && !(publicOnly && repository.data.isPrivate);
 
   const discard = () => {
     const previous = draft;
@@ -153,7 +157,7 @@ export default function EditScreen() {
       actions={
         <Button
           variant="plain"
-          isDisabled={!hasDraft || !subject || !repository.data}
+          isDisabled={!hasDraft || !subject || !canCommit}
           onPress={() => {
             setCommitting(true);
           }}
@@ -166,24 +170,32 @@ export default function EditScreen() {
         <GitBranch aria-hidden />
         {t("code.edit.onBranch", { branch })}
       </p>
+      {repository.data && !canCommit ? (
+        <p className={styles.branch}>
+          {t(
+            repository.data.hasPullRequestsEnabled
+              ? "code.create.conflict.noPermissionMessage"
+              : "code.commit.pullRequestsDisabled",
+          )}
+        </p>
+      ) : null}
       {repository.isError ? (
         <ErrorState error={repository.error} onRetry={() => void repository.refetch()} />
       ) : null}
       {body}
-      {subject && repository.data ? (
+      {subject && repository.data && canCommit ? (
         <CommitSheet
-          isOpen={committing}
+          isOpen={isTop && committing}
           onOpenChange={setCommitting}
           subject={subject}
           canPush={repository.data.viewerCanPush}
+          canProposePull={repository.data.hasPullRequestsEnabled}
           login={login}
-          onCommitted={(outcome) => {
+          onCommitted={(outcome, openResult) => {
             clearDraft();
             setCommitting(false);
-            showToast(
-              t(outcome.kind === "commit" ? "code.commit.done" : "code.commit.pullRequestOpened"),
-            );
-            router.history.replace(outcomePath(outcome));
+            if (openResult) router.history.replace(outcomePath(outcome));
+            else setEditorKey((key) => key + 1);
           }}
         />
       ) : null}

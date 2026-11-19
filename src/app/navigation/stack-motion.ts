@@ -83,7 +83,6 @@ export function createStackMotion() {
     stop,
     animateTo,
     position: () => position,
-    isAnimating: () => animation !== null,
     setContainer: (element: HTMLDivElement | null) => {
       container = element;
     },

@@ -3,17 +3,14 @@ import { CalendarDays } from "lucide-react";
 import { Link } from "react-aria-components/Link";
 import type { ViewerSummary } from "@/data/home";
 import { useLanguage, useT } from "@/i18n/index.tsx";
-import { Avatar } from "@/ui/Avatar.tsx";
 import { moduleClass } from "@/ui/module-class.ts";
 import styles from "./ProfileCard.module.css";
 
-const AVATAR_PX = 40;
 const LEVELS = [0, 1, 2, 3, 4] as const;
 
-export function ProfileIdentity(props: { login: string; name: string | null; avatarUrl: string }) {
+export function ProfileIdentity(props: { login: string; name: string | null }) {
   return (
     <Link href={`/${props.login}`} className={moduleClass(styles.identity)}>
-      <Avatar name={props.login} src={props.avatarUrl} size={AVATAR_PX} />
       <span className={styles.names}>
         <span className={styles.name}>{props.name || props.login}</span>
         <span className={styles.login}>@{props.login}</span>

@@ -3,7 +3,7 @@ function encodePath(path: string): string {
 }
 
 function repoRoute(
-  kind: "tree" | "blob" | "edit",
+  kind: "tree" | "blob" | "edit" | "new",
   owner: string,
   repo: string,
   ref: string,
@@ -23,4 +23,8 @@ export function blobPath(owner: string, repo: string, ref: string, path: string)
 
 export function editPath(owner: string, repo: string, ref: string, path: string): string {
   return repoRoute("edit", owner, repo, ref, path);
+}
+
+export function newFilePath(owner: string, repo: string, ref: string, path: string): string {
+  return repoRoute("new", owner, repo, ref, path);
 }

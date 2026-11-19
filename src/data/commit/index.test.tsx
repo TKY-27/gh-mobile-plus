@@ -190,6 +190,7 @@ describe("file edit commits", () => {
       const affected = [
         [700, "file", fileEdit.owner, fileEdit.repo, "main", fileEdit.path],
         [700, "tree", fileEdit.owner, fileEdit.repo, "main", "src"],
+        [700, "pullBranchComparison", fileEdit.owner, fileEdit.repo, "main", "feature"],
         [700, "readme", fileEdit.owner, fileEdit.repo, "main"],
         [700, "commit", "latest", fileEdit.owner, fileEdit.repo, "main", fileEdit.path],
       ];
@@ -204,8 +205,9 @@ describe("file edit commits", () => {
         [700, "repository", fileEdit.owner, fileEdit.repo],
         [700, "refs", "other", fileEdit.repo],
       ];
+      const pullsKey = [700, "issueList", fileEdit.owner, fileEdit.repo, "pulls", "OPEN"];
       const refsKey = [700, "refs", fileEdit.owner, fileEdit.repo];
-      for (const key of [...affected, ...untouched, [700, "work"], refsKey])
+      for (const key of [...affected, ...untouched, [700, "work"], refsKey, pullsKey])
         result.current.client.setQueryData(key, { cached: true });
       await act(async () => {
         await result.current.mutation.mutateAsync({
@@ -219,6 +221,7 @@ describe("file edit commits", () => {
         expect(result.current.client.getQueryState(key)?.isInvalidated).toBe(false);
       expect(result.current.client.getQueryState([700, "work"])?.isInvalidated).toBe(openPr);
       expect(result.current.client.getQueryState(refsKey)?.isInvalidated).toBe(openPr);
+      expect(result.current.client.getQueryState(pullsKey)?.isInvalidated).toBe(openPr);
     },
   );
 
@@ -372,15 +375,13 @@ describe("file edit commits", () => {
     expect(requests.some((request) => request.operation === "forkReady")).toBe(false);
   });
 
-  it("syncs an existing fork only when the upstream commit is unavailable", async () => {
+  it("leaves fork branches intact when the upstream commit is unavailable", async () => {
     let attempts = 0;
-    let syncBody: unknown;
+    let syncs = 0;
     server.use(
       github.query("EditRepository", () =>
         HttpResponse.json({
-          data: {
-            repository: { ...upstreamRepository, forks: { nodes: [forkRepository] } },
-          },
+          data: { repository: { ...upstreamRepository, forks: { nodes: [forkRepository] } } },
         }),
       ),
       github.mutation("CreateEditBranch", () => {
@@ -391,18 +392,147 @@ describe("file edit commits", () => {
             message: "Could not resolve to a commit with the oid of the upstream head",
           },
         ];
-        return attempts === 1
-          ? HttpResponse.json({ errors })
-          : HttpResponse.json({ data: createdBranch });
+        return HttpResponse.json({ errors });
       }),
-      http.post(`${API}/repos/mona/hello-mobile/merge-upstream`, async ({ request }) => {
-        syncBody = await request.json();
-        return HttpResponse.json({ merge_type: "fast-forward", base_branch: "octo-org:main" });
+      http.post(`${API}/repos/mona/hello-mobile/merge-upstream`, () => {
+        syncs++;
+        return HttpResponse.json({});
       }),
     );
-    await submit({ ...newBranch, kind: "fork" });
-    expect(syncBody).toEqual({ branch: "main" });
-    expect(attempts).toBe(2);
+    await expect(submit({ ...newBranch, kind: "fork" })).rejects.toMatchObject({
+      kind: "validation",
+    });
+    expect(attempts).toBe(1);
+    expect(syncs).toBe(0);
+    expect(requests).toHaveLength(0);
+  });
+
+  it("finds the submitted pull after a lost response and revised proposal text", async () => {
+    let opening = 0;
+    server.use(
+      github.mutation("OpenEditPullRequest", () => {
+        opening++;
+        return HttpResponse.error();
+      }),
+      http.get(`${API}/repos/octo-org/hello-mobile/pulls`, ({ request }) => {
+        const query = new URL(request.url).searchParams;
+        expect(query.get("head")).toBe(`octo-org:${newBranch.branchName}`);
+        expect(query.get("base")).toBe(fileEdit.branch);
+        return HttpResponse.json([
+          {
+            number: 12,
+            user: { id: 700 },
+            base: { ref: fileEdit.branch },
+            head: {
+              ref: newBranch.branchName,
+              sha: ORIGINAL_OID,
+              repo: { full_name: "octo-org/hello-mobile" },
+            },
+          },
+          {
+            number: 42,
+            user: { id: 700 },
+            base: { ref: fileEdit.branch },
+            head: {
+              ref: newBranch.branchName,
+              sha: COMMITTED_OID,
+              repo: { full_name: "octo-org/hello-mobile" },
+            },
+          },
+        ]);
+      }),
+    );
+    const hook = await mountCommit();
+    await act(async () => {
+      await expect(
+        hook.result.current.mutateAsync({ ...fileEdit, target: newBranch }),
+      ).rejects.toMatchObject({ kind: "network" });
+      await expect(
+        hook.result.current.mutateAsync({
+          ...fileEdit,
+          message: { headline: "Revised summary", body: "Additional context" },
+          target: {
+            ...newBranch,
+            pullRequest: { title: "Revised title", body: "Revised description" },
+          },
+        }),
+      ).resolves.toMatchObject({ number: 42 });
+    });
+    expect(opening).toBe(1);
+    expect(requests.filter(({ operation }) => operation === "branch")).toHaveLength(1);
+    expect(requests.filter(({ operation }) => operation === "commit")).toHaveLength(1);
+  });
+
+  it.each([true, false])(
+    "recovers a lost commit response only for the submitted change (matches=%s)",
+    async (matches) => {
+      let commits = 0;
+      server.use(
+        github.mutation("CommitFileEdit", () => {
+          commits++;
+          return HttpResponse.error();
+        }),
+        github.query("EditProposalHead", () =>
+          HttpResponse.json({
+            data: {
+              repository: {
+                ref: {
+                  target: {
+                    __typename: "Commit",
+                    oid: COMMITTED_OID,
+                    parents: { totalCount: 1, nodes: [{ oid: ORIGINAL_OID }] },
+                    changedFilesIfAvailable: 1,
+                    author: { user: { databaseId: 700 } },
+                    messageHeadline: fileEdit.message.headline,
+                    messageBody: fileEdit.message.body,
+                    file: {
+                      object: {
+                        __typename: "Blob",
+                        text: matches ? fileEdit.content : "Another edit",
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          }),
+        ),
+      );
+      const hook = await mountCommit();
+      await act(async () => {
+        await expect(
+          hook.result.current.mutateAsync({ ...fileEdit, target: newBranch }),
+        ).rejects.toMatchObject({ kind: "network" });
+        const retry = hook.result.current.mutateAsync({
+          ...fileEdit,
+          message: { headline: "New title", body: "New explanation" },
+          target: { ...newBranch, pullRequest: { title: "Revised pull", body: "Revised body" } },
+        });
+        if (matches) await expect(retry).resolves.toMatchObject({ number: 42 });
+        else await expect(retry).rejects.toMatchObject({ kind: "conflict" });
+      });
+      if (matches)
+        expect(
+          requests.find(({ operation }) => operation === "pullRequest")?.variables,
+        ).toMatchObject({ input: { title: "Revised pull", body: "Revised body" } });
+      expect(commits).toBe(1);
+      expect(requests.filter(({ operation }) => operation === "branch")).toHaveLength(1);
+      expect(requests.filter(({ operation }) => operation === "pullRequest")).toHaveLength(
+        Number(matches),
+      );
+    },
+  );
+
+  it("rejects disabled pull requests before creating a branch", async () => {
+    server.use(
+      github.query("EditRepository", () =>
+        HttpResponse.json({
+          data: { repository: { ...upstreamRepository, hasPullRequestsEnabled: false } },
+        }),
+      ),
+    );
+    await expect(submit(newBranch)).rejects.toMatchObject({ kind: "forbidden" });
+    expect(requests).toHaveLength(0);
   });
 
   it("waits through an unready fork and a temporary not-found response", async () => {

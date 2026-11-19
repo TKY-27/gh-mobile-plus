@@ -1,17 +1,21 @@
-import { File, FileSymlink, Folder, FolderGit2, FolderOpen } from "lucide-react";
+import { File, FilePlus, FileSymlink, Folder, FolderGit2, FolderOpen } from "lucide-react";
+import { useRouter } from "@tanstack/react-router";
 import { Link } from "react-aria-components/Link";
 import { Page } from "@/app/Page.tsx";
 import { useScreenParams } from "@/app/navigation/screen.ts";
 import { treeRoute } from "@/app/router.ts";
-import { useTree, type TreeEntry } from "@/data/repo";
+import { refKind, refName } from "@/data/links";
+import { useRepository, useTree, type TreeEntry } from "@/data/repo";
+import { useActiveAccount } from "@/data/session";
 import { useT } from "@/i18n/index.tsx";
+import { Button, IconButton } from "@/ui/Button.tsx";
 import { EmptyState } from "@/ui/EmptyState.tsx";
 import { ErrorState, isFullScreenError } from "@/ui/ErrorState.tsx";
 import { moduleClass } from "@/ui/module-class.ts";
 import { Skeleton } from "@/ui/Skeleton.tsx";
 import { VirtualList } from "@/ui/VirtualList.tsx";
 import { Breadcrumb } from "./Breadcrumb.tsx";
-import { blobPath, treePath } from "./paths.ts";
+import { blobPath, newFilePath, treePath } from "./paths.ts";
 import { useRefRedirect } from "./ref-redirect.ts";
 import { useFormatSize } from "./size.ts";
 import styles from "./TreeScreen.module.css";
@@ -51,12 +55,25 @@ function TreeRow(props: { owner: string; repo: string; gitRef: string; entry: Tr
 
 export default function TreeScreen() {
   const t = useT();
+  const router = useRouter();
+  const account = useActiveAccount();
   const { owner, repo, ref: urlRef, _splat: path = "" } = useScreenParams(treeRoute);
   const redirect = useRefRedirect("tree", owner, repo, urlRef, path);
   const ref = redirect.ref;
   const tree = useTree(owner, repo, ref, path, redirect.ready);
+  const repository = useRepository(owner, repo);
   const title = path.split("/").at(-1) || repo;
   const error = redirect.error ?? (redirect.ready ? tree.error : null);
+  const canCreate =
+    redirect.ready &&
+    !error &&
+    tree.isSuccess &&
+    refKind(ref) === "branches" &&
+    repository.data?.viewerCanEditFiles &&
+    !(account.publicOnly && repository.data.isPrivate);
+  const openCreate = () => {
+    router.history.push(newFilePath(owner, repo, refName(ref), path));
+  };
 
   let body;
   if (error) {
@@ -81,6 +98,13 @@ export default function TreeScreen() {
         icon={<FolderOpen />}
         title={t("code.tree.empty")}
         message={t("code.tree.emptyMessage")}
+        action={
+          canCreate ? (
+            <Button variant="primary" icon={<FilePlus aria-hidden />} onPress={openCreate}>
+              {t("code.create.action")}
+            </Button>
+          ) : null
+        }
       />
     );
   } else if (tree.data) {
@@ -97,7 +121,16 @@ export default function TreeScreen() {
   }
 
   return (
-    <Page title={title}>
+    <Page
+      title={title}
+      actions={
+        canCreate ? (
+          <IconButton label={t("code.create.action")} onPress={openCreate}>
+            <FilePlus aria-hidden />
+          </IconButton>
+        ) : null
+      }
+    >
       {redirect.ready ? (
         <Breadcrumb owner={owner} repo={repo} gitRef={ref} path={path} kind="tree" />
       ) : null}

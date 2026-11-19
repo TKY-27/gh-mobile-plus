@@ -1,0 +1,47 @@
+.form {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 40rem;
+  margin-inline: auto;
+  padding: var(--space-4);
+}
+
+.identity,
+.status {
+  color: var(--color-text-secondary);
+  font-size: var(--text-subhead);
+  overflow-wrap: anywhere;
+}
+
+.identity strong {
+  color: var(--color-text);
+}
+
+.branches {
+  display: grid;
+  gap: var(--space-2);
+  padding-block: var(--space-3);
+  border-block: var(--border-width) solid var(--color-separator);
+}
+
+.branch {
+  display: grid;
+  grid-template-columns: minmax(4rem, 1fr) minmax(0, 3fr);
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-subhead);
+  overflow-wrap: anywhere;
+}
+
+.branch svg {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+}
+
+.created {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--hit-target);
+  margin: var(--space-4);
+}

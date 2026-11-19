@@ -1,14 +1,15 @@
+import type { InfiniteData, UseInfiniteQueryResult } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { openExternal } from "@/ui/external.ts";
-import { ExternalLink, FolderGit2, Star, Users, ArrowDownWideNarrow } from "lucide-react";
+import { Plus, ExternalLink, FolderGit2, Star, Users, ArrowDownWideNarrow } from "lucide-react";
 import { Link } from "react-aria-components/Link";
 import { Page } from "@/app/Page.tsx";
 import { useScreenParams, useScreenSearch } from "@/app/navigation/screen.ts";
 import { ownerRoute } from "@/app/router.ts";
 import { useActiveAccount } from "@/data/session";
 import { useIsOffline } from "@/data/status";
-import type { RepoSummary } from "@/data/types";
-import { useOrganizationMembers, useRepositoriesOf } from "@/data/users";
+import type { Actor, Page as ResultPage, RepoSummary } from "@/data/types";
+import { useOrganizationMembers, useProfileConnections, useRepositoriesOf } from "@/data/users";
 import { useT } from "@/i18n/index.tsx";
 import { Avatar } from "@/ui/Avatar.tsx";
 import { EmptyState } from "@/ui/EmptyState.tsx";
@@ -121,7 +122,19 @@ export function MyRepositoriesScreen() {
   }, [offline, typed, submitted]);
   const title = t("account.lists.repositories");
   return (
-    <Page title={title} largeTitle>
+    <Page
+      title={title}
+      largeTitle
+      actions={
+        <Link
+          href="/new"
+          aria-label={t("repo.create.title")}
+          className={moduleClass(styles.createRepo)}
+        >
+          <Plus aria-hidden />
+        </Link>
+      }
+    >
       <div className={styles.browserHead}>
         <div className={styles.ownerLine}>
           <Link href={`/${account.login}`} className={moduleClass(styles.ownerLink)}>
@@ -203,26 +216,62 @@ function MembersScreen(props: { org: string }) {
         },
       ]}
     >
-      <InfiniteList
+      <PeopleList
         query={query}
-        label={title}
-        estimateSize={MEMBER_ROW_ESTIMATE_PX}
-        getKey={(member) => member.login}
-        renderItem={(member) => (
-          <Link href={`/${member.login}`} className={moduleClass(styles.member)}>
-            <Avatar src={member.avatarUrl} name={member.login} size={MEMBER_AVATAR_PX} />
-            <span className={styles.repoName}>{member.login}</span>
-          </Link>
-        )}
-        empty={
-          <EmptyState
-            icon={<Users />}
-            title={t("account.members.empty")}
-            message={t("account.members.emptyMessage")}
-          />
-        }
+        title={title}
+        empty={t("account.members.empty")}
+        hint={t("account.members.emptyMessage")}
       />
     </Page>
+  );
+}
+
+function ConnectionsScreen(props: { login: string; kind: "followers" | "following" }) {
+  const t = useT();
+  const query = useProfileConnections(props.login, props.kind);
+  const title = t(`account.lists.${props.kind}`);
+  return (
+    <Page title={title}>
+      <PeopleList
+        query={query}
+        title={title}
+        empty={t(`account.${props.kind}.empty`)}
+        hint={t(`account.${props.kind}.hint`, { login: props.login })}
+      />
+    </Page>
+  );
+}
+
+function PeopleList(props: {
+  query: UseInfiniteQueryResult<InfiniteData<ResultPage<Actor>>>;
+  title: string;
+  empty: string;
+  hint: string;
+}) {
+  const t = useT();
+  if (!props.query.data && props.query.fetchStatus === "paused") {
+    return (
+      <EmptyState
+        icon={<Users />}
+        title={t("account.lists.notSaved")}
+        message={t("account.lists.reconnect")}
+      />
+    );
+  }
+  return (
+    <InfiniteList
+      query={props.query}
+      label={props.title}
+      estimateSize={MEMBER_ROW_ESTIMATE_PX}
+      getKey={(member) => member.login}
+      renderItem={(member) => (
+        <Link href={`/${member.login}`} className={moduleClass(styles.member)}>
+          <Avatar src={member.avatarUrl} name={member.login} size={MEMBER_AVATAR_PX} />
+          <span className={styles.repoName}>{member.login}</span>
+        </Link>
+      )}
+      empty={<EmptyState icon={<Users />} title={props.empty} message={props.hint} />}
+    />
   );
 }
 
@@ -231,6 +280,8 @@ export default function ProfileScreen() {
   const search: Readonly<Record<string, unknown>> = useScreenSearch(ownerRoute);
   if (search.tab === "repositories") return <RepositoriesScreen login={owner} kind="owned" />;
   if (search.tab === "stars") return <RepositoriesScreen login={owner} kind="starred" />;
+  if (search.tab === "followers" || search.tab === "following")
+    return <ConnectionsScreen login={owner} kind={search.tab} />;
   if (search.tab === "members") return <MembersScreen org={owner} />;
   return (
     <Page title={owner}>

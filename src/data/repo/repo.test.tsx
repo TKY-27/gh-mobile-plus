@@ -103,6 +103,11 @@ describe("repository screens", () => {
       viewerHasStarred: false,
       viewerSubscription: "unsubscribed",
       viewerCanPush: true,
+      viewerCanEditFiles: true,
+      forkingAllowed: true,
+      hasPullRequestsEnabled: true,
+      viewerCanProposePull: true,
+      settings: null,
       allowedMergeMethods: ["squash", "merge"],
       hasIssues: true,
       webUrl: `https://github.com/${OWNER}/${REPO}`,
@@ -112,6 +117,27 @@ describe("repository screens", () => {
       client.getQueryCache().find({ queryKey: [310, "repository", OWNER, REPO] })?.meta?.private,
     ).toBe(true);
   });
+
+  it.each([
+    [{ isArchived: true }, false],
+    [{ viewerPermission: "READ", forkingAllowed: false }, false],
+    [{ viewerPermission: "READ", forkingAllowed: true }, true],
+  ] as const)(
+    "gates file changes for repository capabilities %o",
+    async (capabilities, available) => {
+      server.use(
+        github.query("Repository", () =>
+          HttpResponse.json({
+            data: { repository: { ...repositoryFixture.data.repository, ...capabilities } },
+          }),
+        ),
+      );
+      const { result } = renderHook(() => useRepository(OWNER, REPO), { wrapper });
+      await waitFor(() => {
+        expect(result.current.data?.viewerCanEditFiles).toBe(available);
+      });
+    },
+  );
 
   it("puts the default branch first and keeps tags", async () => {
     server.use(

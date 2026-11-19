@@ -91,16 +91,14 @@ export function IssueList(props: { owner: string; repo: string; kind: Kind }) {
     <Page
       title={title}
       actions={
-        pulls ? null : (
-          <IconButton
-            label={t("repo.list.newIssue")}
-            onPress={() => {
-              router.history.push(`/${owner}/${repo}/issues/new`);
-            }}
-          >
-            <Plus aria-hidden />
-          </IconButton>
-        )
+        <IconButton
+          label={t(pulls ? "pull.new.screen" : "repo.list.newIssue")}
+          onPress={() => {
+            router.history.push(`/${owner}/${repo}/${pulls ? "compare" : "issues/new"}`);
+          }}
+        >
+          <Plus aria-hidden />
+        </IconButton>
       }
     >
       <div className={styles.segments}>

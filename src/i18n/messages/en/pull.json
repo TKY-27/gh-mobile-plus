@@ -100,5 +100,20 @@
   "commits.emptyTitle": "No commits",
   "commits.emptyMessage": "This pull request has no commits yet. Push to its branch to add some.",
   "merge.mergedKeptBranch": "Pull request merged, but the branch couldn’t be deleted",
-  "reviewers.requestedNote": "Reviewers already requested stay requested. Remove them on GitHub."
+  "reviewers.requestedNote": "Reviewers already requested stay requested. Remove them on GitHub.",
+  "new.screen": "New pull request",
+  "new.base": "Base branch",
+  "new.head": "Compare branch",
+  "new.select": "Choose branch",
+  "new.title": "Title",
+  "new.body": "Description",
+  "new.draft": "Open as draft",
+  "new.submit": "Create pull request",
+  "new.submitDraft": "Create draft pull request",
+  "new.noChanges": "Choose a branch with commits that are not in the base branch.",
+  "new.comparing": "Comparing branches…",
+  "new.summary": "Ahead by {ahead} · behind by {behind}",
+  "new.unavailable": "Pull requests unavailable",
+  "new.access": "This repository needs an active branch, pull requests enabled, and access to open a pull request.",
+  "new.created": "Open pull request #{number}"
 }

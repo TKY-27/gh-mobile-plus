@@ -1,4 +1,7 @@
-import { Settings, Users } from "lucide-react";
+import { ChevronDown, Settings } from "lucide-react";
+import { Button as AriaButton } from "react-aria-components/Button";
+import { Link } from "react-aria-components/Link";
+import { moduleClass } from "@/ui/module-class.ts";
 import { Page } from "@/app/Page.tsx";
 import { useShell } from "@/app/shell-context.ts";
 import { useActiveAccount } from "@/data/session";
@@ -61,20 +64,31 @@ export default function AccountScreen() {
   const shell = useShell();
   const account = useActiveAccount();
   return (
-    <Page title={t("app.tabs.account")} largeTitle>
+    <Page
+      title={t("app.tabs.account")}
+      headingContent={
+        <AriaButton
+          aria-label={t("app.accounts.switch")}
+          onPress={shell.openAccountSwitcher}
+          className={moduleClass(styles.accountSwitch)}
+        >
+          {account.login} <ChevronDown aria-hidden />
+        </AriaButton>
+      }
+      actions={
+        <Link
+          href="/settings"
+          aria-label={t("app.settings.root")}
+          className={moduleClass(styles.settings)}
+        >
+          <Settings aria-hidden />
+        </Link>
+      }
+    >
       <ProfileView login={account.login}>
-        <ListSection footer={account.publicOnly ? t("account.publicOnlyHint") : undefined}>
-          <ListRow
-            leading={<Settings aria-hidden />}
-            title={t("app.settings.root")}
-            href="/settings"
-          />
-          <ListRow
-            leading={<Users aria-hidden />}
-            title={t("app.accounts.switch")}
-            onPress={shell.openAccountSwitcher}
-          />
-        </ListSection>
+        {account.publicOnly ? (
+          <p className={styles.inlineState}>{t("account.publicOnlyHint")}</p>
+        ) : null}
         <Organizations />
       </ProfileView>
     </Page>
