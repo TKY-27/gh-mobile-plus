@@ -11,6 +11,7 @@ import {
   GitPullRequest,
   Lock,
   Scale,
+  Settings,
   Star,
   Tag,
 } from "lucide-react";
@@ -34,7 +35,6 @@ import { ListRow, ListSection } from "@/ui/ListRow.tsx";
 import { moduleClass } from "@/ui/module-class.ts";
 import { Skeleton } from "@/ui/Skeleton.tsx";
 import { showErrorToast } from "@/ui/error-toast.ts";
-import { openExternal } from "@/ui/external.ts";
 import { RefSheet } from "./RefSheet.tsx";
 import styles from "./RepoScreen.module.css";
 
@@ -123,6 +123,7 @@ function Header(props: { repository: Repository }) {
 
 function Actions(props: { repository: Repository }) {
   const t = useT();
+  const router = useRouter();
   const star = useStar();
   const watch = useWatch();
   const toastFailure = useFailureToast();
@@ -183,8 +184,9 @@ function Actions(props: { repository: Repository }) {
       </Button>
       <Button
         icon={<GitFork className={styles.toggleIcon} aria-hidden />}
+        isDisabled={!repository.forkingAllowed}
         onPress={() => {
-          openExternal(`${repository.webUrl}/fork`);
+          router.history.push(`/${owner}/${repo}/fork`);
         }}
       >
         {t("repo.fork")}
@@ -310,6 +312,13 @@ export default function RepoScreen() {
           title={t("repo.sections.releases")}
           href={`${base}/releases`}
         />
+        {details.settings ? (
+          <ListRow
+            leading={<Settings aria-hidden />}
+            title={t("repo.admin.title")}
+            href={`${base}/settings`}
+          />
+        ) : null}
       </ListSection>
       <section className={styles.readmeSection} aria-labelledby={readmeHeading}>
         <div className={styles.sectionHeader}>

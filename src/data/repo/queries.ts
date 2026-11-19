@@ -7,6 +7,9 @@ export const repositoryQuery = graphql(`
       name
       owner {
         login
+        ... on Organization {
+          viewerIsAMember
+        }
       }
       description
       isPrivate
@@ -35,10 +38,21 @@ export const repositoryQuery = graphql(`
       viewerHasStarred
       viewerSubscription
       viewerPermission
+      viewerCanAdminister
+      isArchived
+      isDisabled
+      isLocked
+      forkingAllowed
+      homepageUrl
+      hasProjectsEnabled
+      hasWikiEnabled
+      autoMergeAllowed
+      deleteBranchOnMerge
       mergeCommitAllowed
       squashMergeAllowed
       rebaseMergeAllowed
       hasIssuesEnabled
+      hasPullRequestsEnabled
       url
     }
     rateLimit {

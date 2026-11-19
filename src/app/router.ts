@@ -27,6 +27,11 @@ export const starredReleasesRoute = createRoute({
   path: "dashboard/releases",
   component: lazy(() => import("@/features/home/StarredReleasesScreen.tsx")),
 });
+export const newRepoRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "new",
+  component: lazy(() => import("@/features/repo/RepositoryCreateScreen.tsx")),
+});
 export const repositoriesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "repositories",
@@ -79,6 +84,16 @@ export const repoRoute = createRoute({
   path: "$owner/$repo",
   component: lazy(() => import("@/features/repo/RepoScreen.tsx")),
 });
+export const forkRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "$owner/$repo/fork",
+  component: lazy(() => import("@/features/repo/RepositoryForkScreen.tsx")),
+});
+export const repoSettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "$owner/$repo/settings",
+  component: lazy(() => import("@/features/repo/RepositorySettingsScreen.tsx")),
+});
 export const treeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "$owner/$repo/tree/$ref/$",
@@ -115,6 +130,11 @@ export const issueRoute = createRoute({
     stringify: (params) => ({ ...params, number: String(params.number) }),
   },
   component: lazy(() => import("@/features/issue/IssueScreen.tsx")),
+});
+export const compareRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "$owner/$repo/compare",
+  component: lazy(() => import("@/features/pull/NewPullScreen.tsx")),
 });
 export const pullsRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -205,6 +225,7 @@ const routeTree = rootRoute.addChildren([
   homeRoute,
   starredReleasesRoute,
   repositoriesRoute,
+  newRepoRoute,
   workRoute,
   inboxRoute,
   searchRoute,
@@ -215,6 +236,8 @@ const routeTree = rootRoute.addChildren([
   welcomeRoute,
   ownerRoute,
   repoRoute,
+  repoSettingsRoute,
+  forkRoute,
   treeRoute,
   blobRoute,
   editRoute,
@@ -222,6 +245,7 @@ const routeTree = rootRoute.addChildren([
   newIssueRoute,
   issueRoute,
   pullsRoute,
+  compareRoute,
   pullRoute.addChildren([pullFilesRoute, pullChecksRoute, pullCommitsRoute]),
   actionsRoute,
   runRoute.addChildren([jobRoute]),

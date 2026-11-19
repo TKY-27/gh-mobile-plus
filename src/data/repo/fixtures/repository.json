@@ -33,10 +33,21 @@
       "viewerHasStarred": false,
       "viewerSubscription": "UNSUBSCRIBED",
       "viewerPermission": "WRITE",
+      "viewerCanAdminister": false,
+      "isArchived": false,
+      "isDisabled": false,
+      "isLocked": false,
+      "forkingAllowed": true,
+      "homepageUrl": null,
+      "hasProjectsEnabled": true,
+      "hasWikiEnabled": false,
+      "autoMergeAllowed": false,
+      "deleteBranchOnMerge": false,
       "mergeCommitAllowed": true,
       "squashMergeAllowed": true,
       "rebaseMergeAllowed": false,
       "hasIssuesEnabled": true,
+      "hasPullRequestsEnabled": true,
       "url": "https://github.com/octo-org/hello-mobile"
     }
   }

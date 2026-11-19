@@ -14,5 +14,6 @@ export const HTTP_SERVER_ERROR = 500;
 export const SECOND_MS = 1000;
 export const MINUTE_MS = 60 * SECOND_MS;
 export const DAY_MS = 24 * 60 * MINUTE_MS;
+export const MAX_FILE_BYTES = 1024 * 1024;
 // Larger delays overflow and fire at once.
 export const MAX_TIMER_MS = 2 ** 31 - 1;

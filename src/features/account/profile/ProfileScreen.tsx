@@ -1,7 +1,7 @@
 import type { InfiniteData, UseInfiniteQueryResult } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { openExternal } from "@/ui/external.ts";
-import { ExternalLink, FolderGit2, Star, Users, ArrowDownWideNarrow } from "lucide-react";
+import { Plus, ExternalLink, FolderGit2, Star, Users, ArrowDownWideNarrow } from "lucide-react";
 import { Link } from "react-aria-components/Link";
 import { Page } from "@/app/Page.tsx";
 import { useScreenParams, useScreenSearch } from "@/app/navigation/screen.ts";
@@ -122,7 +122,19 @@ export function MyRepositoriesScreen() {
   }, [offline, typed, submitted]);
   const title = t("account.lists.repositories");
   return (
-    <Page title={title} largeTitle>
+    <Page
+      title={title}
+      largeTitle
+      actions={
+        <Link
+          href="/new"
+          aria-label={t("repo.create.title")}
+          className={moduleClass(styles.createRepo)}
+        >
+          <Plus aria-hidden />
+        </Link>
+      }
+    >
       <div className={styles.browserHead}>
         <div className={styles.ownerLine}>
           <Link href={`/${account.login}`} className={moduleClass(styles.ownerLink)}>

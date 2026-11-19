@@ -9,8 +9,10 @@ import {
   type UseQueryResult,
 } from "@tanstack/react-query";
 import { readFragment, type ResultOf } from "gql.tada";
+import { mergeMethods, type RepositorySettings } from "./settings";
 import { isGitHubError, type GitHubError } from "../errors";
 import { apiPath, GITHUB_HTML_JSON, graphql, rest } from "../internal/client";
+import { MAX_FILE_BYTES } from "../internal/constants";
 import { gitHubFailure } from "../internal/errors";
 import { accountKey, PRIVATE_QUERY, STALE_TIME } from "../internal/query";
 import { qualifiedRef, refKind, refPathCandidates } from "../links";
@@ -31,6 +33,10 @@ import {
   watchMutation,
 } from "./queries";
 
+export { useCreateFork, useForkReadiness } from "./fork";
+export type { RepositorySettings } from "./settings";
+export { useUpdateRepositorySettings } from "./settings";
+
 export type MergeMethod = "squash" | "merge" | "rebase";
 export interface Repository {
   owner: string;
@@ -48,6 +54,11 @@ export interface Repository {
   viewerHasStarred: boolean;
   viewerSubscription: "subscribed" | "ignored" | "unsubscribed";
   viewerCanPush: boolean;
+  viewerCanEditFiles: boolean;
+  forkingAllowed: boolean;
+  hasPullRequestsEnabled: boolean;
+  viewerCanProposePull: boolean;
+  settings: RepositorySettings | null;
   allowedMergeMethods: readonly MergeMethod[];
   hasIssues: boolean;
   webUrl: string;
@@ -88,7 +99,6 @@ export interface ReleaseDetail extends Release {
   webUrl: string;
 }
 
-const MAX_FILE_BYTES = 1024 * 1024;
 const MAX_FILE_LINES = 20_000;
 const IMAGE_TYPES: Readonly<Record<string, string>> = {
   png: "image/png",
@@ -167,10 +177,10 @@ function required<T>(value: T | null | undefined): T {
 }
 
 function repositoryFrom(node: RepositoryNode): Repository {
-  const allowedMergeMethods: MergeMethod[] = [];
-  if (node.squashMergeAllowed) allowedMergeMethods.push("squash");
-  if (node.mergeCommitAllowed) allowedMergeMethods.push("merge");
-  if (node.rebaseMergeAllowed) allowedMergeMethods.push("rebase");
+  const viewerCanPush =
+    node.viewerPermission === "ADMIN" ||
+    node.viewerPermission === "MAINTAIN" ||
+    node.viewerPermission === "WRITE";
   return {
     owner: node.owner.login,
     name: node.name,
@@ -191,11 +201,40 @@ function repositoryFrom(node: RepositoryNode): Repository {
         : node.viewerSubscription === "IGNORED"
           ? "ignored"
           : "unsubscribed",
-    viewerCanPush:
-      node.viewerPermission === "ADMIN" ||
-      node.viewerPermission === "MAINTAIN" ||
-      node.viewerPermission === "WRITE",
-    allowedMergeMethods,
+    viewerCanPush,
+    viewerCanEditFiles:
+      !node.isArchived &&
+      !node.isDisabled &&
+      !node.isLocked &&
+      (viewerCanPush || (node.hasPullRequestsEnabled && node.forkingAllowed)),
+    forkingAllowed: node.forkingAllowed,
+    hasPullRequestsEnabled: node.hasPullRequestsEnabled,
+    viewerCanProposePull:
+      node.hasPullRequestsEnabled &&
+      !node.isArchived &&
+      !node.isDisabled &&
+      !node.isLocked &&
+      (viewerCanPush || ("viewerIsAMember" in node.owner && node.owner.viewerIsAMember)),
+    settings:
+      node.viewerCanAdminister && !node.isArchived
+        ? {
+            description: node.description ?? "",
+            homepage: node.homepageUrl ?? "",
+            has_issues: node.hasIssuesEnabled,
+            has_projects: node.hasProjectsEnabled,
+            has_wiki: node.hasWikiEnabled,
+            allow_merge_commit: node.mergeCommitAllowed,
+            allow_squash_merge: node.squashMergeAllowed,
+            allow_rebase_merge: node.rebaseMergeAllowed,
+            allow_auto_merge: node.autoMergeAllowed,
+            delete_branch_on_merge: node.deleteBranchOnMerge,
+          }
+        : null,
+    allowedMergeMethods: mergeMethods(
+      node.squashMergeAllowed,
+      node.mergeCommitAllowed,
+      node.rebaseMergeAllowed,
+    ),
     hasIssues: node.hasIssuesEnabled,
     webUrl: node.url,
   };
@@ -204,9 +243,10 @@ function repositoryFrom(node: RepositoryNode): Repository {
 export function useRepository(owner: string, repo: string): UseQueryResult<Repository> {
   const { id } = useActiveAccount();
   const client = useQueryClient();
-  return useQuery({
+  return useQuery<Repository>({
     queryKey: accountKey(id, "repository", owner, repo),
-    staleTime: STALE_TIME.detail,
+    staleTime: (query) =>
+      query.state.data?.viewerCanEditFiles === undefined ? 0 : STALE_TIME.detail,
     meta: PRIVATE_QUERY,
     queryFn: async ({ signal }) => {
       const node = required(

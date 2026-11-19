@@ -46,6 +46,9 @@ const REPO_ROUTES: readonly RegExp[] = [
   /^tree\/[^/]+(\/.+)?$/,
   /^blob\/[^/]+\/.+$/,
   /^issues(\/new|\/\d+)?$/,
+  /^settings$/,
+  /^fork$/,
+  /^compare$/,
   /^pulls$/,
   /^pull\/\d+(\/(files|checks|commits))?$/,
   /^actions(\/runs\/\d+(\/job\/\d+)?)?$/,
@@ -70,6 +73,7 @@ function fromUrl(text: string): string | null {
   if (!webScheme || !GITHUB_HOSTS.has(url.hostname) || url.port || url.username) return null;
   const [owner, repo, ...rest] = url.pathname.split("/").filter(Boolean);
   if (owner === undefined) return "/";
+  if (owner === "new" && !repo && !url.search && !url.hash) return "/new";
   if (owner === "notifications" && repo === undefined && !url.search && !url.hash) {
     return "/notifications";
   }
