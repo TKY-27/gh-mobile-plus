@@ -13,7 +13,7 @@ const PAYLOAD_VERSION = 1;
 const PERSISTENT_MAX_AGE_SECONDS = 400 * 24 * 60 * 60;
 
 type SameSite = "Lax" | "Strict";
-export type LoginMode = "add" | "reauth";
+export type LoginMode = "add" | "reauth" | "profile";
 
 export type AccountCredential = RefreshCredential | { accessToken: string; refreshExpiresAt: null };
 
@@ -29,6 +29,7 @@ interface OAuthSession {
   state: string;
   verifier: string;
   mode: LoginMode;
+  expectedAccountId?: number;
   knownAccountIds: number[];
   publicOnly: boolean;
   returnPath: string;
@@ -103,7 +104,8 @@ function parseOAuthSession(value: unknown): OAuthSession | null {
     !isRecord(value) ||
     typeof value.state !== "string" ||
     typeof value.verifier !== "string" ||
-    (value.mode !== "add" && value.mode !== "reauth") ||
+    (value.mode !== "add" && value.mode !== "reauth" && value.mode !== "profile") ||
+    (value.mode !== "add" && !isAccountId(value.expectedAccountId)) ||
     !Array.isArray(value.knownAccountIds) ||
     !value.knownAccountIds.every(isAccountId) ||
     typeof value.publicOnly !== "boolean" ||
@@ -115,6 +117,7 @@ function parseOAuthSession(value: unknown): OAuthSession | null {
     state: value.state,
     verifier: value.verifier,
     mode: value.mode,
+    ...(isAccountId(value.expectedAccountId) ? { expectedAccountId: value.expectedAccountId } : {}),
     knownAccountIds: value.knownAccountIds,
     publicOnly: value.publicOnly,
     returnPath: value.returnPath,

@@ -254,6 +254,70 @@ describe("GET /auth/callback", () => {
     );
   });
 
+  test.each([
+    "public_repo,notifications,workflow,read:org",
+    "public_repo,user,workflow,read:org",
+    "public_repo,user,notifications,read:org",
+    "public_repo,user,notifications,workflow",
+    "repo,public_repo,user,notifications,workflow,read:org",
+  ])(
+    "an insufficient or broader profile grant preserves the existing public-only session: %s",
+    async (scope) => {
+      const jar = new CookieJar();
+      await signIn(2, jar, { query: "mode=add&public=1" });
+      const original = jar.get("__Host-ghm_acct_2");
+      const { authorize } = await startLogin("mode=profile&account=2", jar);
+      const requests = mockGitHub({
+        [TOKEN_URL]: () => grantResponse("partial", { scope }),
+        [USER_URL]: () => userResponse(2),
+        [REVOKE_URL]: () => new Response(null, { status: 204 }),
+      });
+      expect(signInError(await finishLogin(authorize, jar))).toBe("access_denied");
+      expect(jar.get("__Host-ghm_acct_2")).toBe(original);
+      expect(await requests.at(-1)?.json()).toEqual({ access_token: "gho_access_partial" });
+    },
+  );
+
+  test.each([
+    ["1", "public_repo,notifications,workflow,read:org,user"],
+    ["0", "repo,workflow,read:org,user"],
+  ])("profile consent returns to its verified owner (public=%s)", async (publicMode, scope) => {
+    const jar = new CookieJar();
+    await signIn(2, jar, { query: `mode=add&public=${publicMode}` });
+    const { authorize } = await startLogin(
+      "mode=profile&account=2&return=/account?editProfile=3",
+      jar,
+    );
+    mockGitHub({
+      [TOKEN_URL]: () => grantResponse("profile", { scope }),
+      [USER_URL]: () => userResponse(2),
+    });
+    const response = await finishLogin(authorize, jar);
+    expect(response.headers.get("Location")).toBe(`${APP_ORIGIN}/account?editProfile=2`);
+  });
+
+  test.each(["profile", "reauth"])(
+    "a different GitHub login cannot replace the %s account",
+    async (mode) => {
+      const jar = new CookieJar();
+      await signIn(2, jar);
+      await signIn(3, jar, { query: "mode=add&public=1" });
+      const original = jar.get("__Host-ghm_acct_2");
+      const other = jar.get("__Host-ghm_acct_3");
+      const { authorize } = await startLogin(`mode=${mode}&account=2`, jar);
+      const requests = mockGitHub({
+        [TOKEN_URL]: () => grantResponse("wrong"),
+        [USER_URL]: () => userResponse(3),
+        [REVOKE_URL]: () => new Response(null, { status: 204 }),
+      });
+      const response = await finishLogin(authorize, jar);
+      expect(response.headers.get("Location")).toBe(`${APP_ORIGIN}/signin?error=access_denied`);
+      expect(requests.at(-1)?.method).toBe("DELETE");
+      expect(jar.get("__Host-ghm_acct_3")).toBe(other);
+      expect(jar.get("__Host-ghm_acct_2")).toBe(original);
+    },
+  );
+
   test("stores the access token itself in persistent mode", async () => {
     const env = { ...testEnv, GHM_TOKEN_MODE: "persistent" };
     const jar = new CookieJar();

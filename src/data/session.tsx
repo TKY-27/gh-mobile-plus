@@ -60,6 +60,14 @@ let session: Session = { status: "loading", accounts: [], activeAccount: null };
 let generation = 0;
 const listeners = new Set<() => void>();
 
+export function profileEditorAccountId(
+  location: Pick<URL, "pathname" | "search">,
+): AccountId | null {
+  if (location.pathname !== "/account") return null;
+  const accountId = Number(new URLSearchParams(location.search).get("editProfile"));
+  return Number.isSafeInteger(accountId) && accountId > 0 ? accountId : null;
+}
+
 function storedActiveAccountId(): AccountId | null {
   const stored = Number(localStorage.getItem(ACTIVE_ACCOUNT_KEY));
   return Number.isSafeInteger(stored) && stored > 0 ? stored : null;
@@ -142,7 +150,10 @@ async function loadAccounts(): Promise<void> {
   signedIn.forEach((account) => {
     reopenAccount(account.id);
   });
-  commit([...signedIn, ...stillSignedOut], currentPreferredId());
+  const returning = session.status === "loading" ? profileEditorAccountId(window.location) : null;
+  const preferred =
+    returning !== null && signedInIds.has(returning) ? returning : currentPreferredId();
+  commit([...signedIn, ...stillSignedOut], preferred);
   await Promise.all(removed.map((account) => markAccountSignedOut(account.id, "logout")));
   await deleteOrphanedAccountStorage(new Set([...signedInIds, ...pending]));
 }
@@ -285,7 +296,7 @@ export async function signOutAll(): Promise<void> {
 }
 
 export function signInHref(options: {
-  mode: "add" | "reauth";
+  mode: "add" | "reauth" | "profile";
   accountId?: AccountId;
   publicOnly: boolean;
 }): string {

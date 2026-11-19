@@ -18,6 +18,7 @@ export interface RefreshCredential {
 }
 
 export interface TokenGrant {
+  scopes: ReadonlySet<string>;
   accessToken: string;
   accessExpiresAt: number | null;
   refresh: RefreshCredential | null;
@@ -95,6 +96,7 @@ function parseGrant(body: unknown, now: number): TokenGrant | TokenFailure {
   }
   const refreshExpiresAt = expiryFrom(now, body.refresh_token_expires_in);
   return {
+    scopes: new Set(typeof body.scope === "string" ? body.scope.split(/[,\s]+/) : []),
     accessToken: body.access_token,
     accessExpiresAt: expiryFrom(now, body.expires_in),
     refresh:

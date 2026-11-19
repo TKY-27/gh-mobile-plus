@@ -51,6 +51,7 @@ interface Scope {
 }
 
 interface Grant {
+  grantedScopes: string;
   scope: Scope;
   userId: number;
 }
@@ -176,7 +177,13 @@ function authorize(request: IncomingMessage, url: URL): Reply {
   } else {
     const code = randomToken("");
     const userId = MOCK_USERS[scope.behavior.user].id;
-    codes.set(code, { scope, userId, challenge, redirectUri });
+    codes.set(code, {
+      scope,
+      userId,
+      challenge,
+      redirectUri,
+      grantedScopes: (params.get("scope") ?? "").split(" ").join(","),
+    });
     scope.report.secrets.push(code);
     target.searchParams.set("code", code);
   }
@@ -185,16 +192,17 @@ function authorize(request: IncomingMessage, url: URL): Reply {
 }
 
 function issueTokens(grant: Grant): Reply {
-  const { scope, userId } = grant;
+  const { scope, userId, grantedScopes } = grant;
   const lifetime = scope.behavior.accessTokenLifetimeSeconds;
   const accessToken = randomToken(ACCESS_TOKEN_PREFIX);
   const refreshToken = randomToken("ghr_");
   accessTokens.set(accessToken, {
+    grantedScopes,
     scope,
     userId,
     expiresAt: Date.now() + lifetime * MILLISECONDS_PER_SECOND,
   });
-  refreshTokens.set(refreshToken, { scope, userId, accessToken, used: false });
+  refreshTokens.set(refreshToken, { scope, userId, grantedScopes, accessToken, used: false });
   scope.report.secrets.push(accessToken, refreshToken);
   return json({
     access_token: accessToken,
@@ -202,7 +210,7 @@ function issueTokens(grant: Grant): Reply {
     refresh_token: refreshToken,
     refresh_token_expires_in: REFRESH_TOKEN_LIFETIME_SECONDS,
     token_type: "bearer",
-    scope: "",
+    scope: grantedScopes,
   });
 }
 

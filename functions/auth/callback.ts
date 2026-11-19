@@ -13,6 +13,21 @@ const MAX_ACCOUNTS = 5;
 type SignInError =
   "state_mismatch" | "access_denied" | "exchange_failed" | "org_restricted" | "account_limit";
 
+function hasProfileAccess(scopes: ReadonlySet<string>, publicOnly: boolean): boolean {
+  const repositoryAccess = publicOnly
+    ? scopes.has("public_repo") && !scopes.has("repo")
+    : scopes.has("repo");
+  const notifications = scopes.has("notifications") || scopes.has("repo");
+  const organizations = ["read:org", "write:org", "admin:org"].some((scope) => scopes.has(scope));
+  return (
+    repositoryAccess &&
+    notifications &&
+    organizations &&
+    scopes.has("workflow") &&
+    scopes.has("user")
+  );
+}
+
 function statesMatch(expected: string, received: string): boolean {
   const encoder = new TextEncoder();
   const expectedBytes = encoder.encode(expected);
@@ -62,6 +77,13 @@ export const onRequest = allowMethod("GET", async ({ request, env }) => {
   const user = await fetchUser(config, grant.accessToken);
   if (user === "failed") return discardGrant("exchange_failed");
   if (user === "org_restricted") return discardGrant(user);
+  if (session.mode !== "add" && user.id !== session.expectedAccountId) {
+    return discardGrant("access_denied");
+  }
+
+  if (session.mode === "profile" && !hasProfileAccess(grant.scopes, session.publicOnly)) {
+    return discardGrant("access_denied");
+  }
 
   const known = session.knownAccountIds;
   if (!known.includes(user.id) && known.length >= MAX_ACCOUNTS) {
@@ -74,5 +96,7 @@ export const onRequest = allowMethod("GET", async ({ request, env }) => {
     publicOnly: session.publicOnly,
     credential,
   });
-  return redirect(`${url.origin}${session.returnPath}`, [clearSession, accountCookie]);
+  const returnPath =
+    session.mode === "profile" ? `/account?editProfile=${String(user.id)}` : session.returnPath;
+  return redirect(`${url.origin}${returnPath}`, [clearSession, accountCookie]);
 });
