@@ -1,3 +1,6 @@
 allowBuilds:
   esbuild: true
   workerd: true
+patchedDependencies:
+  # WebKit redirect backport from https://github.com/microsoft/playwright/pull/43233
+  playwright-core@1.65.1: patches/playwright-core@1.65.1.patch

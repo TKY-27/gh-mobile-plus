@@ -1,0 +1,76 @@
+diff --git a/lib/coreBundle.js b/lib/coreBundle.js
+index c09d4f45f03b4cb41bbec4c42c30ed092272b6a9..7c5771a04e9c0a1010013cd27c65e90a559ca015 100644
+--- a/lib/coreBundle.js
++++ b/lib/coreBundle.js
+@@ -48290,6 +48290,9 @@ var init_wkInterceptableRequest = __esm({
+           this._wallTime
+         );
+       }
++      session() {
++        return this._session;
++      }
+       adoptRequestFromNewProcess(newSession, requestId) {
+         this._session = newSession;
+         this._requestId = requestId;
+@@ -48772,13 +48775,17 @@ var init_wkPage = __esm({
+         this._provisionalPage = null;
+         this._setSession(newSession);
+       }
++      _discardProvisionalPage() {
++        const provisionalPage = this._provisionalPage;
++        this._provisionalPage = null;
++        provisionalPage._session.dispose();
++        provisionalPage.dispose();
++        this._failOrphanedRequests(provisionalPage.coopNavigationRequest());
++      }
+       _onTargetDestroyed(event) {
+         const { targetId, crashed } = event;
+         if (this._provisionalPage && this._provisionalPage._session.sessionId === targetId) {
+-          this._maybeCancelCoopNavigationRequest(this._provisionalPage);
+-          this._provisionalPage._session.dispose();
+-          this._provisionalPage.dispose();
+-          this._provisionalPage = null;
++          this._discardProvisionalPage();
+         } else if (this._session.sessionId === targetId) {
+           this._session.dispose();
+           eventsHelper.removeEventListeners(this._sessionListeners);
+@@ -48868,7 +48875,8 @@ var init_wkPage = __esm({
+           this._page.reportAsNew(this._opener?._page, pageOrError instanceof Page ? void 0 : pageOrError);
+         } else {
+           assert(targetInfo.isProvisional);
+-          assert(!this._provisionalPage);
++          if (this._provisionalPage)
++            this._discardProvisionalPage();
+           this._provisionalPage = new WKProvisionalPage(session, this);
+           if (targetInfo.isPaused) {
+             this._provisionalPage.initializationPromise.then(() => {
+@@ -49475,18 +49483,18 @@ var init_wkPage = __esm({
+           throw new Error("Frame has been detached.");
+         return createHandle4(context, result2.object);
+       }
+-      _maybeCancelCoopNavigationRequest(provisionalPage) {
+-        const navigationRequest = provisionalPage.coopNavigationRequest();
++      _failOrphanedRequests(coopNavigationRequest) {
++        const pendingRequest = this._page.mainFrame().pendingDocument()?.request;
+         for (const [requestId, request2] of this._requestIdToRequest) {
+-          if (request2.request === navigationRequest) {
+-            this._onLoadingFailed(provisionalPage._session, {
+-              requestId,
+-              errorText: "Provisional navigation canceled.",
+-              timestamp: request2._timestamp,
+-              canceled: true
+-            });
+-            return;
+-          }
++          const orphaned = request2.session().isDisposed() && request2.request !== pendingRequest;
++          if (!orphaned && request2.request !== coopNavigationRequest)
++            continue;
++          this._onLoadingFailed(request2.session(), {
++            requestId,
++            errorText: "Provisional navigation canceled.",
++            timestamp: request2._timestamp,
++            canceled: true
++          });
+         }
+       }
+       _adoptRequestFromNewProcess(navigationRequest, newSession, newRequestId) {
