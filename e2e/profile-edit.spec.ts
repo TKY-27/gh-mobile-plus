@@ -47,7 +47,7 @@ test("profile editing requests consent, retries rejected changes and updates Acc
 
   await signIn(page, oauth);
   await addAccount(page, oauth, "hubot");
-  await oauth.configure({ user: "mona" });
+  await oauth.configure({ user: "mona", consent: "prompt" });
   await openAccountScreen(page);
   await page.getByRole("button", { name: "Edit profile", exact: true }).click();
   const editor = page.getByRole("dialog", { name: "Edit profile" });
@@ -58,8 +58,9 @@ test("profile editing requests consent, retries rejected changes and updates Acc
   await expect
     .poll(() => peer.evaluate(() => localStorage.getItem("ghm-active-account")))
     .toBe("1002");
-  await peer.close();
+  await page.bringToFront();
   await tapInSheet(editor.getByRole("link", { name: "Authorize on GitHub" }));
+  await page.getByRole("button", { name: "Grant access" }).click();
 
   await expect(page).toHaveURL("/account?editProfile=1001");
   expect((await oauth.report()).authorizations.at(-1)).toMatchObject({

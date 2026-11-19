@@ -73,6 +73,7 @@ interface RefreshGrant extends Grant {
 interface Reply {
   status: number;
   body?: unknown;
+  html?: string;
   headers?: Record<string, string>;
 }
 
@@ -145,7 +146,9 @@ function parseJsonObject(text: string): Record<string, unknown> {
 function mergeBehavior(behavior: MockBehavior, patch: Record<string, unknown>): void {
   const { user, consent, failNextExchange, rejectRefresh, accessTokenLifetimeSeconds } = patch;
   if (user === "mona" || user === "hubot") behavior.user = user;
-  if (consent === "approve" || consent === "deny") behavior.consent = consent;
+  if (consent === "approve" || consent === "deny" || consent === "prompt") {
+    behavior.consent = consent;
+  }
   if (typeof failNextExchange === "boolean") behavior.failNextExchange = failNextExchange;
   if (typeof rejectRefresh === "boolean") behavior.rejectRefresh = rejectRefresh;
   if (typeof accessTokenLifetimeSeconds === "number" && accessTokenLifetimeSeconds > 0) {
@@ -168,6 +171,12 @@ function authorize(request: IncomingMessage, url: URL): Reply {
     !URL.canParse(redirectUri)
   ) {
     return failure(Status.badRequest, "Malformed authorization request");
+  }
+  if (scope.behavior.consent === "prompt" && request.method === "GET") {
+    return {
+      status: Status.ok,
+      html: '<!doctype html><html lang="en"><title>GitHub authorization</title><form method="post"><button>Grant access</button></form></html>',
+    };
   }
   scope.report.authorizations.push(Object.fromEntries(params));
   const target = new URL(redirectUri);
@@ -358,7 +367,10 @@ function route(request: IncomingMessage): Promise<Reply> | Reply {
   const url = new URL(request.url ?? "/", `http://${HOST}`);
   const path = url.pathname;
   if (path.startsWith(`${CONTROL_PREFIX}/`)) return control(request, path);
-  if (path === "/login/oauth/authorize" && request.method === "GET") {
+  if (
+    path === "/login/oauth/authorize" &&
+    (request.method === "GET" || request.method === "POST")
+  ) {
     return authorize(request, url);
   }
   if (path === "/login/oauth/access_token") return accessToken(request, url);
@@ -370,6 +382,12 @@ function route(request: IncomingMessage): Promise<Reply> | Reply {
 
 function send(response: ServerResponse, reply: Reply): void {
   const headers: Record<string, string> = { "Cache-Control": "no-store", ...reply.headers };
+  if (reply.html !== undefined) {
+    response
+      .writeHead(reply.status, { ...headers, "Content-Type": "text/html; charset=utf-8" })
+      .end(reply.html);
+    return;
+  }
   if (reply.body === undefined) {
     response.writeHead(reply.status, headers).end();
     return;
