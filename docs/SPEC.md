@@ -33,10 +33,10 @@ Each of these has an "Open on GitHub" escape hatch where the user would reasonab
 - Web Push and any background notification delivery
 - Copilot, Copilot coding agent sessions, and AI features of any kind
 - Discussions, Gists, Projects (v2) editing, Wikis, Packages, Codespaces, Security/Dependabot alerts UI
-- Multi-file edits, creating files, renaming or deleting files
+- Multi-file edits, renaming or deleting files
 - An offline write queue. Offline is read-only; drafts are kept locally.
 - GitHub Enterprise Server and GHE.com
-- Organization and repository settings administration
+- Organization administration and repository settings beyond the general settings in §6.8
 - Platform-adaptive UI. One custom design runs on all platforms.
 - Native wrappers (Capacitor, TWA). The product is a PWA.
 
@@ -139,6 +139,7 @@ Every dependency must be verified against its official documentation before use.
 
 - **OAuth App**, authorization-code flow with **PKCE (S256)**.
 - Scopes: `repo notifications workflow read:org read:user user:email user:follow`. `user:follow` is needed for the follow toggle (6.15).
+- Updating the authenticated profile and social accounts requires the additional `user` scope. Request it only when the account opens profile editing and chooses to authorize. Bind that consent to the same account and repository access mode. Editable account and email responses stay out of persistent storage.
 - Optional "Public repositories only" sign-in that requests `public_repo` instead of `repo`. The choice is per account and shown in Account settings.
 - **Token mode** is a deployment setting, `GHM_TOKEN_MODE`:
   - `expiring` (default): the OAuth App has expiring user tokens enabled. Access tokens last 8 hours, and refresh tokens are single-use.
@@ -151,8 +152,8 @@ All endpoints are same-origin with the app. They set no CORS headers and return 
 
 | Endpoint | Behavior |
 |---|---|
-| `GET /auth/login?mode=add\|reauth&account=<id>&public=0\|1&return=<path>` | Generates `state` (32 random bytes) and a PKCE verifier. Stores both, plus mode and the return path (accepted only if it has no control characters or backslashes and resolves to the request origin; default `/`), in an encrypted cookie `__Host-ghm_oauth` (`SameSite=Lax`, `HttpOnly`, `Secure`, `Max-Age=600`, `Path=/`). Redirects to `https://github.com/login/oauth/authorize` with `client_id`, `redirect_uri`, `scope`, `state`, `code_challenge`, `code_challenge_method=S256` and, for `mode=add`, `prompt=select_account`. |
-| `GET /auth/callback` | Verifies `state` in constant time against the cookie, then deletes the cookie. Exchanges `code` plus `code_verifier` plus `client_secret` for tokens. Calls `GET /user` to obtain the numeric user id, login and avatar. Writes the account cookie (4.3), refusing a sixth account. Redirects to the stored return path with no token or code in the URL. On any failure, redirects to `/signin?error=<code>`, where `code` is one of `state_mismatch`, `access_denied`, `exchange_failed`, `org_restricted` or `account_limit`. |
+| `GET /auth/login?mode=add\|reauth\|profile&account=<id>&public=0\|1&return=<path>` | Generates `state` (32 random bytes) and a PKCE verifier. Stores both, plus mode and the return path (accepted only if it has no control characters or backslashes and resolves to the request origin; default `/`), in an encrypted cookie `__Host-ghm_oauth` (`SameSite=Lax`, `HttpOnly`, `Secure`, `Max-Age=600`, `Path=/`). Redirects to `https://github.com/login/oauth/authorize` with `client_id`, `redirect_uri`, `scope`, `state`, `code_challenge`, `code_challenge_method=S256` and, for `mode=add`, `prompt=select_account`. |
+| `GET /auth/callback` | Verifies `state` in constant time against the cookie, then deletes the cookie. Exchanges `code` plus `code_verifier` plus `client_secret` for tokens. Calls `GET /user` to obtain the numeric user id, login and avatar. Writes the account cookie (4.3), refusing a sixth account. Reauthorization and profile-write consent verify the requested account ID. A profile grant must include the requested permissions and preserve the repository mode. Profile editing returns to `/account?editProfile=<verified account id>`. Other modes restore the stored return path. No token or code is included in either destination. On any failure, redirects to `/signin?error=<code>`, where `code` is one of `state_mismatch`, `access_denied`, `exchange_failed`, `org_restricted` or `account_limit`. |
 | `POST /auth/token` body `{ "accountId": number }` | Decrypts that account's cookie. In `expiring` mode it refreshes with GitHub, rotates the cookie, and returns `{ accessToken, expiresAt }`, where `expiresAt` is epoch milliseconds. In `persistent` mode it returns the stored token with `expiresAt: null`. On `bad_refresh_token` it deletes the cookie and returns 401 `{ error: "reauth_required" }`. |
 | `GET /auth/accounts` | Returns `[{ id, login, avatarUrl, publicOnly }]` decoded from account cookies. Returns no tokens. Sends the non-secret OAuth client id in the `X-GHM-Client-Id` header for the link in 4.5. |
 | `POST /auth/logout` body `{ "accountId": number }` | Revokes the token at GitHub (`DELETE /applications/{client_id}/token` with basic auth), then deletes the cookie. A revoke failure is logged without secrets and is not surfaced as a logout failure. |
@@ -258,7 +259,8 @@ type GitHubError =
 - **Independent navigation stack per tab.** Switching tabs preserves each stack and its scroll positions.
 - Re-tapping the active tab scrolls to top if the screen is scrolled; otherwise it pops to the tab root.
 - **Edge-swipe back:** a swipe starting within 20 px of the leading edge pops the stack with an interactive, cancellable transition, at 60 fps on a mid-range device.
-- Tab roots use a single compact, left-aligned title bar. Long detail titles collapse into the navigation bar on scroll.
+- Every tab root has a compact title bar. Its leading avatar or menu button opens a left navigation drawer with profile, notifications, repositories, stars, settings, account switching and the command palette. A rightward swipe starting within 64 px of the left edge also opens it. In a Safari tab, the first 20 px remain available for native browser history. Detail screens retain the Back button and back gesture. Long detail titles collapse into the navigation bar on scroll.
+- Bottom sheets keep a fixed header and scroll their contents independently. The close button, Escape, a backdrop tap or a downward drag on the header dismisses them.
 - The tab bar hides while the software keyboard is open (using the `visualViewport` API).
 - Long-pressing the **Account** tab opens the account switcher sheet. The notification bell on Home shows unread status and announces the count. The adjacent settings button opens Settings.
 - Deep links: in-app routes mirror GitHub paths (`/:owner/:repo/pull/:n`, etc.), so a pasted github.com URL can be opened by replacing the host. Search accepts pasted github.com URLs.
@@ -267,14 +269,12 @@ type GitHubError =
 
 ### 6.2 Home
 
-From top to bottom:
+The compact header links the viewer's name to their profile and provides direct notification and settings actions. Two views share the space below it.
 
-1. **Account header:** avatar, display name and login link to the profile.
-2. **Contributions:** a green activity calendar for the last 52 weeks, with a yearly total, month markers and a scale. Narrow viewports start at the current week and can scroll back.
-3. **Recent repositories:** up to six repositories owned by the active user, ordered by last push. The viewer query includes these summaries. See all opens the Repositories tab at `/repositories`.
-4. **Activity:** the default Following view groups consecutive received events by actor and repository. Filters cover releases, stars, pushes, issues and PRs, and follows. A separate option shows recent releases from the 100 most recently starred repositories, limited to 10 releases per repository and a 14-day window. The feed uses infinite scroll to the 300-event limit and notes GitHub's delivery delay.
+1. **Following** opens first. Consecutive received events are grouped by actor and repository. Filters cover releases, stars, pushes, issues and PRs, and follows. A separate option shows recent releases from the 100 most recently starred repositories, limited to 10 releases per repository and a 14-day window. The feed uses infinite scroll to the 300-event limit and notes GitHub's delivery delay.
+2. **Overview** shows the last 52 weeks of contributions, yearly total, month markers and scale. Narrow viewports start at the current week. Up to six recently pushed owned repositories follow. See all opens the Repositories tab at `/repositories`.
 
-Pull-to-refresh and the refresh button update the calendar, repository summaries, activity and releases.
+A downward pull at the top or the refresh button updates the visible view. A horizontal swipe, a cancelled touch and scrolling back up from further down the list do not start a refresh.
 
 ### 6.3 Notifications
 
@@ -332,6 +332,7 @@ Segmented control: **Review requested**, **My PRs**, **Assigned**, **CI failing*
 
 ### 6.7 Account
 
+- The Account tab is the rightmost mobile tab and uses the active avatar. Its header opens the account switcher and Settings. Repository, follower and following counts open their respective lists. The authenticated viewer can edit their name, bio, company, location, website, X username, public email and availability for hire, and manage social links. Profile sharing uses the device share sheet or copies the link.
 - The full profile, with profile README rendering (`<login>/<login>` README when present).
 - Profile details and navigation are usable while a public profile README loads independently. A missing namesake repository leaves the profile visible.
 - My repositories, Starred, and Organizations. The Repositories tab searches owned repositories by name, including forks. Offline, it can reuse a saved search or filter the downloaded list and indicate when only part of it is available.
@@ -339,7 +340,9 @@ Segmented control: **Review requested**, **My PRs**, **Assigned**, **CI failing*
 
 ### 6.8 Repository
 
-- **Header:** owner/name, description, stars, forks, watchers, language, and license. Star and Watch toggles; fork opens on GitHub.
+- **Header:** owner/name, description, stars, forks, watchers, language, and license. Star and Watch toggles. Forks can be created in-app for the viewer or an eligible organization, with a chosen name and an option to copy only the default branch. The app waits for the fork to be available. Retrying this check does not submit another fork request.
+- **Repository administration:** Administrators of unarchived repositories can change the description, homepage, Issues, Wiki, Projects, allowed merge methods, automatic merging and automatic head branch deletion at `/:owner/:repo/settings`. Only edited fields are sent.
+- **Create repository:** The Repositories header opens `/new` for a personal repository, with a name, description, visibility and optional README. Public-only accounts can create public repositories.
 - **Sections:** README (default), Code, Issues, Pull requests, Actions, Releases.
 - A branch and tag switcher is available on the Code and README sections.
 
@@ -357,12 +360,15 @@ Segmented control: **Review requested**, **My PRs**, **Assigned**, **CI failing*
 
 ### 6.10 File editing
 
+- A branch directory offers **New file** for a text file up to 1 MB. File name and content are saved as an account-local draft. Creation checks the path at the commit used as the expected head. It refuses to overwrite an existing file or create a child under a file. Direct creation requires push access. Branch and fork proposals reuse the existing commit flow. Empty repositories without a branch are excluded.
 - An **Edit** action appears on text files up to 1 MB.
 - The editor is CodeMirror 6 with the same language highlighting, autosaved drafts, and an on-screen accessory bar with Tab, indent and outdent, undo, redo, and find.
 - **Commit sheet** (the default is a new branch named `ghm/<login>/<short-date>-<file-stem>`):
   - **With push access:** commit directly to the current branch, or create a new branch and open a pull request.
   - **Without push access:** fork the repository if no fork exists (`POST /repos/{owner}/{repo}/forks`), wait until it is ready, create a branch on the fork, commit, and open a pull request to the upstream repository. This mirrors github.com's behavior.
 - Commits use GraphQL `createCommitOnBranch` with `expectedHeadOid`. New branches use `createRef`.
+- Retrying the same proposal in the open editor first checks the previous branch, commit and pull request. An uncertain branch or a fork missing the source commit stops the proposal. Existing fork branches are never synchronized as a side effect.
+- A result arriving after the sheet closes clears the submitted draft if it still matches. Later edits and the current screen are preserved. Commit submission requires a connection.
 - **Conflict handling:** if the head moved, the sheet shows "This file changed since you opened it", with **View latest** (draft kept, side-by-side diff of the user's version against the latest) or **Commit to a new branch instead**.
 - Branch protection rejections map to a clear message, with "Commit to a new branch instead" offered.
 - Acceptance criterion: all three paths (direct, new branch + PR, fork + PR) work and end on the resulting commit or PR screen.
@@ -381,6 +387,7 @@ Segmented control: **Review requested**, **My PRs**, **Assigned**, **CI failing*
 
 ### 6.12 Pull request detail
 
+- The repository pull list offers **New pull request**. Choose two branches in the same repository, inspect commits ahead and behind, then enter a title and description and optionally submit a draft. On success, open the created PR.
 - **Tabs:** Conversation, Files, Checks, Commits.
 - The detail header, repository lists, Work and search use the same PR state icons and colors. Open is green, draft is gray, merged is purple and closed is red.
 - **Conversation:** as in 6.11, plus review summaries and requested reviewers. Requesting reviewers is supported.
@@ -434,7 +441,7 @@ This is the flagship experience.
 
 ### 6.15 Other screens
 
-- Other users' profiles: README, pinned repositories, repositories, and a follow toggle. Profile lists use `/:owner?tab=repositories|stars|members`.
+- Other users' profiles: README, pinned repositories, repositories, and a follow toggle. Profile lists use `/:owner?tab=repositories|stars|followers|following|members`.
 - Organization pages: repositories and members.
 - Releases list and detail, with notes rendered through `SafeHtml` and asset links.
 - Commit detail (message, files, diff), reusing the diff viewer read-only.
@@ -608,3 +615,4 @@ The production URL is `https://gh-mobile-plus.pages.dev`. A push to `main` deplo
 - 2026-11-18: Profile READMEs load independently. Repository README representations and direct PR tab data load concurrently (ADR 0014). PR states use consistent icons and colors across screens.
 - 2026-11-18: GitHub Actions deploys successful `main` builds to the existing Cloudflare Pages project (ADR 0015).
 - 2026-11-18: Repositories becomes a primary destination. Home brings together identity, contributions, recently pushed repositories, activity, notifications and settings. Search offers scoped qualifier examples. Wide screens use a navigation rail (ADR 0016).
+- 2026-11-19: Added tab-root navigation drawers, a feed-first Home, profile editing with optional account-bound authorization, follower lists, repository creation, forks, general repository settings, new text files and same-repository pull requests (ADR 0017).
