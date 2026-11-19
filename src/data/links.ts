@@ -45,6 +45,7 @@ const REPO_ROUTES: readonly RegExp[] = [
   /^$/,
   /^tree\/[^/]+(\/.+)?$/,
   /^blob\/[^/]+\/.+$/,
+  /^new\/[^/]+(\/.+)?$/,
   /^issues(\/new|\/\d+)?$/,
   /^settings$/,
   /^fork$/,

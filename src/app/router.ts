@@ -109,6 +109,11 @@ export const editRoute = createRoute({
   path: "$owner/$repo/edit/$ref/$",
   component: lazy(() => import("@/features/code/EditScreen.tsx")),
 });
+export const newFileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "$owner/$repo/new/$ref/$",
+  component: lazy(() => import("@/features/code/CreateFileScreen.tsx")),
+});
 export const issuesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "$owner/$repo/issues",
@@ -241,6 +246,7 @@ const routeTree = rootRoute.addChildren([
   treeRoute,
   blobRoute,
   editRoute,
+  newFileRoute,
   issuesRoute,
   newIssueRoute,
   issueRoute,

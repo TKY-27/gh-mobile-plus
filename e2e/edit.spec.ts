@@ -15,6 +15,7 @@ import {
 } from "./support/github.ts";
 import { tapInSheet } from "./support/accounts.ts";
 import { openInApp } from "./support/screens.ts";
+import { dumpIndexedDb } from "./support/storage.ts";
 
 const REPO = "/octo-org/hello-mobile";
 const PATH = "src/alpha.ts";
@@ -253,3 +254,74 @@ test("a moved head offers the latest diff and a new branch", async ({ page, oaut
     commitInput(expect.stringMatching(/^ghm\/mona\/\d{8}-alpha$/)),
   ]);
 });
+
+for (const editAgain of [false, true]) {
+  const title = editAgain
+    ? "a background commit preserves later edits and the active tab"
+    : "a background commit clears its unchanged draft without leaving the active tab";
+  test(title, async ({ page, oauth, github }) => {
+    mockEditing(github, { canPush: true });
+    let started = false;
+    let finish: (() => void) | undefined;
+    const pending = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    github.use(
+      githubGraphql.mutation("CommitFileEdit", async () => {
+        started = true;
+        await pending;
+        return HttpResponse.json({ data: fileEdit.committedFile });
+      }),
+    );
+    await signIn(page, oauth);
+    await editFile(page);
+    await tapInSheet(page.getByText(enCode["commit.direct"].replace("{branch}", "main")));
+    await submitCommit(page);
+    await expect.poll(() => started).toBe(true);
+    try {
+      const sheet = page.getByRole("dialog", { name: enCode["commit.title"] });
+      await tapInSheet(sheet.getByRole("button", { name: "Close" }));
+      await expect(sheet).toHaveCount(0);
+      const editor = page.getByRole("textbox", {
+        name: enCode["edit.label"].replace("{name}", "alpha.ts"),
+      });
+      if (editAgain) {
+        const selectAll = await page.evaluate(() =>
+          /iPhone|iPad/.test(navigator.userAgent) || /Mac/.test(navigator.platform)
+            ? "Meta+a"
+            : "Control+a",
+        );
+        await editor.press(selectAll);
+        await editor.press("Backspace");
+        await expect(editor).toHaveText("");
+        await editor.fill("A newer draft");
+        await expect(editor).toHaveText("A newer draft");
+        await editor.blur();
+      }
+      await page.locator('[data-tab="search"]').click();
+      await expect(page).toHaveURL("/search");
+    } finally {
+      finish?.();
+    }
+    await expect(page.getByText(enCode["commit.done"], { exact: true })).toBeVisible();
+    await expect(page).toHaveURL("/search");
+    await page.locator('[data-tab="home"]').click();
+    await expect(page).toHaveURL(`${REPO}/edit/main/${PATH}`);
+    if (editAgain) {
+      await expect
+        .poll(async () => JSON.stringify(await dumpIndexedDb(page)))
+        .toContain("A newer draft");
+      await page.reload();
+      await expect(
+        page.getByRole("textbox", { name: enCode["edit.label"].replace("{name}", "alpha.ts") }),
+      ).toHaveText("A newer draft");
+    } else {
+      await expect(
+        page.getByRole("button", { name: enCode["edit.commit"], exact: true }),
+      ).toBeDisabled();
+      await expect
+        .poll(async () => JSON.stringify(await dumpIndexedDb(page)))
+        .not.toContain("// edited");
+    }
+  });
+}

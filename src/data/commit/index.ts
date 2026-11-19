@@ -2,19 +2,47 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
+  type QueryClient,
   type UseMutationResult,
   type UseQueryResult,
 } from "@tanstack/react-query";
+import { useRef, type RefObject } from "react";
+import {
+  findSubmittedPull,
+  proposalKey,
+  reconcileProposalHead,
+  type ProposalAttempt,
+} from "./proposal";
 import { graphql as document } from "../internal/graphql";
 import { isGitHubError, type GitHubError } from "../errors";
-import { apiPath, graphql, rest } from "../internal/client";
+import { graphql } from "../internal/client";
 import { HTTP_ACCEPTED, HTTP_OK } from "../internal/constants";
 import { gitHubFailure } from "../internal/errors";
 import { accountKey, PRIVATE_QUERY, STALE_TIME } from "../internal/query";
-import { sleep } from "../internal/sleep";
-import { useActiveAccount, type AccountId } from "../session";
+import { qualifiedRef, refKind, refName } from "../links";
+import { openPullRequest } from "../pulls/create";
+import { requestFork, waitForFork, type ForkRepository } from "../repo/fork";
+import { useActiveAccount, type Account, type AccountId } from "../session";
+import {
+  ancestorPaths,
+  isContentWithinLimit,
+  isValidDirectory,
+  normalizeDirectory,
+  validateNewFilePath,
+} from "./path";
 
 export { diffLines } from "./lines";
+export { MAX_FILE_BYTES } from "../internal/constants";
+export {
+  ancestorPaths,
+  isContentWithinLimit,
+  MAX_FILE_PATH_LENGTH,
+  newFileDraftKey,
+  normalizeDirectory,
+  validateNewFilePath,
+  type FilePathError,
+  type ValidatedFilePath,
+} from "./path";
 
 export type CommitTarget =
   | { kind: "direct" }
@@ -38,17 +66,78 @@ export type CommitOutcome =
 export type CommitStep =
   "forking" | "waitingForFork" | "creatingBranch" | "committing" | "openingPullRequest";
 
-const FORK_READY_ATTEMPTS = 7;
-const FORK_INITIAL_DELAY_MS = 1000;
-const FORK_MAX_DELAY_MS = 8000;
+export type CreateFileStep = "checkingPath" | CommitStep;
+
+export interface FileCreation {
+  owner: string;
+  repo: string;
+  branch: string;
+  path: string;
+  content: string;
+  message: { headline: string; body: string };
+}
+
+export type CreateFileIneligibleReason =
+  "notBranch" | "archived" | "readOnly" | "emptyRepository" | "noPermission" | "notDirectory";
+
+export type CreateFileContext =
+  | {
+      eligible: true;
+      branch: string;
+      directory: string;
+      headOid: string;
+      canPush: boolean;
+      canProposePull: boolean;
+    }
+  | {
+      eligible: false;
+      reason: CreateFileIneligibleReason;
+    };
+
+export type CreateFileFailure =
+  | { reason: "pathExists"; path: string }
+  | { reason: "ancestorConflict"; path: string }
+  | { reason: "readOnly" }
+  | { reason: "noPermission" };
+
+const BRANCH_REF_PREFIX = qualifiedRef("branches", "");
+const CREATE_FILE_FAILURE = Symbol.for("ghm.createFileFailure");
+
+function failCreateFile(error: GitHubError, failure: CreateFileFailure): never {
+  const thrown = gitHubFailure(error);
+  Object.defineProperty(thrown, CREATE_FILE_FAILURE, { value: failure });
+  throw thrown;
+}
+
+function isCreateFileFailure(value: unknown): value is CreateFileFailure {
+  if (typeof value !== "object" || value === null || !("reason" in value)) return false;
+  switch (value.reason) {
+    case "readOnly":
+    case "noPermission":
+      return true;
+    case "pathExists":
+    case "ancestorConflict":
+      return "path" in value && typeof value.path === "string";
+    default:
+      return false;
+  }
+}
+
+export function createFileFailure(error: unknown): CreateFileFailure | null {
+  if (typeof error !== "object" || error === null) return null;
+  const failure: unknown = Reflect.get(error, CREATE_FILE_FAILURE);
+  return isCreateFileFailure(failure) ? failure : null;
+}
+
+function hasPushPermission(permission: string | null | undefined): boolean {
+  return permission === "ADMIN" || permission === "MAINTAIN" || permission === "WRITE";
+}
+
 const MAX_BRANCH_NAME_ATTEMPTS = 3;
 const REF_ALREADY_EXISTS = /\b(?:reference|ref)\b.*already exists/i;
 const HEAD_CONFLICT =
   /expectedHeadOid|expected head|expected branch to point to|head.*(?:changed|moved|match)|stale.*head/i;
 const BRANCH_PROTECTION = /protected branch|branch protection|repository rule|ruleset|GH006|GH013/i;
-const MISSING_COMMIT =
-  /(?:could not resolve|could not find|not found|does not exist|invalid).*(?:commit|oid)|(?:commit|oid).*(?:not found|does not exist|invalid)/i;
-
 const commitDocument = document(`
   mutation CommitFileEdit($input: CreateCommitOnBranchInput!) {
     createCommitOnBranch(input: $input) { commit { oid } }
@@ -61,27 +150,14 @@ const branchDocument = document(`
   }
 `);
 
-const pullDocument = document(`
-  mutation OpenEditPullRequest($input: CreatePullRequestInput!) {
-    createPullRequest(input: $input) { pullRequest { number } }
-  }
-`);
-
 const repositoryDocument = document(`
   query EditRepository($owner: String!, $repo: String!, $findFork: Boolean!) {
     repository(owner: $owner, name: $repo) {
       id
+      hasPullRequestsEnabled
       forks(first: 1, affiliations: [OWNER]) @include(if: $findFork) {
         nodes { id name owner { login } defaultBranchRef { name } }
       }
-    }
-  }
-`);
-
-const forkDocument = document(`
-  query EditForkReady($owner: String!, $repo: String!) {
-    repository(owner: $owner, name: $repo) {
-      id name owner { login } defaultBranchRef { name }
     }
   }
 `);
@@ -101,12 +177,89 @@ const latestDocument = document(`
   }
 `);
 
-interface EditRepository {
-  id: string;
-  name: string;
-  owner: { login: string };
-  defaultBranchRef: { name: string } | null;
-}
+const createContextDocument = document(`
+  query CreateFileContext(
+    $owner: String!
+    $repo: String!
+    $branchRef: String!
+    $directoryExpression: String!
+    $hasDirectory: Boolean!
+  ) {
+    repository(owner: $owner, name: $repo) {
+      isPrivate
+      isArchived
+      isDisabled
+      isLocked
+      isEmpty
+      forkingAllowed
+      hasPullRequestsEnabled
+      viewerPermission
+      ref(qualifiedName: $branchRef) {
+        prefix
+        target {
+          __typename
+          ... on Commit {
+            oid
+          }
+        }
+      }
+      directory: object(expression: $directoryExpression) @include(if: $hasDirectory) {
+        __typename
+      }
+    }
+  }
+`);
+
+const checkNewFilePathDocument = document(`
+  query CheckNewFilePath(
+    $owner: String!
+    $repo: String!
+    $ref: String!
+    $path: String!
+    $parentPath: String!
+    $hasParent: Boolean!
+  ) {
+    repository(owner: $owner, name: $repo) {
+      isPrivate
+      isArchived
+      isDisabled
+      isLocked
+      forkingAllowed
+      hasPullRequestsEnabled
+      viewerPermission
+      ref(qualifiedName: $ref) {
+        prefix
+        target {
+          __typename
+          ... on Commit {
+            oid
+            file(path: $path) {
+              type
+            }
+            parent: file(path: $parentPath) @include(if: $hasParent) {
+              type
+            }
+          }
+        }
+      }
+    }
+  }
+`);
+
+const checkCommitEntryDocument = document(`
+  query CheckCommitEntry($owner: String!, $repo: String!, $oid: GitObjectID!, $path: String!) {
+    repository(owner: $owner, name: $repo) {
+      object(oid: $oid) {
+        __typename
+        ... on Commit {
+          file(path: $path) {
+            type
+          }
+        }
+      }
+    }
+  }
+`);
 
 function editFailure(error: unknown): never {
   if (isGitHubError(error) && (error.kind === "validation" || error.kind === "forbidden")) {
@@ -146,43 +299,22 @@ async function commitFile(
   }
 }
 
-async function waitForFork(
-  accountId: AccountId,
-  owner: string,
-  repo: string,
-): Promise<EditRepository> {
-  for (let attempt = 0; attempt < FORK_READY_ATTEMPTS; attempt++) {
-    if (attempt > 0) {
-      await sleep(Math.min(FORK_INITIAL_DELAY_MS * 2 ** (attempt - 1), FORK_MAX_DELAY_MS));
-    }
-    try {
-      const result = await graphql(accountId, forkDocument, { owner, repo });
-      if (result.repository?.defaultBranchRef) return result.repository;
-    } catch (error) {
-      if (!isGitHubError(error) || error.kind !== "notFound") throw error;
-    }
-  }
-  throw gitHubFailure({ kind: "server", status: HTTP_ACCEPTED });
-}
-
 async function editFork(
   accountId: AccountId,
   edit: FileEdit,
-  existing: EditRepository | null,
+  existing: ForkRepository | null,
   onStep?: (step: CommitStep) => void,
-): Promise<EditRepository> {
+): Promise<ForkRepository> {
   if (existing?.defaultBranchRef) return existing;
   let owner = existing?.owner.login;
   let repo = existing?.name;
   if (!existing) {
     onStep?.("forking");
-    const response = await rest<{ owner: { login: string }; name: string }>(accountId, {
-      path: apiPath`/repos/${edit.owner}/${edit.repo}/forks`,
-      method: "POST",
-      body: { default_branch_only: false },
+    const created = await requestFork(accountId, edit.owner, edit.repo, {
+      default_branch_only: false,
     });
-    owner = response.body.owner.login;
-    repo = response.body.name;
+    owner = created.owner;
+    repo = created.name;
   }
   onStep?.("waitingForFork");
   if (!owner || !repo) throw gitHubFailure({ kind: "server", status: HTTP_ACCEPTED });
@@ -191,18 +323,23 @@ async function editFork(
 
 async function createBranch(
   accountId: AccountId,
-  repositoryId: string,
+  proposal: ProposalAttempt,
   branch: string,
-  oid: string,
-): Promise<string> {
+): Promise<void> {
   for (let attempt = 1; ; attempt++) {
     const candidate = attempt === 1 ? branch : `${branch}-${String(attempt)}`;
+    proposal.branch = candidate;
     try {
       const result = await graphql(accountId, branchDocument, {
-        input: { repositoryId, name: `refs/heads/${candidate}`, oid },
+        input: {
+          repositoryId: proposal.repositoryId,
+          name: `refs/heads/${candidate}`,
+          oid: proposal.edit.expectedHeadOid,
+        },
       });
       if (!result.createRef?.ref) throw gitHubFailure({ kind: "server", status: HTTP_OK });
-      return candidate;
+      proposal.confirmed = true;
+      return;
     } catch (error) {
       if (
         attempt >= MAX_BRANCH_NAME_ATTEMPTS ||
@@ -215,36 +352,11 @@ async function createBranch(
   }
 }
 
-async function createForkBranch(
-  accountId: AccountId,
-  fork: EditRepository,
-  edit: FileEdit,
-  branch: string,
-): Promise<string> {
-  try {
-    return await createBranch(accountId, fork.id, branch, edit.expectedHeadOid);
-  } catch (error) {
-    if (
-      !isGitHubError(error) ||
-      !(
-        error.kind === "notFound" ||
-        (error.kind === "validation" && MISSING_COMMIT.test(error.message))
-      )
-    ) {
-      throw error;
-    }
-    await rest(accountId, {
-      path: apiPath`/repos/${fork.owner.login}/${fork.name}/merge-upstream`,
-      method: "POST",
-      body: { branch: edit.branch },
-    });
-    return createBranch(accountId, fork.id, branch, edit.expectedHeadOid);
-  }
-}
-
 async function commitEdit(
   accountId: AccountId,
   edit: FileEdit & { target: CommitTarget },
+  pending: RefObject<ProposalAttempt | null>,
+  key: string,
   onStep?: (step: CommitStep) => void,
 ): Promise<CommitOutcome> {
   const { target } = edit;
@@ -260,32 +372,90 @@ async function commitEdit(
   });
   const upstream = result.repository;
   if (!upstream) throw gitHubFailure({ kind: "notFound" });
-  const fork =
-    target.kind === "fork"
-      ? await editFork(accountId, edit, upstream.forks?.nodes?.[0] ?? null, onStep)
-      : null;
-  const owner = fork?.owner.login ?? edit.owner;
-  const repo = fork?.name ?? edit.repo;
-  onStep?.("creatingBranch");
-  const branch = fork
-    ? await createForkBranch(accountId, fork, edit, target.branchName)
-    : await createBranch(accountId, upstream.id, target.branchName, edit.expectedHeadOid);
-  onStep?.("committing");
-  await commitFile(accountId, edit, owner, repo, branch);
+  if (!upstream.hasPullRequestsEnabled) {
+    throw gitHubFailure({ kind: "forbidden", message: "Pull requests are disabled" });
+  }
+  const previous = pending.current?.key === key ? pending.current : null;
+  let attempt = previous;
+  if (!attempt) {
+    const fork =
+      target.kind === "fork"
+        ? await editFork(accountId, edit, upstream.forks?.nodes?.[0] ?? null, onStep)
+        : null;
+    attempt = {
+      key,
+      edit,
+      destination: { owner: fork?.owner.login ?? edit.owner, repo: fork?.name ?? edit.repo },
+      repositoryId: fork?.id ?? upstream.id,
+      branch: target.branchName,
+      confirmed: false,
+      commitOid: null,
+    };
+    pending.current = attempt;
+  }
+  if (previous?.commitOid) {
+    const submitted = await findSubmittedPull(accountId, previous);
+    if (submitted)
+      return { kind: "pullRequest", owner: edit.owner, repo: edit.repo, number: submitted };
+  }
+  const reuse = previous ? await reconcileProposalHead(accountId, previous) : false;
+  if (!reuse) {
+    onStep?.("creatingBranch");
+    try {
+      await createBranch(accountId, attempt, attempt.branch);
+    } catch (error) {
+      if (isGitHubError(error) && error.kind !== "server" && error.kind !== "network") {
+        pending.current = null;
+      }
+      throw error;
+    }
+  }
+  const { owner, repo } = attempt.destination;
+  if (!attempt.commitOid) {
+    onStep?.("committing");
+    attempt.edit = { ...attempt.edit, message: edit.message };
+    attempt.commitOid = await commitFile(accountId, attempt.edit, owner, repo, attempt.branch);
+  }
   onStep?.("openingPullRequest");
-  const opened = await graphql(accountId, pullDocument, {
-    input: {
-      repositoryId: upstream.id,
-      baseRefName: edit.branch,
-      // GitHub requires qualified fork heads.
-      headRefName: fork ? `${owner}:${branch}` : branch,
-      ...(fork ? { headRepositoryId: fork.id } : {}),
-      ...target.pullRequest,
-    },
+  const number = await openPullRequest(accountId, {
+    repositoryId: upstream.id,
+    baseRefName: edit.branch,
+    headRefName: target.kind === "fork" ? `${owner}:${attempt.branch}` : attempt.branch,
+    ...(target.kind === "fork" ? { headRepositoryId: attempt.repositoryId } : {}),
+    ...target.pullRequest,
   });
-  const number = opened.createPullRequest?.pullRequest?.number;
-  if (!number) throw gitHubFailure({ kind: "server", status: HTTP_OK });
   return { kind: "pullRequest", owner: edit.owner, repo: edit.repo, number };
+}
+
+async function invalidateAfterCommit(
+  queryClient: QueryClient,
+  accountId: AccountId,
+  commit: { owner: string; repo: string; target: CommitTarget },
+  outcome: CommitOutcome,
+  proposal: ProposalAttempt | null,
+): Promise<void> {
+  const destination = outcome.kind === "pullRequest" && proposal ? proposal.destination : commit;
+  const keys: (readonly unknown[])[] = [
+    ...["file", "tree", "readme", "pullBranchComparison"].map((kind) =>
+      accountKey(accountId, kind, destination.owner, destination.repo),
+    ),
+    accountKey(accountId, "commit", "latest", destination.owner, destination.repo),
+    accountKey(accountId, "commit", "createContext", destination.owner, destination.repo),
+  ];
+  if (outcome.kind === "pullRequest") {
+    keys.push(
+      accountKey(accountId, "refs", destination.owner, destination.repo),
+      accountKey(
+        accountId,
+        "issueList",
+        commit.owner.toLowerCase(),
+        commit.repo.toLowerCase(),
+        "pulls",
+      ),
+      accountKey(accountId, "work"),
+    );
+  }
+  await Promise.all(keys.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
 }
 
 export function useCommitFileEdit(
@@ -293,21 +463,240 @@ export function useCommitFileEdit(
 ): UseMutationResult<CommitOutcome, GitHubError, FileEdit & { target: CommitTarget }> {
   const accountId = useActiveAccount().id;
   const queryClient = useQueryClient();
+  const pending = useRef<ProposalAttempt | null>(null);
   return useMutation({
     retry: false,
-    mutationFn: (edit) => commitEdit(accountId, edit, onStep),
-    onSuccess: async (outcome, edit) => {
-      const keys = [
-        ...["file", "tree", "readme"].map((kind) =>
-          accountKey(accountId, kind, edit.owner, edit.repo),
-        ),
-        accountKey(accountId, "commit", "latest", edit.owner, edit.repo),
-        ...(edit.target.kind === "newBranch"
-          ? [accountKey(accountId, "refs", edit.owner, edit.repo)]
-          : []),
-        ...(outcome.kind === "pullRequest" ? [accountKey(accountId, "work")] : []),
-      ];
-      await Promise.all(keys.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
+    mutationFn: (edit) =>
+      commitEdit(accountId, edit, pending, proposalKey(accountId, edit, edit.target), onStep),
+    onSuccess: (outcome, edit) => {
+      const proposal = pending.current;
+      pending.current = null;
+      return invalidateAfterCommit(queryClient, accountId, edit, outcome, proposal);
+    },
+  });
+}
+
+async function verifyHigherAncestors(
+  accountId: AccountId,
+  owner: string,
+  repo: string,
+  oid: string,
+  ancestors: readonly string[],
+): Promise<void> {
+  for (const ancestor of ancestors) {
+    const result = await graphql(accountId, checkCommitEntryDocument, {
+      owner,
+      repo,
+      oid,
+      path: ancestor,
+    });
+    const commitObject = result.repository?.object;
+    if (commitObject?.__typename !== "Commit") {
+      throw gitHubFailure({ kind: "conflict", message: "Expected commit is unavailable" });
+    }
+    if (commitObject.file === null) continue;
+    if (commitObject.file.type === "tree") return;
+    failCreateFile(
+      { kind: "conflict", message: "Ancestor path is not a folder" },
+      { reason: "ancestorConflict", path: ancestor },
+    );
+  }
+}
+
+async function verifyNewFileTarget(
+  account: Account,
+  creation: FileCreation,
+  targetKind: CommitTarget["kind"],
+): Promise<{ path: string; headOid: string }> {
+  const validated = validateNewFilePath("", creation.path);
+  if (!validated.ok) {
+    throw gitHubFailure({ kind: "validation", message: "File path is invalid", fields: ["path"] });
+  }
+  if (!isContentWithinLimit(creation.content)) {
+    throw gitHubFailure({
+      kind: "validation",
+      message: "File exceeds 1 MB limit",
+      fields: ["content"],
+    });
+  }
+  const ancestors = ancestorPaths(validated.path);
+  const firstAncestor = ancestors[0];
+  const result = await graphql(account.id, checkNewFilePathDocument, {
+    owner: creation.owner,
+    repo: creation.repo,
+    ref: qualifiedRef("branches", creation.branch),
+    path: validated.path,
+    parentPath: firstAncestor ?? "",
+    hasParent: firstAncestor !== undefined,
+  });
+  const repository = result.repository;
+  if (!repository) throw gitHubFailure({ kind: "notFound" });
+  if (repository.isArchived || repository.isDisabled || repository.isLocked) {
+    failCreateFile(
+      { kind: "forbidden", message: "Repository is read-only" },
+      { reason: "readOnly" },
+    );
+  }
+  const blockedByPublicOnly = account.publicOnly && repository.isPrivate;
+  const canPush = !blockedByPublicOnly && hasPushPermission(repository.viewerPermission);
+  if (targetKind !== "direct" && !repository.hasPullRequestsEnabled) {
+    failCreateFile(
+      { kind: "forbidden", message: "Pull requests are disabled" },
+      { reason: "noPermission" },
+    );
+  }
+  if (targetKind !== "fork" && !canPush) {
+    failCreateFile(
+      { kind: "forbidden", message: "Push access required" },
+      { reason: "noPermission" },
+    );
+  }
+  if (targetKind === "fork" && (!repository.forkingAllowed || blockedByPublicOnly)) {
+    failCreateFile(
+      { kind: "forbidden", message: "Forking is unavailable" },
+      { reason: "noPermission" },
+    );
+  }
+  const branchRef = repository.ref;
+  const commitTarget = branchRef?.target;
+  if (branchRef?.prefix !== BRANCH_REF_PREFIX || commitTarget?.__typename !== "Commit") {
+    throw gitHubFailure({
+      kind: "validation",
+      message: "Target ref is not a branch",
+      fields: ["branch"],
+    });
+  }
+  if (commitTarget.file !== null) {
+    failCreateFile(
+      { kind: "conflict", message: "Path already exists" },
+      { reason: "pathExists", path: validated.path },
+    );
+  }
+  if (firstAncestor !== undefined) {
+    const parent = commitTarget.parent;
+    if (parent !== null && parent !== undefined) {
+      if (parent.type !== "tree") {
+        failCreateFile(
+          { kind: "conflict", message: "Ancestor path is not a folder" },
+          { reason: "ancestorConflict", path: firstAncestor },
+        );
+      }
+    } else if (ancestors.length > 1) {
+      await verifyHigherAncestors(
+        account.id,
+        creation.owner,
+        creation.repo,
+        commitTarget.oid,
+        ancestors.slice(1),
+      );
+    }
+  }
+  return { path: validated.path, headOid: commitTarget.oid };
+}
+
+async function commitNewFile(
+  account: Account,
+  creation: FileCreation & { target: CommitTarget },
+  pending: RefObject<ProposalAttempt | null>,
+  onStep?: (step: CreateFileStep) => void,
+): Promise<CommitOutcome> {
+  const key = proposalKey(account.id, creation, creation.target);
+  if (pending.current?.key === key) {
+    return commitEdit(
+      account.id,
+      { ...pending.current.edit, message: creation.message, target: creation.target },
+      pending,
+      key,
+      onStep,
+    );
+  }
+  onStep?.("checkingPath");
+  const verified = await verifyNewFileTarget(account, creation, creation.target.kind);
+  return commitEdit(
+    account.id,
+    { ...creation, path: verified.path, expectedHeadOid: verified.headOid },
+    pending,
+    key,
+    onStep,
+  );
+}
+
+export function useCreateFile(
+  onStep?: (step: CreateFileStep) => void,
+): UseMutationResult<CommitOutcome, GitHubError, FileCreation & { target: CommitTarget }> {
+  const account = useActiveAccount();
+  const queryClient = useQueryClient();
+  const pending = useRef<ProposalAttempt | null>(null);
+  return useMutation({
+    retry: false,
+    mutationFn: (creation) => commitNewFile(account, creation, pending, onStep),
+    onSuccess: (outcome, creation) => {
+      const proposal = pending.current;
+      pending.current = null;
+      return invalidateAfterCommit(queryClient, account.id, creation, outcome, proposal);
+    },
+  });
+}
+
+export function useCreateFileContext(
+  owner: string,
+  repo: string,
+  urlRef: string,
+  rawDirectory: string,
+): UseQueryResult<CreateFileContext> {
+  const account = useActiveAccount();
+  const directory = normalizeDirectory(rawDirectory);
+  return useQuery({
+    queryKey: accountKey(account.id, "commit", "createContext", owner, repo, urlRef, directory),
+    staleTime: STALE_TIME.detail,
+    meta: PRIVATE_QUERY,
+    queryFn: async ({ signal }): Promise<CreateFileContext> => {
+      if (refKind(urlRef) === "tags") return { eligible: false, reason: "notBranch" };
+      if (!isValidDirectory(rawDirectory)) return { eligible: false, reason: "notDirectory" };
+      const branch = refKind(urlRef) === "branches" ? refName(urlRef) : urlRef;
+      const branchRef = qualifiedRef("branches", branch);
+      const result = await graphql(
+        account.id,
+        createContextDocument,
+        {
+          owner,
+          repo,
+          branchRef,
+          directoryExpression: `${branchRef}:${directory}`,
+          hasDirectory: directory !== "",
+        },
+        signal,
+      );
+      const repository = result.repository;
+      if (!repository) throw gitHubFailure({ kind: "notFound" });
+      if (repository.isArchived) return { eligible: false, reason: "archived" };
+      if (repository.isDisabled || repository.isLocked) {
+        return { eligible: false, reason: "readOnly" };
+      }
+      if (repository.isEmpty) return { eligible: false, reason: "emptyRepository" };
+      const blockedByPublicOnly = account.publicOnly && repository.isPrivate;
+      const canPush = !blockedByPublicOnly && hasPushPermission(repository.viewerPermission);
+      const canProposePull =
+        !blockedByPublicOnly &&
+        repository.hasPullRequestsEnabled &&
+        (canPush || repository.forkingAllowed);
+      if (!canPush && !canProposePull) return { eligible: false, reason: "noPermission" };
+      const resolvedRef = repository.ref;
+      const commitTarget = resolvedRef?.target;
+      if (resolvedRef?.prefix !== BRANCH_REF_PREFIX || commitTarget?.__typename !== "Commit") {
+        return { eligible: false, reason: "notBranch" };
+      }
+      if (directory !== "" && repository.directory?.__typename !== "Tree") {
+        return { eligible: false, reason: "notDirectory" };
+      }
+      return {
+        eligible: true,
+        branch,
+        directory,
+        headOid: commitTarget.oid,
+        canPush,
+        canProposePull,
+      };
     },
   });
 }

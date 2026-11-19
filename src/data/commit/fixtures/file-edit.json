@@ -27,7 +27,11 @@
     "owner": { "login": "mona" },
     "defaultBranchRef": { "name": "main" }
   },
-  "upstreamRepository": { "id": "R_kgDOGhIF8Q", "forks": { "nodes": [] } },
+  "upstreamRepository": {
+    "hasPullRequestsEnabled": true,
+    "id": "R_kgDOGhIF8Q",
+    "forks": { "nodes": [] }
+  },
   "committedFile": {
     "createCommitOnBranch": {
       "commit": { "oid": "ca9c424550ed5007a77241c067d1e553bb8fdb57" }

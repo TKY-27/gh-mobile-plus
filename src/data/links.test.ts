@@ -19,6 +19,8 @@ describe("toAppPath", () => {
 
   it("maps every supported repository section", () => {
     for (const section of [
+      "new/main",
+      "new/main/src",
       "issues",
       "issues/new",
       "issues/12",
