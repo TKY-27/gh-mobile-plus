@@ -1,4 +1,5 @@
 {
+  "overview": "概要",
   "refresh": "ホームを更新",
   "refreshing": "更新中",
   "profile.contributions.one": "過去1年間のコントリビューション {count} 件",
@@ -12,7 +13,7 @@
   "releases.empty.message": "スターしたリポジトリの過去 14 日間のリリースを表示します。",
   "feed.title": "アクティビティ",
   "feed.filter.label": "アクティビティの絞り込み",
-  "feed.filter.all": "フォロー中",
+  "feed.filter.all": "すべてのイベント",
   "feed.filter.releases": "リリース",
   "feed.filter.stars": "スター",
   "feed.filter.pushes": "プッシュ",
@@ -66,5 +67,6 @@
   "feed.older": "過去のアクティビティを読み込む",
   "feed.pushWithoutCount": "{repo} にプッシュしました",
   "feed.actorProfile": "{user} のプロフィール",
-  "feed.pushedToRef": "{repo} の {ref} にプッシュしました"
+  "feed.pushedToRef": "{repo} の {ref} にプッシュしました",
+  "following": "フォロー中"
 }

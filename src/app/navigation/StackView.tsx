@@ -23,6 +23,8 @@ const SLOP_PX = 10;
 const VELOCITY_WINDOW_MS = 100;
 const PROJECTION_MS = 120;
 const MAX_VELOCITY_PX_PER_MS = 4;
+const MENU_SWIPE_PX = 64;
+const MENU_START_WIDTH_PX = 64;
 
 interface Drag {
   pointerId: number;
@@ -43,7 +45,6 @@ function Layer(props: {
   entry: StackEntry;
   isRoot: boolean;
   isTop: boolean;
-  visible: boolean;
   hidden: boolean;
   zIndex: number;
   register: (key: string, element: HTMLDivElement | null) => void;
@@ -51,7 +52,7 @@ function Layer(props: {
   const scroller = useRef<HTMLDivElement | null>(null);
   const [mounted, setMounted] = useState(false);
   const savedScroll = useRef(0);
-  const { entry, isRoot, isTop, visible, register } = props;
+  const { entry, isRoot, isTop, register } = props;
 
   const attach = useCallback(
     (node: HTMLDivElement | null) => {
@@ -65,10 +66,10 @@ function Layer(props: {
   // WebKit can lose offsets when hidden.
   useLayoutEffect(() => {
     const element = scroller.current;
-    if (visible && element && element.scrollTop !== savedScroll.current) {
+    if (isTop && element && element.scrollTop !== savedScroll.current) {
       element.scrollTop = savedScroll.current;
     }
-  }, [visible]);
+  }, [isTop]);
 
   const route = useScreenRoute(entry);
   const screen = useMemo<ScreenValue>(
@@ -85,7 +86,7 @@ function Layer(props: {
       inert={!isTop}
       style={{ zIndex: props.zIndex }}
       onScroll={(event) => {
-        if (visible) savedScroll.current = event.currentTarget.scrollTop;
+        if (isTop) savedScroll.current = event.currentTarget.scrollTop;
       }}
     >
       {mounted ? (
@@ -136,7 +137,8 @@ export function StackView(props: {
   entries: readonly StackEntry[];
   leaving: StackEntry | null;
   active: boolean;
-  swipeEnabled: boolean;
+  backSwipeEnabled: boolean;
+  onOpenMenu?: (() => void) | undefined;
   register: (key: string, element: HTMLDivElement | null) => void;
 }) {
   const navigator = useNavigator();
@@ -157,6 +159,14 @@ export function StackView(props: {
     },
     [motion, registerScroller],
   );
+
+  useLayoutEffect(() => {
+    return () => {
+      drag.current = null;
+      motion.stop();
+      motion.settle(...motion.layers.values());
+    };
+  }, [active, top?.key, leaving, motion]);
 
   useLayoutEffect(() => {
     const key = top?.key ?? null;
@@ -207,39 +217,56 @@ export function StackView(props: {
   }, [leaving, top, active, navigator, motion]);
 
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
-    if (!props.swipeEnabled || leaving || !below || !top || event.button !== 0 || !event.isPrimary)
-      return;
+    if (!active || leaving || !top) return;
+    if (below ? !props.backSwipeEnabled : !props.onOpenMenu) return;
+    if (!event.isPrimary || event.button !== 0 || !(event.target instanceof Element)) return;
+    if (!event.currentTarget.contains(event.target)) return;
     const fromEdge = event.clientX - event.currentTarget.getBoundingClientRect().left;
-    if (fromEdge > EDGE_BACK_WIDTH_PX) return;
-    const interrupting = motion.isAnimating() && motion.position() > 0;
-    motion.stop();
+    if (fromEdge < 0 || fromEdge > (below ? EDGE_BACK_WIDTH_PX : MENU_START_WIDTH_PX)) return;
+    if (!props.backSwipeEnabled && fromEdge <= EDGE_BACK_WIDTH_PX) return;
+    if (event.target.closest("input, textarea, [contenteditable=true], [data-handle]")) return;
+    for (
+      let node = event.target;
+      node !== event.currentTarget && node.parentElement;
+      node = node.parentElement
+    ) {
+      if (
+        node.scrollWidth > node.clientWidth &&
+        /^(auto|scroll)$/.test(getComputedStyle(node).overflowX)
+      )
+        return;
+    }
     drag.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
-      offset: motion.position(),
+      offset: 0,
       width: motion.width(),
-      engaged: interrupting,
+      engaged: false,
       samples: [{ x: event.clientX, time: event.timeStamp }],
     };
-    if (interrupting) event.currentTarget.setPointerCapture(event.pointerId);
   }
 
   function onPointerMove(event: ReactPointerEvent<HTMLDivElement>) {
     const current = drag.current;
-    if (current?.pointerId !== event.pointerId || !top || !below) return;
+    if (current?.pointerId !== event.pointerId || !top) return;
     const dx = event.clientX - current.startX;
     const dy = event.clientY - current.startY;
     if (!current.engaged) {
-      if (Math.abs(dy) > SLOP_PX && Math.abs(dy) > Math.abs(dx)) {
+      if ((Math.abs(dy) > SLOP_PX && Math.abs(dy) >= Math.abs(dx)) || dx < -SLOP_PX) {
         drag.current = null;
         return;
       }
       if (dx < SLOP_PX || dx < Math.abs(dy)) return;
       current.engaged = true;
       event.currentTarget.setPointerCapture(event.pointerId);
-      motion.reveal(motion.layers.get(below.key));
+      if (below) {
+        motion.stop();
+        current.offset = motion.position();
+        motion.reveal(motion.layers.get(below.key));
+      }
     }
+    if (!below) return;
     current.samples = [...current.samples, { x: event.clientX, time: event.timeStamp }].filter(
       (sample) => event.timeStamp - sample.time <= VELOCITY_WINDOW_MS,
     );
@@ -251,8 +278,13 @@ export function StackView(props: {
 
   function release(event: ReactPointerEvent<HTMLDivElement>, cancelled: boolean) {
     const current = drag.current;
+    if (current?.pointerId !== event.pointerId) return;
     drag.current = null;
-    if (current?.pointerId !== event.pointerId || !current.engaged || !top || !below) return;
+    if (!current.engaged || !top) return;
+    if (!below) {
+      if (!cancelled && event.clientX - current.startX >= MENU_SWIPE_PX) props.onOpenMenu?.();
+      return;
+    }
     const topLayer = motion.layers.get(top.key);
     const under = motion.layers.get(below.key);
     if (!topLayer) return;
@@ -281,12 +313,15 @@ export function StackView(props: {
       className={styles.stack}
       data-active={active || undefined}
       inert={!active}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={(event) => {
+      onDragStartCapture={(event) => {
+        if (drag.current) event.preventDefault();
+      }}
+      onPointerDownCapture={onPointerDown}
+      onPointerMoveCapture={onPointerMove}
+      onPointerUpCapture={(event) => {
         release(event, false);
       }}
-      onPointerCancel={(event) => {
+      onPointerCancelCapture={(event) => {
         release(event, true);
       }}
     >
@@ -297,8 +332,7 @@ export function StackView(props: {
             key={entry.key}
             entry={entry}
             isRoot={index === 0}
-            isTop={isTop && !leaving}
-            visible={isTop && !leaving && active}
+            isTop={isTop && !leaving && active}
             hidden={!isTop && entry.key !== leaving?.key}
             zIndex={index * 2}
             register={register}

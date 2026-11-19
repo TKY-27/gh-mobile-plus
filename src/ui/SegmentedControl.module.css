@@ -79,3 +79,26 @@
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
 }
+
+.group[data-appearance="underline"] {
+  background: var(--color-bg);
+  border-bottom: var(--border-width) solid var(--color-separator);
+  border-radius: 0;
+}
+
+.group[data-appearance="underline"] .segment {
+  border-radius: 0;
+  color: var(--color-text-secondary);
+}
+
+.group[data-appearance="underline"] .segment[data-selected] {
+  color: var(--color-text);
+}
+
+.group[data-appearance="underline"] .segment[data-selected]::before {
+  inset: auto auto 0;
+  width: 2.5rem;
+  height: 3px;
+  background: var(--accent);
+  box-shadow: none;
+}

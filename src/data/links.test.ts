@@ -89,6 +89,8 @@ describe("githubUrl", () => {
   it("is the inverse of toAppPath", () => {
     for (const url of [
       "https://github.com/notifications",
+      "https://github.com/octocat?tab=followers",
+      "https://github.com/octocat?tab=following",
       "https://github.com/octocat/demo/tree/main/src",
       "https://github.com/octocat/demo/pull/3/files",
       "https://github.com/octocat",

@@ -1,7 +1,10 @@
 import { openExternal } from "@/ui/external.ts";
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
-import { ChevronLeft, Ellipsis, ExternalLink } from "lucide-react";
+import { ChevronLeft, Ellipsis, ExternalLink, Menu } from "lucide-react";
 import { Button as AriaButton } from "react-aria-components/Button";
+import { useActiveAccount } from "@/data/session";
+import { Avatar } from "@/ui/Avatar.tsx";
+import { useShell } from "./shell-context.ts";
 import { githubUrl } from "@/data/links";
 import { useT } from "@/i18n/index.tsx";
 import { IconButton } from "@/ui/Button.tsx";
@@ -14,6 +17,26 @@ import styles from "./Page.module.css";
 const OverflowMenu = lazy(() =>
   import("@/ui/Menu.tsx").then((module) => ({ default: module.OverflowMenu })),
 );
+
+function MenuTrigger(props: { accountRoot: boolean }) {
+  const t = useT();
+  const account = useActiveAccount();
+  const { openMenu } = useShell();
+  return (
+    <AriaButton
+      className={moduleClass(styles.back)}
+      aria-label={t("app.menu.open")}
+      aria-haspopup="dialog"
+      onPress={openMenu}
+    >
+      {props.accountRoot ? (
+        <Menu aria-hidden className={styles.menuGlyph} />
+      ) : (
+        <Avatar src={account.avatarUrl} name={account.login} />
+      )}
+    </AriaButton>
+  );
+}
 
 export function Page(props: {
   title: string;
@@ -67,10 +90,13 @@ export function Page(props: {
         className={styles.bar}
         data-collapsed={!hasLargeTitle || titleOffscreen || undefined}
         data-root={screen.isRoot || undefined}
+        data-account-root={(screen.isRoot && screen.match.routeId === "/account") || undefined}
       >
         <div className={styles.barRow}>
           <div className={styles.leading}>
-            {screen.isRoot ? null : (
+            {screen.isRoot ? (
+              <MenuTrigger accountRoot={screen.match.routeId === "/account"} />
+            ) : (
               <AriaButton
                 className={moduleClass(styles.back)}
                 aria-label={t("common.back")}

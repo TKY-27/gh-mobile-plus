@@ -72,5 +72,8 @@
   "diagnostics.detail": "詳細",
   "diagnostics.pass": "成功",
   "diagnostics.fail": "失敗",
-  "diagnostics.copy": "結果をコピー"
+  "diagnostics.copy": "結果をコピー",
+  "menu.open": "ナビゲーションメニューを開く",
+  "menu.title": "ナビゲーションメニュー",
+  "menu.profile": "プロフィール"
 }

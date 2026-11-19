@@ -44,6 +44,7 @@ function isStorable(query: QueryFacts, keepPrivateOffline: boolean): boolean {
   const classification = query.meta?.persist;
   return (
     fresh &&
+    classification !== "never" &&
     (keepPrivateOffline || classification === "profile" || classification === "user-search")
   );
 }

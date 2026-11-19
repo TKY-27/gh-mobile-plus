@@ -33,6 +33,8 @@ test("Home links to the profile, recent repositories, activity and starred relea
   await signIn(page, oauth);
   const home = page.locator('[data-stack-screen="/"]');
   await expect(home.getByRole("link", { name: /Mona Lisa/ })).toHaveAttribute("href", "/mona");
+  await expect(home.getByRole("list", { name: enHome["feed.title"] })).toBeInViewport();
+  await home.getByRole("radio", { name: enHome.overview }).click();
   await expect(home.getByRole("img", { name: /42 contributions/ })).toBeVisible();
   const recent = home.getByRole("region", { name: enHome["repositories.title"] });
   await expect(recent.getByRole("link", { name: /pocket-reader/ })).toHaveAttribute(
@@ -43,6 +45,7 @@ test("Home links to the profile, recent repositories, activity and starred relea
     "href",
     "/repositories",
   );
+  await home.getByRole("radio", { name: enHome.following }).click();
   await expect(home.getByRole("heading", { name: enHome["feed.title"] })).toBeVisible();
   await expect(home.getByRole("list", { name: enHome["feed.title"] })).toContainText(
     "starred octo-org/hello-mobile",
@@ -67,6 +70,29 @@ test("activity filters narrow the feed", async ({ page, oauth }) => {
   await expect(picker).toBeInViewport({ ratio: 1 });
   await picker.selectOption({ label: enHome["feed.filter.follows"] });
   await expect(home.getByRole("heading", { name: enHome["feed.emptyFilter.title"] })).toBeVisible();
+});
+
+test("a failed activity refresh keeps the timeline and offers retry", async ({
+  page,
+  oauth,
+  github,
+}) => {
+  await signIn(page, oauth);
+  const home = page.locator('[data-stack-screen="/"]');
+  const feed = home.getByRole("list", { name: enHome["feed.title"] });
+  await expect(feed).toContainText("starred octo-org/hello-mobile");
+  github.use(
+    http.get(
+      `${API_ORIGIN}/users/mona/received_events`,
+      () => HttpResponse.json({ message: "Forbidden" }, { status: 403 }),
+      { once: true },
+    ),
+  );
+  await home.getByRole("button", { name: enHome.refresh }).click();
+  await expect(feed).toContainText("starred octo-org/hello-mobile");
+  await home.getByRole("alert").getByRole("button", { name: "Retry" }).click();
+  await expect(home.getByRole("alert")).toHaveCount(0);
+  await expect(feed).toContainText("starred octo-org/hello-mobile");
 });
 
 test("pushes show a branch and count only when the whole group supports them", async ({

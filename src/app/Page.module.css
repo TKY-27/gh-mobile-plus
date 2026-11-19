@@ -92,21 +92,18 @@
 }
 
 .bar[data-root] {
-  padding-inline: max(var(--space-4), env(safe-area-inset-left))
+  padding-inline: max(var(--space-2), env(safe-area-inset-left))
     max(var(--space-3), env(safe-area-inset-right));
 }
 
 .bar[data-root] .barRow {
-  grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 64px;
-}
-
-.bar[data-root] .leading {
-  display: none;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  min-height: 54px;
 }
 
 .bar[data-root] .compactTitle {
-  font-size: var(--text-title);
+  font-size: 1.1875rem;
   letter-spacing: -0.015em;
   text-align: start;
 }
@@ -115,4 +112,14 @@
   .page {
     padding-inline: var(--space-4);
   }
+}
+
+.bar[data-account-root] .barRow {
+  grid-template-columns: 1fr minmax(0, auto) 1fr;
+}
+
+.back .menuGlyph {
+  width: 1.35rem;
+  height: 1.35rem;
+  color: var(--color-text);
 }

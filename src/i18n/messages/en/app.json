@@ -72,5 +72,8 @@
   "diagnostics.detail": "Detail",
   "diagnostics.pass": "Pass",
   "diagnostics.fail": "Fail",
-  "diagnostics.copy": "Copy results"
+  "diagnostics.copy": "Copy results",
+  "menu.open": "Open navigation menu",
+  "menu.title": "Navigation menu",
+  "menu.profile": "Profile"
 }

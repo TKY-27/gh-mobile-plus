@@ -1,16 +1,14 @@
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { X } from "lucide-react";
+import { Dialog } from "react-aria-components/Dialog";
 import { Heading } from "react-aria-components/Heading";
-import {
-  Sheet as AriaSheet,
-  SheetBackdrop,
-  SheetContent,
-  SheetOverlay,
-} from "react-aria-components/Sheet";
+import { Modal, ModalOverlay } from "react-aria-components/Modal";
 import { useT } from "@/i18n/index.tsx";
 import { IconButton } from "./Button.tsx";
 import { moduleClass } from "./module-class.ts";
 import styles from "./Sheet.module.css";
+
+const DISMISS_DISTANCE_PX = 64;
 
 export function Sheet(props: {
   isOpen: boolean;
@@ -19,22 +17,44 @@ export function Sheet(props: {
   children: ReactNode;
 }) {
   const t = useT();
+  const drag = useRef<{ id: number; y: number } | null>(null);
+  const sheet = useRef<HTMLDivElement | null>(null);
+  const clearDrag = () => {
+    drag.current = null;
+    sheet.current?.style.removeProperty("transform");
+  };
   return (
-    <SheetOverlay
+    <ModalOverlay
       isOpen={props.isOpen}
+      isDismissable
       onOpenChange={props.onOpenChange}
       className={moduleClass(styles.overlay)}
     >
-      <SheetBackdrop
-        className={moduleClass(styles.backdrop)}
-        swipeAnimation={moduleClass(styles.fadeIn)}
-      />
-      <AriaSheet className={moduleClass(styles.sheet)}>
-        <SheetContent className={moduleClass(styles.content)}>
+      <Modal ref={sheet} className={moduleClass(styles.sheet)}>
+        <Dialog className={moduleClass(styles.content)}>
           {({ close }) => (
             <>
-              <span className={styles.grabber} aria-hidden />
-              <header className={styles.header}>
+              <header
+                className={styles.header}
+                onPointerDown={(event) => {
+                  if (!event.isPrimary || event.button !== 0) return;
+                  if (event.target instanceof Element && event.target.closest("button")) return;
+                  drag.current = { id: event.pointerId, y: event.clientY };
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                }}
+                onPointerMove={(event) => {
+                  if (drag.current?.id !== event.pointerId) return;
+                  const offset = Math.max(0, event.clientY - drag.current.y);
+                  sheet.current?.style.setProperty("transform", `translateY(${String(offset)}px)`);
+                }}
+                onPointerUp={(event) => {
+                  if (drag.current?.id !== event.pointerId) return;
+                  const distance = event.clientY - drag.current.y;
+                  clearDrag();
+                  if (distance >= DISMISS_DISTANCE_PX) close();
+                }}
+                onLostPointerCapture={clearDrag}
+              >
                 <Heading slot="title" className={moduleClass(styles.title)}>
                   {props.title}
                 </Heading>
@@ -45,8 +65,8 @@ export function Sheet(props: {
               <div className={styles.body}>{props.children}</div>
             </>
           )}
-        </SheetContent>
-      </AriaSheet>
-    </SheetOverlay>
+        </Dialog>
+      </Modal>
+    </ModalOverlay>
   );
 }

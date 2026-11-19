@@ -2,6 +2,7 @@ import { createContext, use } from "react";
 
 export interface ShellActions {
   unreadCount: number | null;
+  openMenu: () => void;
   openCommandPalette: () => void;
   openAccountSwitcher: () => void;
 }

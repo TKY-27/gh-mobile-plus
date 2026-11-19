@@ -10,7 +10,13 @@ import {
 } from "@tanstack/react-query";
 import type { ResultOf } from "gql.tada";
 import { isGitHubError, type GitHubError } from "../errors";
-import { apiPath, GITHUB_HTML_JSON, graphql as requestGraphQL, rest } from "../internal/client";
+import {
+  apiPath,
+  GITHUB_HTML_JSON,
+  graphql as requestGraphQL,
+  nextPageUrl,
+  rest,
+} from "../internal/client";
 import { gitHubFailure } from "../internal/errors";
 import { graphql } from "../internal/graphql";
 import { accountKey, PRIVATE_QUERY, STALE_TIME } from "../internal/query";
@@ -26,6 +32,8 @@ export interface UserProfile {
   company: string | null;
   location: string | null;
   websiteUrl: string | null;
+  repositoryCount?: number;
+  socialAccounts?: readonly { displayName: string; url: string }[];
   followers: number;
   following: number;
   isViewer: boolean;
@@ -46,6 +54,9 @@ const profileDocument = graphql(
         __typename
         login
         avatarUrl
+        repositories(ownerAffiliations: [OWNER]) {
+          totalCount
+        }
         ... on User {
           repository(name: $login) {
             isPrivate
@@ -56,6 +67,12 @@ const profileDocument = graphql(
           location
           websiteUrl
           isViewer
+          socialAccounts(first: 4) {
+            nodes {
+              displayName
+              url
+            }
+          }
           viewerIsFollowing
           followers {
             totalCount
@@ -104,6 +121,11 @@ function mapProfile(
     company: owner.__typename === "User" ? owner.company : null,
     location: owner.location,
     websiteUrl: owner.websiteUrl,
+    repositoryCount: owner.repositories.totalCount,
+    socialAccounts:
+      owner.__typename === "User"
+        ? (owner.socialAccounts.nodes ?? []).flatMap((social) => (social ? [social] : []))
+        : [],
     followers: owner.__typename === "User" ? owner.followers.totalCount : 0,
     following: owner.__typename === "User" ? owner.following.totalCount : 0,
     isViewer: owner.__typename === "User" && owner.isViewer,
@@ -201,6 +223,7 @@ export function useFollow(): UseMutationResult<
     onSettled: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: profilesKey }),
+        queryClient.invalidateQueries({ queryKey: accountKey(account.id, "users", "connections") }),
         queryClient.invalidateQueries({ queryKey: accountKey(account.id, "home", "viewer") }),
       ]);
     },
@@ -302,6 +325,7 @@ const organizationsDocument = graphql(`
           login
           name
           avatarUrl
+          viewerCanCreateRepositories
         }
         pageInfo {
           endCursor
@@ -312,15 +336,25 @@ const organizationsDocument = graphql(`
   }
 `);
 
-export function useViewerOrganizations(): UseQueryResult<
-  readonly { login: string; name: string | null; avatarUrl: string }[]
-> {
+interface ViewerOrganization {
+  login: string;
+  name: string | null;
+  avatarUrl: string;
+  viewerCanCreateRepositories?: boolean;
+}
+
+export function useViewerOrganizations(): UseQueryResult<readonly ViewerOrganization[]> {
   const account = useActiveAccount();
-  return useQuery({
+  return useQuery<readonly ViewerOrganization[]>({
     queryKey: accountKey(account.id, "users", "organizations"),
-    staleTime: STALE_TIME.list,
+    staleTime: (query) =>
+      query.state.data?.some(
+        (organization) => organization.viewerCanCreateRepositories === undefined,
+      )
+        ? 0
+        : STALE_TIME.list,
     queryFn: async ({ signal }) => {
-      const organizations: { login: string; name: string | null; avatarUrl: string }[] = [];
+      const organizations: ViewerOrganization[] = [];
       let cursor: string | null = null;
       do {
         const response: ResultOf<typeof organizationsDocument> = await requestGraphQL(
@@ -366,6 +400,7 @@ export function useOrganizationMembers(
   const account = useActiveAccount();
   return useInfiniteQuery({
     queryKey: accountKey(account.id, "users", "members", org),
+    networkMode: "online",
     staleTime: STALE_TIME.list,
     initialPageParam: null as string | null,
     queryFn: async ({ pageParam, signal }): Promise<Page<Actor>> => {
@@ -380,6 +415,28 @@ export function useOrganizationMembers(
       return {
         items: (members.nodes ?? []).flatMap((member) => (member ? [member] : [])),
         nextCursor: members.pageInfo.hasNextPage ? members.pageInfo.endCursor : null,
+      };
+    },
+    getNextPageParam: (page) => page.nextCursor,
+  });
+}
+
+export function useProfileConnections(login: string, kind: "followers" | "following") {
+  const account = useActiveAccount();
+  return useInfiniteQuery({
+    queryKey: accountKey(account.id, "users", "connections", login.toLowerCase(), kind),
+    networkMode: "online",
+    staleTime: STALE_TIME.list,
+    initialPageParam: null as string | null,
+    queryFn: async ({ pageParam, signal }): Promise<Page<Actor>> => {
+      const response = await rest<readonly { login: string; avatar_url: string }[]>(account.id, {
+        path: pageParam ?? apiPath`/users/${login}/${kind}`,
+        query: pageParam ? undefined : { per_page: PAGE_SIZE },
+        signal,
+      });
+      return {
+        items: response.body.map((user) => ({ login: user.login, avatarUrl: user.avatar_url })),
+        nextCursor: nextPageUrl(response.headers),
       };
     },
     getNextPageParam: (page) => page.nextCursor,

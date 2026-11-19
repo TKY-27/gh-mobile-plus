@@ -73,7 +73,14 @@ function fromUrl(text: string): string | null {
   if (owner === "notifications" && repo === undefined && !url.search && !url.hash) {
     return "/notifications";
   }
-  if (repo === undefined) return isOwner(owner) ? `/${owner}` : null;
+  if (repo === undefined) {
+    if (!isOwner(owner)) return null;
+    const tab = url.searchParams.get("tab");
+    if (tab === "repositories" || tab === "stars" || tab === "followers" || tab === "following") {
+      return `/${owner}?tab=${tab}`;
+    }
+    return `/${owner}`;
+  }
   return repoPath(owner, repo, rest.join("/"), url.hash);
 }
 
@@ -124,4 +131,16 @@ export function githubUrl(appPath: string): string {
     throw new Error("App paths must be root-relative");
   }
   return new URL(appPath, GITHUB_ORIGIN).href;
+}
+
+export function profileWebUrl(input: string | null): URL | null {
+  const trimmed = input?.trim();
+  if (!trimmed) return null;
+  const address = URL.parse(trimmed) ?? URL.parse(`https://${trimmed}`);
+  return address &&
+    (address.protocol === "https:" || address.protocol === "http:") &&
+    !address.username &&
+    !address.password
+    ? address
+    : null;
 }

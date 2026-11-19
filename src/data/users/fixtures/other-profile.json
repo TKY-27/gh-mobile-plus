@@ -18,6 +18,8 @@
         "totalCount": 7
       },
       "repository": null,
+      "socialAccounts": { "nodes": [] },
+      "repositories": { "totalCount": 5 },
       "pinnedItems": {
         "nodes": [
           {

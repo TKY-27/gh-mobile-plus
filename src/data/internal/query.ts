@@ -3,7 +3,7 @@ import type { AccountId } from "../session";
 
 export interface PersistenceMeta extends Record<string, unknown> {
   private?: boolean;
-  persist?: "profile" | "user-search";
+  persist?: "profile" | "user-search" | "never";
 }
 
 declare module "@tanstack/react-query" {

@@ -1,20 +1,21 @@
 import { useId, type ReactNode } from "react";
 import {
-  BookMarked,
   Building2,
   Link2,
   MapPin,
   Star,
   UserCheck,
   UserPlus,
+  UserRound,
   Users,
 } from "lucide-react";
 import { Link } from "react-aria-components/Link";
 import { useRouter } from "@tanstack/react-router";
-import { toAppPath } from "@/data/links";
+import { githubUrl, profileWebUrl, toAppPath } from "@/data/links";
 import { useIsOffline } from "@/data/status";
 import { useFollow, useProfile, useProfileReadme, type UserProfile } from "@/data/users";
-import { useT } from "@/i18n/index.tsx";
+import { useFormatters, useT } from "@/i18n/index.tsx";
+import { showToast } from "@/ui/Toast.tsx";
 import { SafeHtml } from "@/markdown/SafeHtml.tsx";
 import { Avatar } from "@/ui/Avatar.tsx";
 import { moduleClass } from "@/ui/module-class.ts";
@@ -23,6 +24,7 @@ import { ErrorState, isFullScreenError } from "@/ui/ErrorState.tsx";
 import { Skeleton } from "@/ui/Skeleton.tsx";
 import { Spinner } from "@/ui/Spinner.tsx";
 import { showErrorToast } from "@/ui/error-toast.ts";
+import { EditProfileButton } from "./EditProfile.tsx";
 import { RepoRow } from "./RepoRow.tsx";
 import styles from "./Profile.module.css";
 
@@ -65,17 +67,50 @@ function FollowButton(props: { profile: UserProfile }) {
 
 function ProfileHeader(props: { profile: UserProfile }) {
   const t = useT();
+  const formatters = useFormatters();
   const { profile } = props;
+  const website = profileWebUrl(profile.websiteUrl);
+  const share = async () => {
+    const url = githubUrl(`/${profile.login}`);
+    try {
+      if (typeof navigator.share === "function")
+        await navigator.share({ url, title: profile.name ?? profile.login });
+      else {
+        await navigator.clipboard.writeText(url);
+        showToast(t("common.copied"));
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      showToast(t("account.profile.shareFailed"));
+    }
+  };
+  const stats = [
+    ["repositories", profile.repositoryCount],
+    ["followers", profile.followers],
+    ["following", profile.following],
+  ] as const;
   return (
     <header className={styles.header}>
       <div className={styles.identity}>
         <Avatar src={profile.avatarUrl} name={profile.login} size={HEADER_AVATAR_PX} />
-        <div className={styles.names}>
-          {profile.name ? <p className={styles.name}>{profile.name}</p> : null}
-          <p className={profile.name ? styles.login : styles.name}>
-            {profile.name ? `@${profile.login}` : profile.login}
-          </p>
+        <div className={styles.stats}>
+          {stats
+            .filter(([kind]) => !profile.isOrganization || kind === "repositories")
+            .map(([kind, count]) => (
+              <Link
+                className={moduleClass(styles.stat)}
+                key={kind}
+                href={`/${profile.login}?tab=${kind}`}
+              >
+                {count !== undefined ? <strong>{formatters.number(count)}</strong> : null}
+                <span>{t(`account.lists.${kind}`)}</span>
+              </Link>
+            ))}
         </div>
+      </div>
+      <div className={styles.names}>
+        <p className={styles.name}>{profile.name || profile.login}</p>
+        {profile.name ? <p className={styles.login}>@{profile.login}</p> : null}
       </div>
       {profile.bio ? <p className={styles.bio}>{profile.bio}</p> : null}
       <ul className={styles.facts}>
@@ -93,24 +128,34 @@ function ProfileHeader(props: { profile: UserProfile }) {
             {profile.location}
           </li>
         ) : null}
-        {profile.websiteUrl ? (
+        {website ? (
           <li>
             <Link2 aria-hidden />
-            <a href={profile.websiteUrl} target="_blank" rel="noopener noreferrer">
-              {profile.websiteUrl.replace(WEB_SCHEME, "")}
+            <a href={website.href} target="_blank" rel="noopener noreferrer">
+              {website.href.replace(WEB_SCHEME, "").replace(/\/$/, "")}
             </a>
           </li>
         ) : null}
-        {profile.isOrganization ? null : (
-          <li>
-            <Users aria-hidden />
-            {t("account.profile.followers", { count: profile.followers })}
-            {" · "}
-            {t("account.profile.following", { count: profile.following })}
-          </li>
-        )}
+        {profile.socialAccounts?.map((social) => {
+          const address = profileWebUrl(social.url);
+          return address ? (
+            <li key={address.href}>
+              <Link2 aria-hidden />
+              <a href={address.href} target="_blank" rel="noopener noreferrer">
+                {social.displayName || address.hostname}
+              </a>
+            </li>
+          ) : null;
+        })}
       </ul>
-      {profile.isOrganization || profile.isViewer ? null : <FollowButton profile={profile} />}
+      <div className={styles.actions}>
+        {profile.isViewer ? (
+          <EditProfileButton />
+        ) : profile.isOrganization ? null : (
+          <FollowButton profile={profile} />
+        )}
+        <Button onPress={() => void share()}>{t("account.profile.share")}</Button>
+      </div>
     </header>
   );
 }
@@ -183,7 +228,7 @@ export function ProfileView(props: { login: string; children?: ReactNode }) {
       </>
     );
   }
-  if (query.isError) {
+  if (query.isLoadingError) {
     return (
       <>
         <ErrorState
@@ -200,10 +245,13 @@ export function ProfileView(props: { login: string; children?: ReactNode }) {
   return (
     <>
       <ProfileHeader profile={profile} />
+      {query.isRefetchError ? (
+        <ErrorState error={query.error} onRetry={() => void query.refetch()} />
+      ) : null}
       <nav className={styles.profileLinks} aria-label={t("account.profile.sections")}>
-        <Link className={moduleClass(styles.profileLink)} href={`${base}?tab=repositories`}>
-          <BookMarked aria-hidden /> {t("account.lists.repositories")}
-        </Link>
+        <span className={styles.current}>
+          <UserRound aria-hidden /> {t("account.profile.overview")}
+        </span>
         <Link
           className={moduleClass(styles.profileLink)}
           href={`${base}?tab=${profile.isOrganization ? "members" : "stars"}`}

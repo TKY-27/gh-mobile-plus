@@ -15,6 +15,7 @@ import { TabBar } from "./TabBar.tsx";
 import styles from "./Shell.module.css";
 
 const CommandPalette = lazy(() => import("./CommandPalette.tsx"));
+const NavigationMenu = lazy(() => import("./NavigationMenu.tsx"));
 const AccountSwitcher = lazy(() => import("./AccountSwitcher.tsx"));
 
 function isTyping(target: EventTarget | null): boolean {
@@ -36,6 +37,7 @@ export function Shell(props: { unreadCount: number | null }) {
   const rateLimit = useRateLimit();
   const now = useNow();
   const scrollers = useRef(new Map<string, HTMLDivElement>());
+  const [menuOpen, setMenuOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
   useAppBadge(props.unreadCount);
@@ -43,6 +45,9 @@ export function Shell(props: { unreadCount: number | null }) {
   const actions = useMemo<ShellActions>(
     () => ({
       unreadCount: props.unreadCount,
+      openMenu: () => {
+        setMenuOpen(true);
+      },
       openCommandPalette: () => {
         setPaletteOpen(true);
       },
@@ -56,7 +61,12 @@ export function Shell(props: { unreadCount: number | null }) {
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
-      if (event.defaultPrevented || isTyping(document.activeElement)) return;
+      if (
+        event.defaultPrevented ||
+        isTyping(document.activeElement) ||
+        document.querySelector('[role="dialog"]')
+      )
+        return;
       event.preventDefault();
       setPaletteOpen(true);
     };
@@ -90,7 +100,8 @@ export function Shell(props: { unreadCount: number | null }) {
               entries={state.stacks[tab]}
               leaving={state.leaving?.tab === tab ? state.leaving.entry : null}
               active={state.activeTab === tab}
-              swipeEnabled={!isIOSBrowserTab}
+              backSwipeEnabled={!isIOSBrowserTab}
+              onOpenMenu={actions.openMenu}
               register={register}
             />
           ))}
@@ -115,6 +126,7 @@ export function Shell(props: { unreadCount: number | null }) {
           }}
         />
         <Suspense fallback={null}>
+          {menuOpen ? <NavigationMenu onOpenChange={setMenuOpen} /> : null}
           {paletteOpen ? <CommandPalette isOpen onOpenChange={setPaletteOpen} /> : null}
           {switcherOpen ? <AccountSwitcher isOpen onOpenChange={setSwitcherOpen} /> : null}
         </Suspense>

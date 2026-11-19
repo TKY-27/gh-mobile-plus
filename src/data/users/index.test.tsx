@@ -316,6 +316,7 @@ describe("user queries", () => {
       {
         login: "octo-org",
         name: "Octo Organization",
+        viewerCanCreateRepositories: true,
         avatarUrl: "https://avatars.githubusercontent.com/u/3?v=4",
       },
     ]);

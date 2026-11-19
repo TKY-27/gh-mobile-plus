@@ -1,0 +1,59 @@
+.editor,
+.form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.editor {
+  padding: var(--space-2) var(--space-4) 0;
+}
+
+.saveBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  padding-block: var(--space-2);
+  background: var(--color-bg-elevated);
+}
+
+.authorize {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--hit-target);
+  text-align: center;
+  border-radius: var(--radius-md);
+  background: var(--accent-fill);
+  color: var(--on-accent);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.error {
+  color: var(--status-failure);
+}
+
+.social {
+  border-top: var(--border-width) solid var(--color-separator);
+}
+
+.social summary {
+  min-height: var(--hit-target);
+  padding-block: var(--space-3);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.links li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  overflow-wrap: anywhere;
+}
