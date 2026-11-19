@@ -144,7 +144,11 @@ export function FileReview(props: {
     const next = files.files[fileIndex + direction];
     if (next) router.history.replace(fileHref(pull, next.path));
   };
-  const { go: stepFile, ...swipe } = useFileSwipe({
+  const {
+    go: stepFile,
+    ref: movingSurface,
+    ...swipe
+  } = useFileSwipe({
     fileKey: file.path,
     enabled: preferences.softWrap && selection === null,
     canGo: (direction) => files.files[fileIndex + direction] !== undefined,
@@ -282,63 +286,65 @@ export function FileReview(props: {
         </details>
       ) : null}
       <div className={styles.surface} data-swipe={preferences.softWrap || undefined} {...swipe}>
-        {tooLarge ? (
-          <EmptyState
-            icon={<FileX2 />}
-            title={t("review.diff.tooLargeTitle")}
-            message={t("review.diff.tooLargeMessage")}
-            action={
-              <Button
-                icon={<ExternalLink aria-hidden />}
-                onPress={() => {
-                  openExternal(file.blobUrl);
-                }}
-              >
-                {t("common.openOnGitHub")}
-              </Button>
-            }
-          />
-        ) : rows.length === 0 ? (
-          <EmptyState
-            icon={<FileX2 />}
-            title={t("review.diff.noTextTitle")}
-            message={t("review.diff.noTextMessage")}
-          />
-        ) : (
-          <DiffList
-            ref={diff}
-            label={t("review.diff.label", { path: file.path })}
-            rows={rows}
-            highlightRows={lineRows}
-            path={file.path}
-            softWrap={preferences.softWrap}
-            stickyInset={stickyInset}
-            selection={selection}
-            onLinePress={pressLine}
-            onLongPress={(lineIndex) => {
-              select({ anchor: lineIndex, focus: lineIndex });
-            }}
-            onSelectionDrag={select}
-            renderThread={(thread) => (
-              <ThreadCard
-                pull={pull}
-                thread={thread}
-                onReply={(target) => {
-                  comment.open({ kind: "reply", thread: target });
-                }}
-              />
-            )}
-            renderPending={(draft) => (
-              <PendingCard
-                comment={draft}
-                onEdit={(target) => {
-                  comment.open({ kind: "edit", comment: target });
-                }}
-                onDelete={deleteDraft}
-              />
-            )}
-          />
-        )}
+        <div ref={movingSurface}>
+          {tooLarge ? (
+            <EmptyState
+              icon={<FileX2 />}
+              title={t("review.diff.tooLargeTitle")}
+              message={t("review.diff.tooLargeMessage")}
+              action={
+                <Button
+                  icon={<ExternalLink aria-hidden />}
+                  onPress={() => {
+                    openExternal(file.blobUrl);
+                  }}
+                >
+                  {t("common.openOnGitHub")}
+                </Button>
+              }
+            />
+          ) : rows.length === 0 ? (
+            <EmptyState
+              icon={<FileX2 />}
+              title={t("review.diff.noTextTitle")}
+              message={t("review.diff.noTextMessage")}
+            />
+          ) : (
+            <DiffList
+              ref={diff}
+              label={t("review.diff.label", { path: file.path })}
+              rows={rows}
+              highlightRows={lineRows}
+              path={file.path}
+              softWrap={preferences.softWrap}
+              stickyInset={stickyInset}
+              selection={selection}
+              onLinePress={pressLine}
+              onLongPress={(lineIndex) => {
+                select({ anchor: lineIndex, focus: lineIndex });
+              }}
+              onSelectionDrag={select}
+              renderThread={(thread) => (
+                <ThreadCard
+                  pull={pull}
+                  thread={thread}
+                  onReply={(target) => {
+                    comment.open({ kind: "reply", thread: target });
+                  }}
+                />
+              )}
+              renderPending={(draft) => (
+                <PendingCard
+                  comment={draft}
+                  onEdit={(target) => {
+                    comment.open({ kind: "edit", comment: target });
+                  }}
+                  onDelete={deleteDraft}
+                />
+              )}
+            />
+          )}
+        </div>
       </div>
       <ReviewBar
         selection={summary}

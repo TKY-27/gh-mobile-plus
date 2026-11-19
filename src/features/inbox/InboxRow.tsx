@@ -77,6 +77,7 @@ interface Drag {
   startY: number;
   engaged: boolean;
   fromEdge: boolean;
+  offset: number;
   width: number;
   samples: { x: number; time: number }[];
 }
@@ -138,6 +139,7 @@ export function InboxRow(props: {
   const longPress = useRef<number | undefined>(undefined);
   const suppressClick = useRef(false);
   const menuShown = useRef(false);
+  const exiting = useRef(false);
 
   useEffect(
     () => () => {
@@ -193,15 +195,15 @@ export function InboxRow(props: {
   };
 
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
+    if (props.selecting || event.button !== 0 || !event.isPrimary || exiting.current) return;
     suppressClick.current = false;
     menuShown.current = false;
-    if (props.selecting || event.button !== 0 || !event.isPrimary) return;
     const stackLeft = scroller.current?.parentElement?.getBoundingClientRect().left ?? 0;
     const fromEdge = event.clientX - stackLeft <= EDGE_BACK_WIDTH_PX;
-    settle.current?.cancel();
     drag.current = {
       pointerId: event.pointerId,
-      startX: event.clientX - offset.current,
+      startX: event.clientX,
+      offset: 0,
       startY: event.clientY,
       engaged: false,
       fromEdge,
@@ -229,6 +231,8 @@ export function InboxRow(props: {
         return;
       }
       current.engaged = true;
+      settle.current?.cancel();
+      current.offset = offset.current;
       row.current?.toggleAttribute("data-dragging", true);
       suppressClick.current = true;
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -237,17 +241,19 @@ export function InboxRow(props: {
       (sample) => event.timeStamp - sample.time <= VELOCITY_WINDOW_MS,
     );
     const threshold = commitDistance(current.width);
-    const action = actionFor(dx);
+    const distance = dx + current.offset;
+    const action = actionFor(distance);
     const free = action && canSwipe(action) ? threshold : 0;
-    paint(rubberBand(dx, free, current.width), threshold);
+    paint(rubberBand(distance, free, current.width), threshold);
   }
 
   function release(event: ReactPointerEvent<HTMLDivElement>, cancelled: boolean) {
+    const current = drag.current;
+    if (current?.pointerId !== event.pointerId) return;
+    drag.current = null;
     cancelLongPress();
     row.current?.toggleAttribute("data-dragging", false);
-    const current = drag.current;
-    drag.current = null;
-    if (current?.pointerId !== event.pointerId || !current.engaged) return;
+    if (!current.engaged) return;
     const threshold = commitDistance(current.width);
     const first = current.samples[0];
     const elapsed = first ? event.timeStamp - first.time : 0;
@@ -269,8 +275,10 @@ export function InboxRow(props: {
       animateTo(0, velocity, threshold, () => undefined);
       return;
     }
+    exiting.current = true;
     const exit = Math.sign(offset.current) * current.width;
     animateTo(exit, velocity, threshold, () => {
+      exiting.current = false;
       props.onAction(action);
     });
   }
@@ -321,7 +329,7 @@ export function InboxRow(props: {
           release(event, true);
         }}
         onClickCapture={(event) => {
-          if (!suppressClick.current) return;
+          if (!suppressClick.current && !exiting.current) return;
           suppressClick.current = false;
           event.preventDefault();
           event.stopPropagation();

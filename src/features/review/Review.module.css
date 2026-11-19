@@ -242,8 +242,7 @@
 }
 
 .surface[data-swipe] {
-  touch-action: pan-y;
-  will-change: transform;
+  touch-action: pan-y pinch-zoom;
 }
 
 .thread,

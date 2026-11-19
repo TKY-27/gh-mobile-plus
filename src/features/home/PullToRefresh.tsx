@@ -16,14 +16,14 @@ export function PullToRefresh(props: {
   children: ReactNode;
 }) {
   const t = useT();
-  const { scroller } = useScreen();
+  const { scroller, isTop } = useScreen();
   const indicator = useRef<HTMLDivElement | null>(null);
   const { refreshing, onRefresh } = props;
 
   useEffect(() => {
     const root = scroller.current;
     const element = indicator.current;
-    if (!root || !element || refreshing) return;
+    if (!root || !element || !isTop || refreshing) return;
     let start: { x: number; y: number } | null = null;
     let pulling = false;
     let distance = 0;
@@ -35,10 +35,18 @@ export function PullToRefresh(props: {
       element.toggleAttribute("data-armed", progress >= 1);
       element.toggleAttribute("data-pulling", pull > 0);
     };
-    const onStart = (event: TouchEvent) => {
-      const touch = event.touches[0];
-      start = root.scrollTop <= 0 && touch ? { x: touch.clientX, y: touch.clientY } : null;
+    const reset = () => {
+      start = null;
       pulling = false;
+      distance = 0;
+      paint(0);
+    };
+    const onStart = (event: TouchEvent) => {
+      reset();
+      const touch = event.touches[0];
+      if (event.touches.length === 1 && root.scrollTop <= 0 && touch) {
+        start = { x: touch.clientX, y: touch.clientY };
+      }
     };
     const onMove = (event: TouchEvent) => {
       const touch = event.touches[0];
@@ -46,31 +54,33 @@ export function PullToRefresh(props: {
       const dx = touch.clientX - start.x;
       const dy = touch.clientY - start.y;
       if (!pulling) {
-        if (Math.abs(dx) > SLOP_PX && Math.abs(dx) > Math.abs(dy)) start = null;
-        else if (dy > SLOP_PX && root.scrollTop <= 0) pulling = true;
-        return;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) <= SLOP_PX) return;
+        if (dy <= Math.abs(dx) || root.scrollTop > 0) {
+          reset();
+          return;
+        }
+        pulling = true;
       }
       distance = Math.max(0, dy - SLOP_PX);
       paint(distance);
     };
     const onEnd = () => {
-      if (pulling && distance >= TRIGGER_PX) onRefresh();
-      start = null;
-      pulling = false;
-      distance = 0;
-      paint(0);
+      const refresh = pulling && distance >= TRIGGER_PX;
+      reset();
+      if (refresh) onRefresh();
     };
     root.addEventListener("touchstart", onStart, { passive: true });
     root.addEventListener("touchmove", onMove, { passive: true });
     root.addEventListener("touchend", onEnd);
-    root.addEventListener("touchcancel", onEnd);
+    root.addEventListener("touchcancel", reset);
     return () => {
       root.removeEventListener("touchstart", onStart);
       root.removeEventListener("touchmove", onMove);
       root.removeEventListener("touchend", onEnd);
-      root.removeEventListener("touchcancel", onEnd);
+      root.removeEventListener("touchcancel", reset);
+      reset();
     };
-  }, [scroller, refreshing, onRefresh]);
+  }, [scroller, isTop, refreshing, onRefresh]);
 
   return (
     <>
