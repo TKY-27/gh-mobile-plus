@@ -9,6 +9,7 @@ import {
   type SearchScope,
   type SearchSort,
 } from "@/data/search";
+import { useIsOffline } from "@/data/status";
 import { useFormatters, useT } from "@/i18n/index.tsx";
 import { Menu } from "@/ui/Menu.tsx";
 import { moduleClass } from "@/ui/module-class.ts";
@@ -31,6 +32,7 @@ export function SearchResults(props: {
 }) {
   const t = useT();
   const formatters = useFormatters();
+  const offline = useIsOffline();
   const savedOnly = Boolean(props.offlineFallback);
   const sortOptions = SEARCH_SORTS[props.scope];
   const [selectedSort, setSelectedSort] = useState<SearchSort | null>(null);
@@ -95,7 +97,7 @@ export function SearchResults(props: {
             ? t("account.repositories.savedOnly")
             : t("search.total", { count: total, formatted: formatters.number(total) })}
         </p>
-        {sortActions.length > 0 && !savedOnly ? (
+        {sortActions.length > 0 && !savedOnly && !offline ? (
           <Menu label={t("search.sort.label")} placement="bottom end" actions={sortActions}>
             <AriaButton className={moduleClass(styles.sortButton)}>
               <ArrowDownWideNarrow aria-hidden />
