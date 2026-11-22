@@ -10,6 +10,16 @@ declare const self: ServiceWorkerGlobalScope & { __WB_MANIFEST: (PrecacheEntry |
 
 const RUNTIME_ASSET_CACHE = "ghm-assets-v1";
 const RUNTIME_CACHE_PREFIX = "ghm-assets-";
+const MAX_RUNTIME_ASSET_ENTRIES = 80;
+
+async function trimRuntimeCache(cache: Cache): Promise<void> {
+  const keys = await cache.keys();
+  const excess = keys.length - MAX_RUNTIME_ASSET_ENTRIES;
+  for (let index = 0; index < excess; index++) {
+    const key = keys[index];
+    if (key) await cache.delete(key);
+  }
+}
 
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
@@ -31,6 +41,7 @@ registerRoute(
     if (response.ok) {
       try {
         await cache.put(request, response.clone());
+        await trimRuntimeCache(cache);
       } catch (error) {
         if (!(error instanceof DOMException && error.name === "QuotaExceededError")) {
           reportError(error);
@@ -48,7 +59,7 @@ self.addEventListener("activate", (event) => {
       .then((names) =>
         Promise.all(
           names
-            .filter((name) => name.startsWith(RUNTIME_CACHE_PREFIX))
+            .filter((name) => name.startsWith(RUNTIME_CACHE_PREFIX) && name !== RUNTIME_ASSET_CACHE)
             .map((name) => caches.delete(name)),
         ),
       ),
