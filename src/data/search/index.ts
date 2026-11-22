@@ -16,6 +16,44 @@ import type { Page, RepoRef, RepoSummary } from "../types";
 import { closedReason } from "../internal/subject-status";
 
 export type SearchScope = "repositories" | "issues" | "users" | "code";
+export type SearchSort =
+  | "bestMatch"
+  | "stars"
+  | "updated"
+  | "forks"
+  | "created"
+  | "comments"
+  | "followers"
+  | "repositories"
+  | "joined";
+
+export const SEARCH_SORTS: Readonly<Record<SearchScope, readonly SearchSort[]>> = {
+  repositories: ["bestMatch", "stars", "updated", "forks"],
+  issues: ["bestMatch", "created", "updated", "comments"],
+  users: ["bestMatch", "followers", "repositories", "joined"],
+  code: [],
+};
+
+const SORT_QUALIFIERS: Readonly<Record<SearchSort, string | null>> = {
+  bestMatch: null,
+  stars: "sort:stars-desc",
+  updated: "sort:updated-desc",
+  forks: "sort:forks-desc",
+  created: "sort:created-desc",
+  comments: "sort:comments-desc",
+  followers: "sort:followers-desc",
+  repositories: "sort:repositories-desc",
+  joined: "sort:joined-desc",
+};
+
+const SORT_CLAUSE = /(?:^|\s)sort:\S+/gi;
+
+export function withSearchSort(query: string, sort: SearchSort): string {
+  const stripped = query.replace(SORT_CLAUSE, "").trim();
+  const clause = SORT_QUALIFIERS[sort];
+  if (!stripped || !clause) return stripped;
+  return `${stripped} ${clause}`;
+}
 export type SearchResult =
   | { kind: "repository"; repo: RepoSummary }
   | {

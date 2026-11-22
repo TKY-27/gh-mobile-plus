@@ -137,3 +137,46 @@ test("a qualifier completes the current term and keeps the search editable", asy
     screen.getByRole("button", { name: /mobile language:TypeScript.*Repositories/ }),
   ).toBeVisible();
 });
+
+test("search results sort menu opens options and re-queries with sort qualifier", async ({
+  page,
+  github,
+}) => {
+  const queries: string[] = [];
+  github.use(
+    githubGraphql.query<object, { query: string }>("Search", ({ variables }) => {
+      queries.push(variables.query);
+      return HttpResponse.json({
+        data: {
+          search: {
+            repositoryCount: 1,
+            pageInfo: { endCursor: null, hasNextPage: false },
+            nodes: [
+              {
+                __typename: "Repository",
+                owner: { login: "octo-org" },
+                name: "hello-mobile",
+                description: "A mobile GitHub client fixture",
+                isPrivate: false,
+                isFork: false,
+                stargazerCount: 128,
+                primaryLanguage: { name: "TypeScript", color: "#3178c6" },
+                updatedAt: "2026-11-16T10:30:00Z",
+              },
+            ],
+          },
+        },
+      });
+    }),
+  );
+  const screen = page.locator('[data-stack-screen="/search"]');
+  const field = screen.getByRole("searchbox");
+  await field.fill("mobile");
+  await field.press("Enter");
+  const sortButton = screen.getByRole("button", { name: "Best match" });
+  await expect(sortButton).toBeVisible();
+  await sortButton.click();
+  await page.getByRole("menuitem", { name: "Most stars" }).click();
+  await expect(screen.getByRole("button", { name: "Most stars" })).toBeVisible();
+  expect(queries.at(-1)).toBe("mobile sort:stars-desc");
+});

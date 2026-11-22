@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Interactive sort menus for repository lists (owned and starred) and search results (repositories, issues/PRs, and users).
 - Profile editing, social account management, profile sharing and browsable follower lists. Profile-write consent is requested on demand.
 - Personal repository creation, configurable forks and general repository settings for administrators.
 - Create a new text file from a branch directory, or compare two branches and open a pull request, including drafts.

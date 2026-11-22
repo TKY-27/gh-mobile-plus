@@ -187,3 +187,39 @@ test("offline name filtering searches saved repositories and reports a partial l
   await context.setOffline(false);
   await expect(screen.getByText("Recently updated")).toBeVisible();
 });
+
+test("repository list sort menu opens options and re-queries with the selected order", async ({
+  page,
+  oauth,
+  github,
+}) => {
+  const orders: unknown[] = [];
+  github.use(
+    githubGraphql.query<object, { repoOrder?: { field: string; direction: string } }>(
+      "RepositoriesOf",
+      ({ variables }) => {
+        orders.push(variables.repoOrder);
+        return HttpResponse.json({
+          data: {
+            repositoryOwner: {
+              __typename: "User",
+              repositories: {
+                nodes: [PROFILE.pinnedItems.nodes[0]],
+                pageInfo: { endCursor: null, hasNextPage: false },
+              },
+            },
+          },
+        });
+      },
+    ),
+  );
+  await signIn(page, oauth);
+  await page.locator('[data-tab="repositories"]').click();
+  const screen = page.locator('[data-stack-screen="/repositories"]');
+  const sortButton = screen.getByRole("button", { name: "Recently updated" });
+  await expect(sortButton).toBeVisible();
+  await sortButton.click();
+  await page.getByRole("menuitem", { name: "Most stars" }).click();
+  await expect(screen.getByRole("button", { name: "Most stars" })).toBeVisible();
+  expect(orders).toContainEqual({ field: "STARGAZERS", direction: "DESC" });
+});

@@ -1,7 +1,17 @@
 import type { InfiniteData, UseInfiniteQueryResult } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { openExternal } from "@/ui/external.ts";
-import { Plus, ExternalLink, FolderGit2, Star, Users, ArrowDownWideNarrow } from "lucide-react";
+import {
+  Plus,
+  ExternalLink,
+  FolderGit2,
+  Star,
+  Users,
+  ArrowDownWideNarrow,
+  Check,
+  ChevronDown,
+} from "lucide-react";
+import { Button as AriaButton } from "react-aria-components/Button";
 import { Link } from "react-aria-components/Link";
 import { Page } from "@/app/Page.tsx";
 import { useScreenParams, useScreenSearch } from "@/app/navigation/screen.ts";
@@ -9,10 +19,17 @@ import { ownerRoute } from "@/app/router.ts";
 import { useActiveAccount } from "@/data/session";
 import { useIsOffline } from "@/data/status";
 import type { Actor, Page as ResultPage, RepoSummary } from "@/data/types";
-import { useOrganizationMembers, useProfileConnections, useRepositoriesOf } from "@/data/users";
+import {
+  useOrganizationMembers,
+  useProfileConnections,
+  useRepositoriesOf,
+  type RepositorySort,
+  type StarredSort,
+} from "@/data/users";
 import { useT } from "@/i18n/index.tsx";
 import { Avatar } from "@/ui/Avatar.tsx";
 import { EmptyState } from "@/ui/EmptyState.tsx";
+import { Menu } from "@/ui/Menu.tsx";
 import { moduleClass } from "@/ui/module-class.ts";
 import { SearchField } from "@/ui/SearchField.tsx";
 import { SkeletonRows } from "@/ui/SkeletonRows.tsx";
@@ -27,6 +44,30 @@ const MEMBER_AVATAR_PX = 32;
 
 const FILTER_DELAY_MS = 300;
 
+const OWNED_SORTS: readonly {
+  id: RepositorySort;
+  labelKey:
+    | "account.repositories.updatedOrder"
+    | "account.repositories.pushedOrder"
+    | "account.repositories.starsOrder"
+    | "account.repositories.nameOrder"
+    | "account.repositories.createdOrder";
+}[] = [
+  { id: "updated", labelKey: "account.repositories.updatedOrder" },
+  { id: "pushed", labelKey: "account.repositories.pushedOrder" },
+  { id: "stars", labelKey: "account.repositories.starsOrder" },
+  { id: "name", labelKey: "account.repositories.nameOrder" },
+  { id: "created", labelKey: "account.repositories.createdOrder" },
+];
+
+const STARRED_SORTS: readonly {
+  id: StarredSort;
+  labelKey: "account.starred.order" | "account.starred.oldestOrder";
+}[] = [
+  { id: "newest", labelKey: "account.starred.order" },
+  { id: "oldest", labelKey: "account.starred.oldestOrder" },
+];
+
 function RepositoryList(props: {
   login: string;
   kind: "owned" | "starred";
@@ -34,8 +75,11 @@ function RepositoryList(props: {
   offlineFilter?: string;
 }) {
   const t = useT();
-  const query = useRepositoriesOf(props.login, props.kind);
   const owned = props.kind === "owned";
+  const [ownedSort, setOwnedSort] = useState<RepositorySort>("updated");
+  const [starredSort, setStarredSort] = useState<StarredSort>("newest");
+  const activeSort = owned ? ownedSort : starredSort;
+  const query = useRepositoriesOf(props.login, props.kind, activeSort);
   const rows = {
     label: props.title,
     estimateSize: REPO_ROW_ESTIMATE_PX,
@@ -93,12 +137,47 @@ function RepositoryList(props: {
       </>
     );
   }
+  const sortActions = owned
+    ? OWNED_SORTS.map((option) => ({
+        id: option.id,
+        label: t(option.labelKey),
+        ...(ownedSort === option.id ? { icon: <Check aria-hidden /> } : {}),
+        onAction: () => {
+          setOwnedSort(option.id);
+        },
+      }))
+    : STARRED_SORTS.map((option) => ({
+        id: option.id,
+        label: t(option.labelKey),
+        ...(starredSort === option.id ? { icon: <Check aria-hidden /> } : {}),
+        onAction: () => {
+          setStarredSort(option.id);
+        },
+      }));
+  const activeSortLabel = owned
+    ? t(
+        OWNED_SORTS.find((option) => option.id === ownedSort)?.labelKey ??
+          "account.repositories.updatedOrder",
+      )
+    : t(
+        STARRED_SORTS.find((option) => option.id === starredSort)?.labelKey ??
+          "account.starred.order",
+      );
   return (
     <>
-      <p className={styles.listOrder}>
-        <ArrowDownWideNarrow aria-hidden />
-        {t(owned ? "account.repositories.updatedOrder" : "account.starred.order")}
-      </p>
+      <div className={styles.listOrderBar}>
+        <Menu
+          label={t(owned ? "account.repositories.sortLabel" : "account.starred.sortLabel")}
+          placement="bottom start"
+          actions={sortActions}
+        >
+          <AriaButton className={moduleClass(styles.listOrderButton)}>
+            <ArrowDownWideNarrow aria-hidden />
+            <span>{activeSortLabel}</span>
+            <ChevronDown aria-hidden />
+          </AriaButton>
+        </Menu>
+      </div>
       <InfiniteList {...rows} query={query} empty={empty} />
     </>
   );
@@ -165,7 +244,8 @@ export function MyRepositoriesScreen() {
       ) : offline || typed === submitted ? (
         <SearchResults
           scope="repositories"
-          query={`user:${account.login} fork:true in:name ${JSON.stringify(typed)} sort:updated-desc`}
+          query={`user:${account.login} fork:true in:name ${JSON.stringify(typed)}`}
+          defaultSort="updated"
           displayQuery={typed}
           offlineFallback={
             offline ? (
