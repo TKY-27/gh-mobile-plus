@@ -56,6 +56,9 @@ const SIGN_IN_ERRORS: readonly SignInErrorCode[] = [
 ];
 
 function initialSession(): Session {
+  if (typeof localStorage === "undefined" || typeof localStorage.getItem !== "function") {
+    return { status: "loading", accounts: [], activeAccount: null };
+  }
   const pending = new Set(pendingLogouts());
   const snapshot = readSnapshot().filter((account) => !pending.has(account.id));
   if (snapshot.length === 0) return { status: "loading", accounts: [], activeAccount: null };
