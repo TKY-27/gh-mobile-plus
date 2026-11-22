@@ -138,7 +138,7 @@ test("a qualifier completes the current term and keeps the search editable", asy
   ).toBeVisible();
 });
 
-test("search results sort menu opens options and re-queries with sort qualifier", async ({
+test("search results sort picker updates options and re-queries with sort qualifier", async ({
   page,
   github,
 }) => {
@@ -173,10 +173,9 @@ test("search results sort menu opens options and re-queries with sort qualifier"
   const field = screen.getByRole("searchbox");
   await field.fill("mobile");
   await field.press("Enter");
-  const sortButton = screen.getByRole("button", { name: "Best match" });
-  await expect(sortButton).toBeVisible();
-  await sortButton.click();
-  await page.getByRole("menuitem", { name: "Most stars" }).click();
-  await expect(screen.getByRole("button", { name: "Most stars" })).toBeVisible();
+  const sortSelect = screen.getByRole("combobox", { name: "Sort results" });
+  await expect(sortSelect).toHaveValue("bestMatch");
+  await sortSelect.selectOption("stars");
+  await expect(sortSelect).toHaveValue("stars");
   expect(queries.at(-1)).toBe("mobile sort:stars-desc");
 });

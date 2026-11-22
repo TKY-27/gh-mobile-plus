@@ -19,17 +19,12 @@ export function Menu(props: {
   label: string;
   actions: readonly MenuAction[];
   trigger?: "press" | "longPress";
-  placement?: "bottom start" | "bottom end";
   children: ReactElement;
 }) {
   return (
     <MenuTrigger trigger={props.trigger ?? "press"}>
       {props.children}
-      <Popover
-        className={moduleClass(styles.popover)}
-        placement={props.placement ?? "bottom end"}
-        offset={4}
-      >
+      <Popover className={moduleClass(styles.popover)} placement="bottom end" offset={4}>
         <AriaMenu
           aria-label={props.label}
           className={moduleClass(styles.menu)}

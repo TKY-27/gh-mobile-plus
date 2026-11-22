@@ -1,6 +1,5 @@
 import { type ReactNode, useCallback, useState } from "react";
-import { ArrowDownWideNarrow, Check, ChevronDown, SearchX } from "lucide-react";
-import { Button as AriaButton } from "react-aria-components/Button";
+import { ArrowDownWideNarrow, ChevronDown, SearchX } from "lucide-react";
 import {
   SEARCH_SORTS,
   useSearch,
@@ -11,8 +10,6 @@ import {
 } from "@/data/search";
 import { useIsOffline } from "@/data/status";
 import { useFormatters, useT } from "@/i18n/index.tsx";
-import { Menu } from "@/ui/Menu.tsx";
-import { moduleClass } from "@/ui/module-class.ts";
 import { SkeletonRows } from "@/ui/SkeletonRows.tsx";
 import { VirtualList } from "@/ui/VirtualList.tsx";
 import { EmptyState } from "@/ui/EmptyState.tsx";
@@ -81,14 +78,6 @@ export function SearchResults(props: {
       />
     );
   }
-  const sortActions = sortOptions.map((option) => ({
-    id: option,
-    label: t(`search.sort.${option}`),
-    ...(activeSort === option ? { icon: <Check aria-hidden /> } : {}),
-    onAction: () => {
-      setSelectedSort(option);
-    },
-  }));
   return (
     <div aria-busy={search.isFetching || undefined}>
       <div className={styles.resultsBar}>
@@ -97,14 +86,26 @@ export function SearchResults(props: {
             ? t("account.repositories.savedOnly")
             : t("search.total", { count: total, formatted: formatters.number(total) })}
         </p>
-        {sortActions.length > 0 && !savedOnly && !offline ? (
-          <Menu label={t("search.sort.label")} placement="bottom end" actions={sortActions}>
-            <AriaButton className={moduleClass(styles.sortButton)}>
-              <ArrowDownWideNarrow aria-hidden />
-              <span>{t(`search.sort.${activeSort}`)}</span>
-              <ChevronDown aria-hidden />
-            </AriaButton>
-          </Menu>
+        {sortOptions.length > 0 && !savedOnly && !offline ? (
+          <label className={styles.sortSelect}>
+            <ArrowDownWideNarrow aria-hidden />
+            <span aria-hidden>{t(`search.sort.${activeSort}`)}</span>
+            <ChevronDown aria-hidden />
+            <select
+              aria-label={t("search.sort.label")}
+              value={activeSort}
+              onChange={(event) => {
+                const choice = sortOptions.find((option) => option === event.target.value);
+                if (choice) setSelectedSort(choice);
+              }}
+            >
+              {sortOptions.map((option) => (
+                <option key={option} value={option}>
+                  {t(`search.sort.${option}`)}
+                </option>
+              ))}
+            </select>
+          </label>
         ) : null}
       </div>
       <VirtualList

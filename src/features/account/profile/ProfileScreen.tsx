@@ -8,10 +8,8 @@ import {
   Star,
   Users,
   ArrowDownWideNarrow,
-  Check,
   ChevronDown,
 } from "lucide-react";
-import { Button as AriaButton } from "react-aria-components/Button";
 import { Link } from "react-aria-components/Link";
 import { Page } from "@/app/Page.tsx";
 import { useScreenParams, useScreenSearch } from "@/app/navigation/screen.ts";
@@ -29,7 +27,6 @@ import {
 import { useT } from "@/i18n/index.tsx";
 import { Avatar } from "@/ui/Avatar.tsx";
 import { EmptyState } from "@/ui/EmptyState.tsx";
-import { Menu } from "@/ui/Menu.tsx";
 import { moduleClass } from "@/ui/module-class.ts";
 import { SearchField } from "@/ui/SearchField.tsx";
 import { SkeletonRows } from "@/ui/SkeletonRows.tsx";
@@ -142,23 +139,6 @@ function RepositoryList(props: {
       </>
     );
   }
-  const sortActions = owned
-    ? OWNED_SORTS.map((option) => ({
-        id: option.id,
-        label: t(option.labelKey),
-        ...(ownedSort === option.id ? { icon: <Check aria-hidden /> } : {}),
-        onAction: () => {
-          setOwnedSort(option.id);
-        },
-      }))
-    : STARRED_SORTS.map((option) => ({
-        id: option.id,
-        label: t(option.labelKey),
-        ...(starredSort === option.id ? { icon: <Check aria-hidden /> } : {}),
-        onAction: () => {
-          setStarredSort(option.id);
-        },
-      }));
   const activeSortLabel = owned
     ? t(
         OWNED_SORTS.find((option) => option.id === ownedSort)?.labelKey ??
@@ -177,17 +157,30 @@ function RepositoryList(props: {
         </p>
       ) : (
         <div className={styles.listOrderBar}>
-          <Menu
-            label={t(owned ? "account.repositories.sortLabel" : "account.starred.sortLabel")}
-            placement="bottom start"
-            actions={sortActions}
-          >
-            <AriaButton className={moduleClass(styles.listOrderButton)}>
-              <ArrowDownWideNarrow aria-hidden />
-              <span>{activeSortLabel}</span>
-              <ChevronDown aria-hidden />
-            </AriaButton>
-          </Menu>
+          <label className={styles.listOrderSelect}>
+            <ArrowDownWideNarrow aria-hidden />
+            <span aria-hidden>{activeSortLabel}</span>
+            <ChevronDown aria-hidden />
+            <select
+              aria-label={t(owned ? "account.repositories.sortLabel" : "account.starred.sortLabel")}
+              value={activeSort}
+              onChange={(event) => {
+                if (owned) {
+                  const choice = OWNED_SORTS.find((option) => option.id === event.target.value);
+                  if (choice) setOwnedSort(choice.id);
+                } else {
+                  const choice = STARRED_SORTS.find((option) => option.id === event.target.value);
+                  if (choice) setStarredSort(choice.id);
+                }
+              }}
+            >
+              {(owned ? OWNED_SORTS : STARRED_SORTS).map((option) => (
+                <option key={option.id} value={option.id}>
+                  {t(option.labelKey)}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       )}
       <InfiniteList {...rows} query={query} empty={empty} />

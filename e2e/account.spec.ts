@@ -185,10 +185,10 @@ test("offline name filtering searches saved repositories and reports a partial l
   await screen.getByRole("button", { name: "Clear", exact: true }).click();
   await expect(project).toBeVisible();
   await context.setOffline(false);
-  await expect(screen.getByText("Recently updated")).toBeVisible();
+  await expect(screen.getByRole("combobox", { name: "Sort repositories" })).toHaveValue("updated");
 });
 
-test("repository list sort menu opens options and re-queries with the selected order", async ({
+test("repository list sort picker updates options and re-queries with the selected order", async ({
   page,
   oauth,
   github,
@@ -216,10 +216,9 @@ test("repository list sort menu opens options and re-queries with the selected o
   await signIn(page, oauth);
   await page.locator('[data-tab="repositories"]').click();
   const screen = page.locator('[data-stack-screen="/repositories"]');
-  const sortButton = screen.getByRole("button", { name: "Recently updated" });
-  await expect(sortButton).toBeVisible();
-  await sortButton.click();
-  await page.getByRole("menuitem", { name: "Most stars" }).click();
-  await expect(screen.getByRole("button", { name: "Most stars" })).toBeVisible();
+  const sortSelect = screen.getByRole("combobox", { name: "Sort repositories" });
+  await expect(sortSelect).toHaveValue("updated");
+  await sortSelect.selectOption("stars");
+  await expect(sortSelect).toHaveValue("stars");
   expect(orders).toContainEqual({ field: "STARGAZERS", direction: "DESC" });
 });
