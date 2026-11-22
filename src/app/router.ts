@@ -279,7 +279,10 @@ const PRIMARY_TAB_LOADERS = [
 
 export function preloadPrimaryTabs(): void {
   for (const load of PRIMARY_TAB_LOADERS) {
-    void load().catch(() => undefined);
+    void load().catch((error: unknown) => {
+      if (error instanceof TypeError) return;
+      reportError(error);
+    });
   }
 }
 
