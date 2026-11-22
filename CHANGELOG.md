@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Work segment labels and counts remain readable on narrow screens.
 - Repeated or cancelled gestures preserve tab stacks, notification actions and review-file navigation. Vertical scrolls and multi-touch cancellation no longer trigger Home refresh.
 - Retrying an interrupted file proposal checks for its existing commit and pull request. A delayed save preserves edits made after dismissing the sheet.
 - Virtualized rows stay visible during deep scrolling and when returning to a list.
