@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type RefObject } from "react";
+import { useCallback, useRef, useState, type Ref } from "react";
 import {
   Activity,
   Bell,
@@ -225,15 +225,19 @@ function Feed(props: { filter: FeedFilter; feed: ReturnType<typeof useActivityFe
   );
 }
 
-function FollowingSection(props: {
+function FollowingSection({
+  view,
+  onViewChange,
+  unread,
+  ref,
+}: {
   view: ActivityView;
   onViewChange: (next: ActivityView) => void;
   unread: number;
-  headingRef: RefObject<HTMLHeadingElement | null>;
+  ref: Ref<HTMLHeadingElement>;
 }) {
   const t = useT();
   const formatters = useFormatters();
-  const { view } = props;
   const releases = useStarredReleases(view === "starredReleases");
   const filter = view === "starredReleases" ? "all" : view;
   const feed = useActivityFeed(filter);
@@ -243,7 +247,9 @@ function FollowingSection(props: {
   const refresh = useCallback(() => {
     setRefreshing(true);
     const refreshed = view === "starredReleases" ? refetchReleases() : refetchFeed();
-    void refreshed.finally(() => setRefreshing(false));
+    void refreshed.finally(() => {
+      setRefreshing(false);
+    });
   }, [view, refetchReleases, refetchFeed]);
 
   return (
@@ -252,13 +258,13 @@ function FollowingSection(props: {
         <Link href="/notifications" className={moduleClass(styles.notificationsLink)}>
           <Bell aria-hidden />
           <span>{t("home.notifications.open")}</span>
-          {props.unread > 0 ? (
-            <span className={styles.notificationCount}>{formatters.number(props.unread)}</span>
+          {unread > 0 ? (
+            <span className={styles.notificationCount}>{formatters.number(unread)}</span>
           ) : null}
           <ChevronRight aria-hidden />
         </Link>
         <div className={styles.sectionHeader}>
-          <h2 ref={props.headingRef} tabIndex={-1}>
+          <h2 ref={ref} tabIndex={-1}>
             {t("home.feed.title")}
           </h2>
           <div className={styles.controls}>
@@ -275,7 +281,7 @@ function FollowingSection(props: {
                 value={view}
                 onChange={(event) => {
                   const choice = ACTIVITY_VIEWS.find((entry) => entry.id === event.target.value);
-                  if (choice) props.onViewChange(choice.id);
+                  if (choice) onViewChange(choice.id);
                 }}
               >
                 {ACTIVITY_VIEWS.map((entry) => (
@@ -418,7 +424,7 @@ export default function HomeScreen() {
           view={view}
           onViewChange={setView}
           unread={unread}
-          headingRef={activityHeading}
+          ref={activityHeading}
         />
       )}
     </Page>

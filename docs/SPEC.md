@@ -312,14 +312,14 @@ Opening an unread notification online marks it as read. Issue, pull request and 
 
 Segmented control: **Review requested**, **My PRs**, **Assigned**, **CI failing**. Each segment is one GraphQL search query:
 
-Selection uses `/pulls?segment=reviewRequested|myPrs|assigned|ciFailing`; absent or unknown values select Review requested. Home work cards open this root destination, replacing the Work tab's previous detail stack.
-
 | Segment | Query |
 |---|---|
 | Review requested | `is:open is:pr review-requested:@me archived:false` |
 | My PRs | `is:open is:pr author:@me archived:false` |
 | Assigned | `is:open assignee:@me archived:false` |
 | CI failing | `is:open is:pr author:@me status:failure archived:false` |
+
+Selection uses `/pulls?segment=reviewRequested|myPrs|assigned|ciFailing`; absent or unknown values select Review requested. Home work cards open this root destination, replacing the Work tab's previous detail stack.
 
 - Rows show the repository, number, title, checks rollup (success, failure, pending), review decision, draft state, and updated time.
 - Each segment header shows its count, so the screen reads as a queue that reaches zero.
