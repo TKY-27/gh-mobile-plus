@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import {
   useInfiniteQuery,
   type InfiniteData,
@@ -172,24 +173,41 @@ function mapFeed(events: readonly GitHubEvent[], filter: FeedFilter): readonly F
   }
   return groups;
 }
+function sameGroup(left: FeedGroup, right: FeedGroup): boolean {
+  return (
+    left.actor.login === right.actor.login &&
+    left.repo?.owner === right.repo?.owner &&
+    left.repo?.name === right.repo?.name &&
+    left.kind === right.kind
+  );
+}
+
+function coalesceGroups(groups: readonly FeedGroup[]): FeedGroup[] {
+  const merged: FeedGroup[] = [];
+  for (const group of groups) {
+    const previous = merged.at(-1);
+    if (previous && sameGroup(previous, group)) {
+      merged[merged.length - 1] = { ...previous, events: [...previous.events, ...group.events] };
+    } else merged.push(group);
+  }
+  return merged;
+}
+
 function mergeFeedPages(
   response: InfiniteData<Page<FeedGroup>, number>,
+  filter: FeedFilter,
 ): InfiniteData<Page<FeedGroup>, number> {
   const pages: Page<FeedGroup>[] = [];
   for (const page of response.pages) {
+    const filtered =
+      filter === "all"
+        ? page.items
+        : coalesceGroups(page.items.filter((group) => matchesFilter(filter, group.kind)));
     const previousIndex = pages.findLastIndex((candidate) => candidate.items.length > 0);
     const previous = pages[previousIndex];
     const tail = previous?.items.at(-1);
-    const first = page.items[0];
-    if (
-      previous &&
-      tail &&
-      first &&
-      tail.actor.login === first.actor.login &&
-      tail.repo?.owner === first.repo?.owner &&
-      tail.repo?.name === first.repo?.name &&
-      tail.kind === first.kind
-    ) {
+    const first = filtered[0];
+    if (previous && tail && first && sameGroup(tail, first)) {
       pages[previousIndex] = {
         ...previous,
         items: [
@@ -197,8 +215,8 @@ function mergeFeedPages(
           { ...tail, events: [...tail.events, ...first.events] },
         ],
       };
-      pages.push({ ...page, items: page.items.slice(1) });
-    } else pages.push(page);
+      pages.push({ ...page, items: filtered.slice(1) });
+    } else pages.push(filtered === page.items ? page : { ...page, items: filtered });
   }
   return { ...response, pages };
 }
@@ -206,8 +224,12 @@ export function useActivityFeed(
   filter: FeedFilter,
 ): UseInfiniteQueryResult<InfiniteData<Page<FeedGroup>>> {
   const account = useActiveAccount();
+  const select = useCallback(
+    (response: InfiniteData<Page<FeedGroup>, number>) => mergeFeedPages(response, filter),
+    [filter],
+  );
   return useInfiniteQuery({
-    queryKey: accountKey(account.id, "home", "activity", filter),
+    queryKey: accountKey(account.id, "home", "activity"),
     initialPageParam: 1,
     staleTime: STALE_TIME.list,
     meta: PRIVATE_QUERY,
@@ -220,14 +242,14 @@ export function useActivityFeed(
         signal,
       });
       return {
-        items: mapFeed(response.body, filter),
+        items: mapFeed(response.body, "all"),
         nextCursor:
           pageParam < MAX_EVENT_PAGES && nextPageUrl(response.headers)
             ? String(pageParam + 1)
             : null,
       };
     },
-    select: mergeFeedPages,
+    select,
     getNextPageParam: (page) => (page.nextCursor === null ? undefined : Number(page.nextCursor)),
   });
 }

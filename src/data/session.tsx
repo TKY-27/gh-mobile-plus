@@ -55,7 +55,18 @@ const SIGN_IN_ERRORS: readonly SignInErrorCode[] = [
   "account_limit",
 ];
 
-let session: Session = { status: "loading", accounts: [], activeAccount: null };
+function initialSession(): Session {
+  const pending = new Set(pendingLogouts());
+  const snapshot = readSnapshot().filter((account) => !pending.has(account.id));
+  if (snapshot.length === 0) return { status: "loading", accounts: [], activeAccount: null };
+  const preferredId = storedActiveAccountId();
+  const activeAccount =
+    snapshot.find((account) => account.id === preferredId) ?? snapshot[0] ?? null;
+  return { status: activeAccount ? "ready" : "loading", accounts: snapshot, activeAccount };
+}
+
+let session: Session = initialSession();
+let initialLoad = true;
 // Prevent stale responses from replacing account state.
 let generation = 0;
 const listeners = new Set<() => void>();
@@ -140,7 +151,7 @@ async function loadAccounts(): Promise<void> {
   const pending = new Set(pendingLogouts());
   const signedIn = listed.filter((account) => !pending.has(account.id));
   const signedInIds = new Set(signedIn.map((account) => account.id));
-  const known = session.status === "loading" ? readSnapshot() : session.accounts;
+  const known = initialLoad ? readSnapshot() : session.accounts;
   const removed = known.filter(
     (account) => account.status === "active" && !signedInIds.has(account.id),
   );
@@ -150,9 +161,10 @@ async function loadAccounts(): Promise<void> {
   signedIn.forEach((account) => {
     reopenAccount(account.id);
   });
-  const returning = session.status === "loading" ? profileEditorAccountId(window.location) : null;
+  const returning = initialLoad ? profileEditorAccountId(window.location) : null;
   const preferred =
     returning !== null && signedInIds.has(returning) ? returning : currentPreferredId();
+  initialLoad = false;
   commit([...signedIn, ...stillSignedOut], preferred);
   await Promise.all(removed.map((account) => markAccountSignedOut(account.id, "logout")));
   await deleteOrphanedAccountStorage(new Set([...signedInIds, ...pending]));

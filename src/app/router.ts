@@ -270,6 +270,19 @@ export const stackNavigator = createNavigator(history, {
 
 export const router = createRouter({ routeTree, history, defaultPreload: "intent" });
 
+const PRIMARY_TAB_LOADERS = [
+  () => import("@/features/work/WorkScreen.tsx"),
+  () => import("@/features/account/profile/ProfileScreen.tsx"),
+  () => import("@/features/search/SearchScreen.tsx"),
+  () => import("@/features/account/AccountScreen.tsx"),
+];
+
+export function preloadPrimaryTabs(): void {
+  for (const load of PRIMARY_TAB_LOADERS) {
+    void load().catch(() => undefined);
+  }
+}
+
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;

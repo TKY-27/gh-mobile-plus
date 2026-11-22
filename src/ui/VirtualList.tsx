@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import type { InfiniteData, UseInfiniteQueryResult } from "@tanstack/react-query";
 import { observeElementRect, useVirtualizer } from "@tanstack/react-virtual";
 import { useScreen } from "@/app/navigation/screen.ts";
@@ -137,6 +145,10 @@ export function InfiniteList<T>(props: {
   const { query } = props;
   const { hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage } = query;
   const canFetchMore = hasNextPage && !isFetchingNextPage && !isFetchNextPageError;
+  const items = useMemo(() => query.data?.pages.flatMap((page) => page.items) ?? [], [query.data]);
+  const loadMore = useCallback(() => {
+    void fetchNextPage();
+  }, [fetchNextPage]);
 
   if (query.isPending) {
     return (
@@ -152,7 +164,6 @@ export function InfiniteList<T>(props: {
       </div>
     );
   }
-  const items = query.data?.pages.flatMap((page) => page.items) ?? [];
   if (query.isError && items.length === 0) {
     return (
       <ErrorState
@@ -174,7 +185,7 @@ export function InfiniteList<T>(props: {
         renderItem={props.renderItem}
         isComplete={!hasNextPage}
         separators={props.separators ?? true}
-        onEndReached={canFetchMore ? () => void fetchNextPage() : undefined}
+        onEndReached={canFetchMore ? loadMore : undefined}
       />
       {isFetchingNextPage ? (
         <div className={styles.footer}>
