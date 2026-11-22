@@ -28,7 +28,15 @@ registerRoute(
     const cached = await cache.match(request);
     if (cached) return cached;
     const response = await fetch(request);
-    if (response.ok) await cache.put(request, response.clone());
+    if (response.ok) {
+      try {
+        await cache.put(request, response.clone());
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "QuotaExceededError")) {
+          reportError(error);
+        }
+      }
+    }
     return response;
   },
 );
@@ -40,7 +48,7 @@ self.addEventListener("activate", (event) => {
       .then((names) =>
         Promise.all(
           names
-            .filter((name) => name.startsWith(RUNTIME_CACHE_PREFIX) && name !== RUNTIME_ASSET_CACHE)
+            .filter((name) => name.startsWith(RUNTIME_CACHE_PREFIX))
             .map((name) => caches.delete(name)),
         ),
       ),
