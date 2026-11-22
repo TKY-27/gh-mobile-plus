@@ -23,7 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The leading control on every tab opens a left drawer. Home opens to Following with a separate Overview. Account keeps settings, switching and profile actions at the top.
+- Home opens to You: contributions first, four actionable Work-count cards and two recent repository cards. Following remains separate with a personal notifications link. Work shortcuts select the matching queue.
+- The leading control on every tab opens a left drawer. Account keeps settings, switching and profile actions at the top.
 - Home shows contributions, recently pushed repositories and following activity. Notifications and settings open from its header. The Repositories tab opens the signed-in account’s list.
 - Repository and profile lists have a bounded reading width. Search suggests qualifiers for each result type. Notification rows expose a one-tap read action.
 

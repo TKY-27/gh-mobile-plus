@@ -2,7 +2,7 @@ import { useLayoutEffect, useMemo, useRef } from "react";
 import { CalendarDays } from "lucide-react";
 import { Link } from "react-aria-components/Link";
 import type { ViewerSummary } from "@/data/home";
-import { useLanguage, useT } from "@/i18n/index.tsx";
+import { useFormatters, useLanguage, useT } from "@/i18n/index.tsx";
 import { moduleClass } from "@/ui/module-class.ts";
 import styles from "./ProfileCard.module.css";
 
@@ -21,6 +21,7 @@ export function ProfileIdentity(props: { login: string; name: string | null }) {
 
 export function ContributionGraph(props: { contributions: ViewerSummary["contributions"] }) {
   const t = useT();
+  const formatters = useFormatters();
   const language = useLanguage();
   const scroller = useRef<HTMLDivElement | null>(null);
   const { weeks, total } = props.contributions;
@@ -41,8 +42,11 @@ export function ContributionGraph(props: { contributions: ViewerSummary["contrib
           <CalendarDays aria-hidden />
           {t("home.profile.calendarTitle")}
         </h2>
-        <span>{t("home.profile.yearTotal", { count: total })}</span>
       </div>
+      <p className={styles.graphTotal}>
+        <strong>{formatters.number(total)}</strong>
+        <span>{t("home.profile.yearLabel")}</span>
+      </p>
       <div
         ref={scroller}
         className={styles.graphScroller}

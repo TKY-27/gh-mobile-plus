@@ -1,5 +1,9 @@
 {
-  "overview": "概要",
+  "overview": "自分",
+  "work.title": "自分の作業",
+  "following.open": "フォロー中のアクティビティを見る",
+  "notifications.open": "自分宛ての通知",
+  "profile.yearLabel": "過去1年間のコントリビューション",
   "refresh": "ホームを更新",
   "refreshing": "更新中",
   "profile.contributions.one": "過去1年間のコントリビューション {count} 件",

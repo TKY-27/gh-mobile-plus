@@ -47,12 +47,8 @@
 
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-3);
+  gap: var(--space-2);
   margin: var(--space-3) var(--space-4) 0;
-  padding: var(--space-4);
-  border: 1px solid var(--color-separator);
-  border-radius: var(--radius-lg);
-  background: var(--color-bg-secondary);
 }
 
 .graphHeader,
@@ -81,10 +77,22 @@
   color: var(--color-text-secondary);
 }
 
-.graphHeader > span {
+.graphTotal {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
   color: var(--color-text-secondary);
   font-size: var(--text-footnote);
   font-variant-numeric: tabular-nums;
+}
+
+.graphTotal strong {
+  color: var(--color-text);
+  font-size: var(--text-large-title);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.03em;
 }
 
 .graphScroller {

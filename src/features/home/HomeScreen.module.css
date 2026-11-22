@@ -32,6 +32,7 @@
 }
 
 .recent,
+.work,
 .activity {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -80,33 +81,131 @@
   height: 0.875rem;
 }
 
-.rail {
+.overview {
+  max-width: 44rem;
+  margin-inline: auto;
+}
+
+.repositoryGrid {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: min(17.5rem, 80%);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-2);
   margin: 0;
   padding: 0 var(--space-4) var(--space-1);
-  scroll-padding-inline: var(--space-4);
   list-style: none;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity;
-  scrollbar-color: var(--color-separator) transparent;
-  scrollbar-width: thin;
 }
 
-.rail > li {
+.repositoryGrid > li {
   display: grid;
   min-width: 0;
   border: 1px solid var(--color-separator);
   border-radius: var(--radius-md);
   background: var(--color-bg);
-  scroll-snap-align: start;
 }
 
-.rail > li > a {
+.repositoryGrid > li > a {
   border-radius: inherit;
+  padding: var(--space-3);
+}
+
+.workGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-inline: var(--space-4);
+}
+
+.workTile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: start;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--hit-target);
+  padding: var(--space-3);
+  border: 1px solid var(--color-separator);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.workTile[data-hovered],
+.followingLink:hover,
+.notificationsLink[data-hovered] {
+  background: var(--color-bg-secondary);
+}
+
+.workTile[data-pressed],
+.followingLink:active,
+.notificationsLink[data-pressed] {
+  background: var(--color-fill-pressed);
+}
+
+.workCount {
+  font-size: var(--text-title);
+  font-weight: var(--weight-semibold);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--leading-tight);
+  overflow-wrap: anywhere;
+}
+
+.workIcon {
+  width: 1.125rem;
+  height: 1.125rem;
+  color: var(--color-text-secondary);
+}
+
+.workTile[data-failing] .workIcon {
+  color: var(--status-failure);
+}
+
+.workLabel {
+  grid-column: 1 / -1;
+  font-size: var(--text-subhead);
+  color: var(--color-text-secondary);
+}
+
+.followingLink,
+.notificationsLink {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: calc(100% - 2 * var(--space-4));
+  min-height: var(--hit-target);
+  margin: var(--space-4) var(--space-4) 0;
+  padding: var(--space-3) 0;
+  border: none;
+  border-block: 1px solid var(--color-separator);
+  background: none;
+  color: var(--color-text);
+  text-align: start;
+  text-decoration: none;
+  font-size: var(--text-subhead);
+  cursor: pointer;
+}
+
+.followingLink svg,
+.notificationsLink svg {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-text-secondary);
+}
+
+.followingLink > span:first-of-type,
+.notificationsLink > span:first-of-type {
+  flex: 1;
+}
+
+.notificationCount {
+  color: var(--accent-text);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 22rem) {
+  .repositoryGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .controls {

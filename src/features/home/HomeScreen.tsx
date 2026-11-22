@@ -1,8 +1,21 @@
-import { useCallback, useState } from "react";
-import { Activity, Bell, ChevronDown, ChevronRight, RotateCw, Settings, Tag } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import {
+  Activity,
+  Bell,
+  ChevronDown,
+  ChevronRight,
+  CircleAlert,
+  CircleDot,
+  GitPullRequest,
+  GitPullRequestArrow,
+  RotateCw,
+  Settings,
+  Tag,
+} from "lucide-react";
 import { Link } from "react-aria-components/Link";
 import { SegmentedControl } from "@/ui/SegmentedControl.tsx";
 import { Page } from "@/app/Page.tsx";
+import { useScreen } from "@/app/navigation/screen.ts";
 import { useShell } from "@/app/shell-context.ts";
 import {
   useActivityFeed,
@@ -12,9 +25,10 @@ import {
   type FeedGroup,
 } from "@/data/home";
 import { useActiveAccount } from "@/data/session";
+import { useWorkQueue, type WorkSegment } from "@/data/work";
 import type { RepoSummary } from "@/data/types";
 import { RepoRow } from "@/features/account/profile/RepoRow.tsx";
-import { useT, type MessageKey } from "@/i18n/index.tsx";
+import { useFormatters, useT, type MessageKey } from "@/i18n/index.tsx";
 import { IconButton } from "@/ui/Button.tsx";
 import { EmptyState } from "@/ui/EmptyState.tsx";
 import { ErrorState } from "@/ui/ErrorState.tsx";
@@ -31,6 +45,17 @@ import { ReleaseRow, releaseKey } from "./ReleaseRow.tsx";
 import styles from "./HomeScreen.module.css";
 
 const RELEASES_PREVIEW = 10;
+const RECENT_REPOSITORIES_PREVIEW = 2;
+const WORK_SHORTCUTS: readonly {
+  id: WorkSegment;
+  label: MessageKey;
+  icon: typeof GitPullRequest;
+}[] = [
+  { id: "myPrs", label: "work.segment.myPrs", icon: GitPullRequest },
+  { id: "reviewRequested", label: "work.segment.reviewRequested", icon: GitPullRequestArrow },
+  { id: "assigned", label: "work.segment.assigned", icon: CircleDot },
+  { id: "ciFailing", label: "work.segment.ciFailing", icon: CircleAlert },
+];
 type ActivityView = FeedFilter | "starredReleases";
 const ACTIVITY_VIEWS: readonly { id: ActivityView; label: MessageKey }[] = [
   { id: "all", label: "home.feed.filter.all" },
@@ -53,8 +78,8 @@ function RecentRepositories(props: { repositories: readonly RepoSummary[] }) {
         </Link>
       </div>
       {props.repositories.length > 0 ? (
-        <ul className={styles.rail} aria-label={t("home.repositories.title")}>
-          {props.repositories.map((repo) => (
+        <ul className={styles.repositoryGrid} aria-label={t("home.repositories.title")}>
+          {props.repositories.slice(0, RECENT_REPOSITORIES_PREVIEW).map((repo) => (
             <li key={repo.name}>
               <RepoRow repo={repo} showOwner={false} />
             </li>
@@ -63,6 +88,47 @@ function RecentRepositories(props: { repositories: readonly RepoSummary[] }) {
       ) : (
         <p className={styles.note}>{t("home.repositories.empty")}</p>
       )}
+    </section>
+  );
+}
+
+function WorkSummary(props: { queue: ReturnType<typeof useWorkQueue> }) {
+  const t = useT();
+  const formatters = useFormatters();
+  const { queue } = props;
+  return (
+    <section className={styles.work} aria-label={t("home.work.title")}>
+      <div className={styles.sectionHeader}>
+        <h2>{t("home.work.title")}</h2>
+      </div>
+      {queue.isError ? (
+        <ErrorState error={queue.error} onRetry={() => void queue.refetch()} />
+      ) : null}
+      <div className={styles.workGrid} aria-busy={queue.isPending || undefined}>
+        {WORK_SHORTCUTS.map(({ id, label, icon: Icon }) => {
+          const count = queue.data?.[id].count;
+          if (count === undefined) {
+            return queue.isPending ? (
+              <div key={id} className={styles.workTile} aria-hidden>
+                <Skeleton width="2rem" height="2rem" />
+                <Skeleton width="70%" height="1rem" />
+              </div>
+            ) : null;
+          }
+          return (
+            <Link
+              key={id}
+              href={`/pulls?segment=${id}`}
+              className={moduleClass(styles.workTile)}
+              data-failing={(id === "ciFailing" && count > 0) || undefined}
+            >
+              <span className={styles.workCount}>{formatters.number(count)}</span>
+              <Icon className={styles.workIcon} aria-hidden />
+              <span className={styles.workLabel}>{t(label)}</span>
+            </Link>
+          );
+        })}
+      </div>
     </section>
   );
 }
@@ -162,9 +228,16 @@ function Feed(props: { filter: FeedFilter; feed: ReturnType<typeof useActivityFe
 export default function HomeScreen() {
   const t = useT();
   const account = useActiveAccount();
+  const { scroller } = useScreen();
+  const activityHeading = useRef<HTMLHeadingElement | null>(null);
   const { unreadCount } = useShell();
   const viewer = useViewerSummary();
-  const [section, setSection] = useState<"activity" | "overview">("activity");
+  const work = useWorkQueue();
+  const [section, setSection] = useState<"activity" | "overview">("overview");
+  const changeSection = (next: "activity" | "overview") => {
+    setSection(next);
+    scroller.current?.scrollTo({ top: 0 });
+  };
   const [view, setView] = useState<ActivityView>("all");
   const releases = useStarredReleases(section === "activity" && view === "starredReleases");
   const filter = view === "starredReleases" ? "all" : view;
@@ -173,18 +246,19 @@ export default function HomeScreen() {
   const { refetch: refetchViewer } = viewer;
   const { refetch: refetchReleases } = releases;
   const { refetch: refetchFeed } = feed;
+  const { refetch: refetchWork } = work;
   const refresh = useCallback(() => {
     setRefreshing(true);
     const refreshContent =
       section === "overview"
-        ? refetchViewer
+        ? Promise.all([refetchViewer(), refetchWork()])
         : view === "starredReleases"
-          ? refetchReleases
-          : refetchFeed;
-    void refreshContent().finally(() => {
+          ? refetchReleases()
+          : refetchFeed();
+    void refreshContent.finally(() => {
       setRefreshing(false);
     });
-  }, [section, view, refetchViewer, refetchReleases, refetchFeed]);
+  }, [section, view, refetchViewer, refetchReleases, refetchFeed, refetchWork]);
 
   const notifications = t("app.tabs.inbox");
   const unread = unreadCount ?? 0;
@@ -223,23 +297,20 @@ export default function HomeScreen() {
         columns={2}
         selected={section}
         segments={[
-          { id: "activity", label: t("home.following") },
           { id: "overview", label: t("home.overview") },
+          { id: "activity", label: t("home.following") },
         ]}
-        onChange={setSection}
+        onChange={changeSection}
       />
       <PullToRefresh refreshing={refreshing} onRefresh={refresh}>
         {section === "overview" ? (
-          <>
+          <div className={styles.overview}>
             {viewer.data ? (
               <>
                 {viewer.isRefetchError ? (
                   <ErrorState error={viewer.error} onRetry={() => void viewer.refetch()} />
                 ) : null}
                 <ContributionGraph contributions={viewer.data.contributions} />
-                {viewer.data.recentRepositories ? (
-                  <RecentRepositories repositories={viewer.data.recentRepositories} />
-                ) : null}
               </>
             ) : viewer.isError ? (
               <ErrorState error={viewer.error} onRetry={() => void viewer.refetch()} />
@@ -248,16 +319,42 @@ export default function HomeScreen() {
                 <Skeleton width="100%" height="10rem" />
               </div>
             )}
+            <WorkSummary queue={work} />
+            {viewer.data?.recentRepositories ? (
+              <RecentRepositories repositories={viewer.data.recentRepositories} />
+            ) : null}
+            <button
+              type="button"
+              className={styles.followingLink}
+              onClick={() => {
+                changeSection("activity");
+                requestAnimationFrame(() =>
+                  activityHeading.current?.focus({ preventScroll: true }),
+                );
+              }}
+            >
+              <Activity aria-hidden />
+              <span>{t("home.following.open")}</span>
+              <ChevronRight aria-hidden />
+            </button>
             <div className={styles.overviewRefresh}>
               <IconButton label={t("home.refresh")} onPress={refresh} isPending={refreshing}>
                 <RotateCw aria-hidden />
               </IconButton>
             </div>
-          </>
+          </div>
         ) : (
           <section className={styles.activity}>
+            <Link href="/notifications" className={moduleClass(styles.notificationsLink)}>
+              <Bell aria-hidden />
+              <span>{t("home.notifications.open")}</span>
+              {unread > 0 ? <span className={styles.notificationCount}>{unread}</span> : null}
+              <ChevronRight aria-hidden />
+            </Link>
             <div className={styles.sectionHeader}>
-              <h2>{t("home.feed.title")}</h2>
+              <h2 ref={activityHeading} tabIndex={-1}>
+                {t("home.feed.title")}
+              </h2>
               <div className={styles.controls}>
                 <label className={styles.filter}>
                   <span aria-hidden>

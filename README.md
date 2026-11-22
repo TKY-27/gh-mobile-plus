@@ -10,7 +10,7 @@ Use GH Mobile+ to review a diff, check notifications or find a repository on you
 
 ## Features
 
-- **Home:** Following opens to activity and releases. Overview shows your contribution calendar and recently pushed repositories. Tap the top-left avatar or swipe right near the left edge to open the navigation menu.
+- **Home:** You opens with your contribution calendar, work-count shortcuts and two recently pushed repositories. Following keeps activity and releases separate, with a link to your notifications. Tap the top-left avatar or swipe right near the left edge to open the navigation menu.
 - **Profile:** edit your profile and social links, share it, or open your repositories, followers and following. Settings and account switching are in the header. GitHub asks for profile-write access when you enable editing.
 - **Repository management:** create a personal repository or fork one. Repository administrators can edit descriptions, homepages, feature switches and PR merge settings.
 - **Repositories and search:** open your repositories from the tab bar, or search GitHub by type with qualifiers.

@@ -1,5 +1,9 @@
 {
-  "overview": "Overview",
+  "overview": "You",
+  "work.title": "Your work",
+  "following.open": "See following activity",
+  "notifications.open": "Your notifications",
+  "profile.yearLabel": "contributions in the last year",
   "refresh": "Refresh home",
   "refreshing": "Refreshing",
   "profile.contributions.one": "{count} contribution in the last year",
