@@ -73,11 +73,16 @@ function RepositoryList(props: {
   kind: "owned" | "starred";
   title: string;
   offlineFilter?: string;
+  ownedSort?: RepositorySort;
+  onOwnedSortChange?: (sort: RepositorySort) => void;
 }) {
   const t = useT();
+  const offline = useIsOffline();
   const owned = props.kind === "owned";
-  const [ownedSort, setOwnedSort] = useState<RepositorySort>("updated");
+  const [localOwnedSort, setLocalOwnedSort] = useState<RepositorySort>("updated");
   const [starredSort, setStarredSort] = useState<StarredSort>("newest");
+  const ownedSort = props.ownedSort ?? localOwnedSort;
+  const setOwnedSort = props.onOwnedSortChange ?? setLocalOwnedSort;
   const activeSort = owned ? ownedSort : starredSort;
   const query = useRepositoriesOf(props.login, props.kind, activeSort);
   const rows = {
@@ -165,19 +170,26 @@ function RepositoryList(props: {
       );
   return (
     <>
-      <div className={styles.listOrderBar}>
-        <Menu
-          label={t(owned ? "account.repositories.sortLabel" : "account.starred.sortLabel")}
-          placement="bottom start"
-          actions={sortActions}
-        >
-          <AriaButton className={moduleClass(styles.listOrderButton)}>
-            <ArrowDownWideNarrow aria-hidden />
-            <span>{activeSortLabel}</span>
-            <ChevronDown aria-hidden />
-          </AriaButton>
-        </Menu>
-      </div>
+      {offline ? (
+        <p className={styles.listOrder}>
+          <ArrowDownWideNarrow aria-hidden />
+          {activeSortLabel}
+        </p>
+      ) : (
+        <div className={styles.listOrderBar}>
+          <Menu
+            label={t(owned ? "account.repositories.sortLabel" : "account.starred.sortLabel")}
+            placement="bottom start"
+            actions={sortActions}
+          >
+            <AriaButton className={moduleClass(styles.listOrderButton)}>
+              <ArrowDownWideNarrow aria-hidden />
+              <span>{activeSortLabel}</span>
+              <ChevronDown aria-hidden />
+            </AriaButton>
+          </Menu>
+        </div>
+      )}
       <InfiniteList {...rows} query={query} empty={empty} />
     </>
   );
@@ -189,6 +201,7 @@ export function MyRepositoriesScreen() {
   const offline = useIsOffline();
   const [filter, setFilter] = useState("");
   const [submitted, setSubmitted] = useState("");
+  const [sort, setSort] = useState<RepositorySort>("updated");
   const typed = filter.trim();
   useEffect(() => {
     if (offline || !typed || typed === submitted) return;
@@ -239,6 +252,8 @@ export function MyRepositoriesScreen() {
           login={account.login}
           kind="owned"
           title={title}
+          ownedSort={sort}
+          onOwnedSortChange={setSort}
           {...(offline && { offlineFilter: "" })}
         />
       ) : offline || typed === submitted ? (
@@ -253,6 +268,7 @@ export function MyRepositoriesScreen() {
                 login={account.login}
                 kind="owned"
                 title={title}
+                ownedSort={sort}
                 offlineFilter={typed}
               />
             ) : null
