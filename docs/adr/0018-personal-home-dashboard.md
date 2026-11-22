@@ -17,4 +17,4 @@ Use the current system typography, semantic colors and spacing tokens. Let the c
 
 ## Consequences
 
-Home loads the existing combined Work query earlier; the Work tab reuses its cache. The cold Home, Work and Inbox request budget is unchanged. Recent repositories show a two-card preview instead of a horizontal rail; the complete list remains one tap away. Work segment selection is reflected in the URL and survives tab switching.
+Home loads the existing combined Work query earlier; the Work tab reuses its cache. Following queries mount only when that Home section is selected, keeping the cold Home, Work and Inbox request budget unchanged. Recent repositories show a two-card preview instead of a horizontal rail; the complete list remains one tap away. Work segment selection is reflected in the URL and survives tab switching. Opening a Home work card intentionally returns the Work tab to its root queue rather than retaining its previous detail stack.

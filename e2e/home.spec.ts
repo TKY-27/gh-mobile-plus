@@ -3,9 +3,51 @@ import enHome from "../src/i18n/messages/en/home.json" with { type: "json" };
 import enWork from "../src/i18n/messages/en/work.json" with { type: "json" };
 import releases from "../src/data/home/fixtures/releases.json" with { type: "json" };
 import workQueue from "../src/data/work/fixtures/queue.json" with { type: "json" };
+import viewerSummary from "../src/data/home/fixtures/viewer.json" with { type: "json" };
 import { API_ORIGIN, expect, githubGraphql, signIn, test } from "./support/github.ts";
 
 const HOUR_MS = 3_600_000;
+
+test("Home waits for Following before fetching its activity", async ({ page, oauth, github }) => {
+  let feedRequests = 0;
+  github.use(
+    http.get(`${API_ORIGIN}/users/mona/received_events`, () => {
+      feedRequests += 1;
+      return HttpResponse.json([]);
+    }),
+  );
+  await signIn(page, oauth);
+  const home = page.locator('[data-stack-screen="/"]');
+  await expect(
+    home.getByRole("region", { name: enHome["work.title"] }).getByRole("link"),
+  ).toHaveCount(4);
+  expect(feedRequests).toBe(0);
+  await home.getByRole("radio", { name: enHome.following }).click();
+  await expect(home.getByRole("heading", { name: enHome["feed.empty.title"] })).toBeVisible();
+  expect(feedRequests).toBe(1);
+});
+
+test("a single contribution uses the singular English label", async ({ page, oauth, github }) => {
+  github.use(
+    githubGraphql.query("ViewerSummary", () =>
+      HttpResponse.json({
+        data: {
+          viewer: {
+            ...viewerSummary.viewer,
+            contributionsCollection: {
+              contributionCalendar: {
+                ...viewerSummary.viewer.contributionsCollection.contributionCalendar,
+                totalContributions: 1,
+              },
+            },
+          },
+        },
+      }),
+    ),
+  );
+  await signIn(page, oauth);
+  await expect(page.getByText(enHome["profile.yearLabel.one"], { exact: true })).toBeVisible();
+});
 
 // Fixture dates age out of 14 days.
 function recentReleases() {

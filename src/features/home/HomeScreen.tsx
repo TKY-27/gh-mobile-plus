@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, type RefObject } from "react";
 import {
   Activity,
   Bell,
@@ -225,6 +225,86 @@ function Feed(props: { filter: FeedFilter; feed: ReturnType<typeof useActivityFe
   );
 }
 
+function FollowingSection(props: {
+  view: ActivityView;
+  onViewChange: (next: ActivityView) => void;
+  unread: number;
+  headingRef: RefObject<HTMLHeadingElement | null>;
+}) {
+  const t = useT();
+  const formatters = useFormatters();
+  const { view } = props;
+  const releases = useStarredReleases(view === "starredReleases");
+  const filter = view === "starredReleases" ? "all" : view;
+  const feed = useActivityFeed(filter);
+  const [refreshing, setRefreshing] = useState(false);
+  const { refetch: refetchReleases } = releases;
+  const { refetch: refetchFeed } = feed;
+  const refresh = useCallback(() => {
+    setRefreshing(true);
+    const refreshed = view === "starredReleases" ? refetchReleases() : refetchFeed();
+    void refreshed.finally(() => setRefreshing(false));
+  }, [view, refetchReleases, refetchFeed]);
+
+  return (
+    <PullToRefresh refreshing={refreshing} onRefresh={refresh}>
+      <section className={styles.activity}>
+        <Link href="/notifications" className={moduleClass(styles.notificationsLink)}>
+          <Bell aria-hidden />
+          <span>{t("home.notifications.open")}</span>
+          {props.unread > 0 ? (
+            <span className={styles.notificationCount}>{formatters.number(props.unread)}</span>
+          ) : null}
+          <ChevronRight aria-hidden />
+        </Link>
+        <div className={styles.sectionHeader}>
+          <h2 ref={props.headingRef} tabIndex={-1}>
+            {t("home.feed.title")}
+          </h2>
+          <div className={styles.controls}>
+            <label className={styles.filter}>
+              <span aria-hidden>
+                {t(
+                  ACTIVITY_VIEWS.find((choice) => choice.id === view)?.label ??
+                    "home.feed.filter.all",
+                )}
+              </span>
+              <ChevronDown aria-hidden />
+              <select
+                aria-label={t("home.feed.filter.label")}
+                value={view}
+                onChange={(event) => {
+                  const choice = ACTIVITY_VIEWS.find((entry) => entry.id === event.target.value);
+                  if (choice) props.onViewChange(choice.id);
+                }}
+              >
+                {ACTIVITY_VIEWS.map((entry) => (
+                  <option key={entry.id} value={entry.id}>
+                    {t(entry.label)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <IconButton label={t("home.refresh")} onPress={refresh} isPending={refreshing}>
+              <RotateCw aria-hidden />
+            </IconButton>
+          </div>
+        </div>
+        {view === "starredReleases" ? (
+          <>
+            {releases.isRefetchError ? (
+              <ErrorState error={releases.error} onRetry={() => void releases.refetch()} />
+            ) : null}
+            <ReleasesSection releases={releases} />
+          </>
+        ) : (
+          <Feed filter={filter} feed={feed} />
+        )}
+      </section>
+    </PullToRefresh>
+  );
+}
+
 export default function HomeScreen() {
   const t = useT();
   const account = useActiveAccount();
@@ -239,26 +319,15 @@ export default function HomeScreen() {
     scroller.current?.scrollTo({ top: 0 });
   };
   const [view, setView] = useState<ActivityView>("all");
-  const releases = useStarredReleases(section === "activity" && view === "starredReleases");
-  const filter = view === "starredReleases" ? "all" : view;
-  const feed = useActivityFeed(filter);
   const [refreshing, setRefreshing] = useState(false);
   const { refetch: refetchViewer } = viewer;
-  const { refetch: refetchReleases } = releases;
-  const { refetch: refetchFeed } = feed;
   const { refetch: refetchWork } = work;
   const refresh = useCallback(() => {
     setRefreshing(true);
-    const refreshContent =
-      section === "overview"
-        ? Promise.all([refetchViewer(), refetchWork()])
-        : view === "starredReleases"
-          ? refetchReleases()
-          : refetchFeed();
-    void refreshContent.finally(() => {
+    void Promise.all([refetchViewer(), refetchWork()]).finally(() => {
       setRefreshing(false);
     });
-  }, [section, view, refetchViewer, refetchReleases, refetchFeed, refetchWork]);
+  }, [refetchViewer, refetchWork]);
 
   const notifications = t("app.tabs.inbox");
   const unread = unreadCount ?? 0;
@@ -302,8 +371,8 @@ export default function HomeScreen() {
         ]}
         onChange={changeSection}
       />
-      <PullToRefresh refreshing={refreshing} onRefresh={refresh}>
-        {section === "overview" ? (
+      {section === "overview" ? (
+        <PullToRefresh refreshing={refreshing} onRefresh={refresh}>
           <div className={styles.overview}>
             {viewer.data ? (
               <>
@@ -343,62 +412,15 @@ export default function HomeScreen() {
               </IconButton>
             </div>
           </div>
-        ) : (
-          <section className={styles.activity}>
-            <Link href="/notifications" className={moduleClass(styles.notificationsLink)}>
-              <Bell aria-hidden />
-              <span>{t("home.notifications.open")}</span>
-              {unread > 0 ? <span className={styles.notificationCount}>{unread}</span> : null}
-              <ChevronRight aria-hidden />
-            </Link>
-            <div className={styles.sectionHeader}>
-              <h2 ref={activityHeading} tabIndex={-1}>
-                {t("home.feed.title")}
-              </h2>
-              <div className={styles.controls}>
-                <label className={styles.filter}>
-                  <span aria-hidden>
-                    {t(
-                      ACTIVITY_VIEWS.find((choice) => choice.id === view)?.label ??
-                        "home.feed.filter.all",
-                    )}
-                  </span>
-                  <ChevronDown aria-hidden />
-                  <select
-                    aria-label={t("home.feed.filter.label")}
-                    value={view}
-                    onChange={(event) => {
-                      const choice = ACTIVITY_VIEWS.find(
-                        (entry) => entry.id === event.target.value,
-                      );
-                      if (choice) setView(choice.id);
-                    }}
-                  >
-                    {ACTIVITY_VIEWS.map((entry) => (
-                      <option key={entry.id} value={entry.id}>
-                        {t(entry.label)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <IconButton label={t("home.refresh")} onPress={refresh} isPending={refreshing}>
-                  <RotateCw aria-hidden />
-                </IconButton>
-              </div>
-            </div>
-            {view === "starredReleases" ? (
-              <>
-                {releases.isRefetchError ? (
-                  <ErrorState error={releases.error} onRetry={() => void releases.refetch()} />
-                ) : null}
-                <ReleasesSection releases={releases} />
-              </>
-            ) : (
-              <Feed filter={filter} feed={feed} />
-            )}
-          </section>
-        )}
-      </PullToRefresh>
+        </PullToRefresh>
+      ) : (
+        <FollowingSection
+          view={view}
+          onViewChange={setView}
+          unread={unread}
+          headingRef={activityHeading}
+        />
+      )}
     </Page>
   );
 }

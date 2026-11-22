@@ -192,7 +192,9 @@ test("keeps requested reviewers and adds new ones", async ({ page, oauth, github
   await tapInSheet(sheet.getByRole("option", { name: "hubot" }));
   await tapInSheet(sheet.getByRole("button", { name: "Done" }));
 
-  await expect(page.getByText(enPull["reviewers.requested"])).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Notifications" }).getByText(enPull["reviewers.requested"]),
+  ).toBeVisible();
   const ids = new Map(
     assignableUsers.data.repository.assignableUsers.nodes.map((user) => [user.login, user.id]),
   );

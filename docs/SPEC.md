@@ -312,6 +312,8 @@ Opening an unread notification online marks it as read. Issue, pull request and 
 
 Segmented control: **Review requested**, **My PRs**, **Assigned**, **CI failing**. Each segment is one GraphQL search query:
 
+Selection uses `/pulls?segment=reviewRequested|myPrs|assigned|ciFailing`; absent or unknown values select Review requested. Home work cards open this root destination, replacing the Work tab's previous detail stack.
+
 | Segment | Query |
 |---|---|
 | Review requested | `is:open is:pr review-requested:@me archived:false` |

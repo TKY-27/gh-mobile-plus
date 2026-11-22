@@ -45,7 +45,7 @@ export function ContributionGraph(props: { contributions: ViewerSummary["contrib
       </div>
       <p className={styles.graphTotal}>
         <strong>{formatters.number(total)}</strong>
-        <span>{t("home.profile.yearLabel")}</span>
+        <span>{t("home.profile.yearLabel", { count: total })}</span>
       </p>
       <div
         ref={scroller}
