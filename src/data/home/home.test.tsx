@@ -315,4 +315,26 @@ describe("home queries", () => {
     });
     expect(result.current.data?.pages[0]?.items.map((group) => group.kind)).toEqual(["issue"]);
   });
+  it("reuses cached events when switching activity filters", async () => {
+    let requests = 0;
+    server.use(
+      http.get("https://api.github.com/users/mona/received_events", () => {
+        requests++;
+        return HttpResponse.json(events);
+      }),
+    );
+    const { result, rerender } = renderHook(
+      ({ filter }: { filter: "all" | "stars" | "issuesAndPrs" }) => useActivityFeed(filter),
+      { initialProps: { filter: "all" }, wrapper },
+    );
+    await waitFor(() => {
+      expect(result.current.isSuccess).toBe(true);
+    });
+    expect(requests).toBe(1);
+    rerender({ filter: "stars" });
+    expect(result.current.data?.pages[0]?.items.map((group) => group.kind)).toEqual(["star"]);
+    rerender({ filter: "issuesAndPrs" });
+    expect(result.current.data?.pages[0]?.items.map((group) => group.kind)).toEqual(["issue"]);
+    expect(requests).toBe(1);
+  });
 });

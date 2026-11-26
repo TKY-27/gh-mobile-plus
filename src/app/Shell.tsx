@@ -10,6 +10,7 @@ import { isIOSBrowserTab, prefersReducedMotion } from "./platform.ts";
 import { useNavigationState, useNavigator } from "./navigation/context.ts";
 import { TABS, topOf, type Tab } from "./navigation/navigator.ts";
 import { StackView } from "./navigation/StackView.tsx";
+import { preloadPrimaryTabs } from "./router.ts";
 import { ShellContext, type ShellActions } from "./shell-context.ts";
 import { TabBar } from "./TabBar.tsx";
 import styles from "./Shell.module.css";
@@ -17,6 +18,7 @@ import styles from "./Shell.module.css";
 const CommandPalette = lazy(() => import("./CommandPalette.tsx"));
 const NavigationMenu = lazy(() => import("./NavigationMenu.tsx"));
 const AccountSwitcher = lazy(() => import("./AccountSwitcher.tsx"));
+const IDLE_PRELOAD_FALLBACK_MS = 1500;
 
 function isTyping(target: EventTarget | null): boolean {
   return (
@@ -26,16 +28,27 @@ function isTyping(target: EventTarget | null): boolean {
   );
 }
 
-export function Shell(props: { unreadCount: number | null }) {
+function RateLimitBanner(props: { resetAt: Date }) {
   const t = useT();
   const formatters = useFormatters();
+  const now = useNow();
+  return (
+    <Banner icon={<Gauge />} tone="warning">
+      {t("app.banner.rateLimit", {
+        time: formatters.relativeTime(props.resetAt, now),
+      })}
+    </Banner>
+  );
+}
+
+export function Shell(props: { unreadCount: number | null }) {
+  const t = useT();
   const navigator = useNavigator();
   const state = useNavigationState();
   const keyboardOpen = useSoftKeyboardOpen();
   const showingCache = useIsShowingCachedData();
   const rateLimitLow = useIsRateLimitLow();
   const rateLimit = useRateLimit();
-  const now = useNow();
   const scrollers = useRef(new Map<string, HTMLDivElement>());
   const [menuOpen, setMenuOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -57,6 +70,20 @@ export function Shell(props: { unreadCount: number | null }) {
     }),
     [props.unreadCount],
   );
+
+  useEffect(() => {
+    if (!window.navigator.onLine) return;
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(preloadPrimaryTabs);
+      return () => {
+        window.cancelIdleCallback(id);
+      };
+    }
+    const timer = globalThis.setTimeout(preloadPrimaryTabs, IDLE_PRELOAD_FALLBACK_MS);
+    return () => {
+      globalThis.clearTimeout(timer);
+    };
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -108,13 +135,7 @@ export function Shell(props: { unreadCount: number | null }) {
         </main>
         <div className={styles.banners} data-keyboard-open={keyboardOpen || undefined}>
           {showingCache ? <Banner icon={<WifiOff />}>{t("app.banner.offline")}</Banner> : null}
-          {rateLimitLow && rateLimit ? (
-            <Banner icon={<Gauge />} tone="warning">
-              {t("app.banner.rateLimit", {
-                time: formatters.relativeTime(rateLimit.resetAt, now),
-              })}
-            </Banner>
-          ) : null}
+          {rateLimitLow && rateLimit ? <RateLimitBanner resetAt={rateLimit.resetAt} /> : null}
         </div>
         <TabBar
           active={state.activeTab}
