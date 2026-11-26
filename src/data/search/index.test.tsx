@@ -412,4 +412,14 @@ describe("recent searches", () => {
     });
     expect(result.current.searches).toEqual([{ scope: "code", query: "mobile" }]);
   });
+
+  it("applies and replaces search sort qualifiers", async () => {
+    const { search } = await setup();
+    expect(search.withSearchSort("mobile", "bestMatch")).toBe("mobile");
+    expect(search.withSearchSort("mobile", "stars")).toBe("mobile sort:stars-desc");
+    expect(search.withSearchSort("mobile sort:updated-desc", "forks")).toBe(
+      "mobile sort:forks-desc",
+    );
+    expect(search.withSearchSort("mobile sort:stars-desc", "bestMatch")).toBe("mobile");
+  });
 });
