@@ -300,6 +300,30 @@ describe("user queries", () => {
     });
   });
 
+  it("passes requested repository and starred sort orders", async () => {
+    const { users, Wrapper } = await setup();
+    const { result } = renderHook(
+      () => ({
+        owned: users.useRepositoriesOf("octo-org", "owned", "stars"),
+        starred: users.useRepositoriesOf("mona", "starred", "oldest"),
+      }),
+      { wrapper: Wrapper },
+    );
+    await waitFor(() => {
+      expect(result.current.owned.isSuccess && result.current.starred.isSuccess).toBe(true);
+    });
+    expect(
+      requests.some((req) =>
+        JSON.stringify(req.variables).includes('"field":"STARGAZERS","direction":"DESC"'),
+      ),
+    ).toBe(true);
+    expect(
+      requests.some((req) =>
+        JSON.stringify(req.variables).includes('"field":"STARRED_AT","direction":"ASC"'),
+      ),
+    ).toBe(true);
+  });
+
   it("loads viewer organizations and pages organization members", async () => {
     const { users, Wrapper } = await setup();
     const { result } = renderHook(
