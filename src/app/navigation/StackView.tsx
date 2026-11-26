@@ -1,4 +1,5 @@
 import {
+  memo,
   Suspense,
   useCallback,
   useLayoutEffect,
@@ -41,7 +42,7 @@ function useScreenRoute(entry: StackEntry) {
   return useMemo(() => matchScreen(router, entry.href), [router, entry.href]);
 }
 
-function Layer(props: {
+const Layer = memo(function Layer(props: {
   entry: StackEntry;
   isRoot: boolean;
   isTop: boolean;
@@ -98,7 +99,7 @@ function Layer(props: {
       ) : null}
     </div>
   );
-}
+});
 
 function isRestorable(element: HTMLElement | undefined): element is HTMLElement {
   return element !== undefined && element.isConnected && element.closest("[inert]") === null;

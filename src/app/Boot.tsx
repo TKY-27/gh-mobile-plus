@@ -26,19 +26,19 @@ export function Boot() {
   }, [preferences.theme]);
 
   return (
-    <Suspense fallback={null}>
-      <I18nProvider language={language}>
-        <AriaI18nProvider locale={language}>
-          <AriaRouterProvider navigate={navigate}>
-            <NavigatorContext value={stackNavigator}>
-              <SessionProvider>
+    <SessionProvider>
+      <Suspense fallback={null}>
+        <I18nProvider language={language}>
+          <AriaI18nProvider locale={language}>
+            <AriaRouterProvider navigate={navigate}>
+              <NavigatorContext value={stackNavigator}>
                 <RouterProvider router={router} />
-              </SessionProvider>
-            </NavigatorContext>
-            <ToastRegion />
-          </AriaRouterProvider>
-        </AriaI18nProvider>
-      </I18nProvider>
-    </Suspense>
+              </NavigatorContext>
+              <ToastRegion />
+            </AriaRouterProvider>
+          </AriaI18nProvider>
+        </I18nProvider>
+      </Suspense>
+    </SessionProvider>
   );
 }

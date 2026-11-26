@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Native sort pickers for repository lists (owned and starred) and search results (repositories, issues/PRs, and users).
 - Profile editing, social account management, profile sharing and browsable follower lists. Profile-write consent is requested on demand.
 - Personal repository creation, configurable forks and general repository settings for administrators.
 - Create a new text file from a branch directory, or compare two branches and open a pull request, including drafts.
@@ -23,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Load and runtime performance: defer heavy lazy chunks (Shiki grammars, CodeMirror editor, licenses, workflow YAML) out of initial service-worker precache with runtime `CacheFirst` caching, parallelize i18n and account boot with snapshot hydration and API preconnect, isolate the rate-limit timer from `Shell` and memoize `StackView` layers, filter the Home activity feed client-side, memoize `InfiniteList` items and callbacks, preload primary tabs on idle, and replace the `motion` spring dependency with an analytical critically damped spring.
 - Home opens to You: contributions first, four actionable Work-count cards and two recent repository cards. Following remains separate with a personal notifications link. Work shortcuts select the matching queue.
 - The leading control on every tab opens a left drawer. Account keeps settings, switching and profile actions at the top.
 - Home shows contributions, recently pushed repositories and following activity. Notifications and settings open from its header. The Repositories tab opens the signed-in account’s list.

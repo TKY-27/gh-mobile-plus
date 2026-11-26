@@ -230,6 +230,32 @@ export function useFollow(): UseMutationResult<
   });
 }
 
+export type RepositorySort = "updated" | "pushed" | "stars" | "name" | "created";
+export type StarredSort = "newest" | "oldest";
+
+const REPO_ORDER: Readonly<
+  Record<
+    RepositorySort,
+    {
+      field: "UPDATED_AT" | "PUSHED_AT" | "STARGAZERS" | "NAME" | "CREATED_AT";
+      direction: "ASC" | "DESC";
+    }
+  >
+> = {
+  updated: { field: "UPDATED_AT", direction: "DESC" },
+  pushed: { field: "PUSHED_AT", direction: "DESC" },
+  stars: { field: "STARGAZERS", direction: "DESC" },
+  name: { field: "NAME", direction: "ASC" },
+  created: { field: "CREATED_AT", direction: "DESC" },
+};
+
+const STAR_ORDER: Readonly<
+  Record<StarredSort, { field: "STARRED_AT"; direction: "ASC" | "DESC" }>
+> = {
+  newest: { field: "STARRED_AT", direction: "DESC" },
+  oldest: { field: "STARRED_AT", direction: "ASC" },
+};
+
 const repositoriesDocument = graphql(
   `
     query RepositoriesOf(
@@ -238,13 +264,15 @@ const repositoriesDocument = graphql(
       $count: Int!
       $owned: Boolean!
       $starred: Boolean!
+      $repoOrder: RepositoryOrder
+      $starOrder: StarOrder
     ) {
       repositoryOwner(login: $login) {
         repositories(
           first: $count
           after: $cursor
           ownerAffiliations: [OWNER]
-          orderBy: { field: UPDATED_AT, direction: DESC }
+          orderBy: $repoOrder
         ) @include(if: $owned) {
           nodes {
             ...RepositorySummaryFields
@@ -255,11 +283,8 @@ const repositoriesDocument = graphql(
           }
         }
         ... on User {
-          starredRepositories(
-            first: $count
-            after: $cursor
-            orderBy: { field: STARRED_AT, direction: DESC }
-          ) @include(if: $starred) {
+          starredRepositories(first: $count, after: $cursor, orderBy: $starOrder)
+            @include(if: $starred) {
             nodes {
               ...RepositorySummaryFields
             }
@@ -278,10 +303,16 @@ const repositoriesDocument = graphql(
 export function useRepositoriesOf(
   login: string,
   kind: "owned" | "starred",
+  sort?: RepositorySort | StarredSort,
 ): UseInfiniteQueryResult<InfiniteData<Page<RepoSummary>>> {
   const account = useActiveAccount();
+  const repoSort: RepositorySort =
+    kind === "owned" && sort && sort in REPO_ORDER ? (sort as RepositorySort) : "updated";
+  const starSort: StarredSort =
+    kind === "starred" && sort && sort in STAR_ORDER ? (sort as StarredSort) : "newest";
+  const activeSort = kind === "owned" ? repoSort : starSort;
   return useInfiniteQuery({
-    queryKey: accountKey(account.id, "users", "repositories", login, kind),
+    queryKey: accountKey(account.id, "users", "repositories", login, kind, activeSort),
     staleTime: STALE_TIME.list,
     meta: PRIVATE_QUERY,
     initialPageParam: null as string | null,
@@ -295,6 +326,8 @@ export function useRepositoriesOf(
           count: PAGE_SIZE,
           owned: kind === "owned",
           starred: kind === "starred",
+          repoOrder: REPO_ORDER[repoSort],
+          starOrder: STAR_ORDER[starSort],
         },
         signal,
       );

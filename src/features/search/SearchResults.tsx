@@ -1,6 +1,14 @@
-import { type ReactNode, useCallback } from "react";
-import { SearchX } from "lucide-react";
-import { useSearch, type SearchResult, type SearchScope } from "@/data/search";
+import { type ReactNode, useCallback, useState } from "react";
+import { ArrowDownWideNarrow, ChevronDown, SearchX } from "lucide-react";
+import {
+  SEARCH_SORTS,
+  useSearch,
+  withSearchSort,
+  type SearchResult,
+  type SearchScope,
+  type SearchSort,
+} from "@/data/search";
+import { useIsOffline } from "@/data/status";
 import { useFormatters, useT } from "@/i18n/index.tsx";
 import { SkeletonRows } from "@/ui/SkeletonRows.tsx";
 import { VirtualList } from "@/ui/VirtualList.tsx";
@@ -10,16 +18,36 @@ import { Spinner } from "@/ui/Spinner.tsx";
 import { estimateResult, resultPath, SearchResultRow } from "./SearchResultRow.tsx";
 import styles from "./SearchScreen.module.css";
 
+const EXPLICIT_SORT_CLAUSE = /(?:^|\s)sort:\S+/i;
+
 export function SearchResults(props: {
   scope: SearchScope;
   query: string;
+  defaultSort?: SearchSort;
   displayQuery?: string;
   offlineFallback?: ReactNode;
 }) {
   const t = useT();
   const formatters = useFormatters();
+  const offline = useIsOffline();
   const savedOnly = Boolean(props.offlineFallback);
-  const search = useSearch(props.scope, props.query, !savedOnly);
+  const sortOptions = SEARCH_SORTS[props.scope];
+  const [selectedSort, setSelectedSort] = useState<SearchSort | null>(null);
+  const fallbackSort: SearchSort =
+    props.defaultSort && sortOptions.includes(props.defaultSort)
+      ? props.defaultSort
+      : (sortOptions[0] ?? "bestMatch");
+  const activeSort: SearchSort =
+    selectedSort && sortOptions.includes(selectedSort) ? selectedSort : fallbackSort;
+  const effectiveQuery =
+    sortOptions.length > 0
+      ? selectedSort && sortOptions.includes(selectedSort)
+        ? withSearchSort(props.query, selectedSort)
+        : props.defaultSort && !EXPLICIT_SORT_CLAUSE.test(props.query)
+          ? withSearchSort(props.query, fallbackSort)
+          : props.query
+      : props.query;
+  const search = useSearch(props.scope, effectiveQuery, !savedOnly);
   // GitHub can repeat results across pages.
   const results = [
     ...new Map(
@@ -52,11 +80,34 @@ export function SearchResults(props: {
   }
   return (
     <div aria-busy={search.isFetching || undefined}>
-      <p className={styles.total} role="status">
-        {savedOnly && hasNextPage
-          ? t("account.repositories.savedOnly")
-          : t("search.total", { count: total, formatted: formatters.number(total) })}
-      </p>
+      <div className={styles.resultsBar}>
+        <p className={styles.total} role="status">
+          {savedOnly && hasNextPage
+            ? t("account.repositories.savedOnly")
+            : t("search.total", { count: total, formatted: formatters.number(total) })}
+        </p>
+        {sortOptions.length > 0 && !savedOnly && !offline ? (
+          <label className={styles.sortSelect}>
+            <ArrowDownWideNarrow aria-hidden />
+            <span aria-hidden>{t(`search.sort.${activeSort}`)}</span>
+            <ChevronDown aria-hidden />
+            <select
+              aria-label={t("search.sort.label")}
+              value={activeSort}
+              onChange={(event) => {
+                const choice = sortOptions.find((option) => option === event.target.value);
+                if (choice) setSelectedSort(choice);
+              }}
+            >
+              {sortOptions.map((option) => (
+                <option key={option} value={option}>
+                  {t(`search.sort.${option}`)}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+      </div>
       <VirtualList
         label={t("search.resultsLabel")}
         items={results}
