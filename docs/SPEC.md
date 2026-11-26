@@ -117,7 +117,7 @@ Feature areas: `home`, `work`, `inbox`, `search`, `account`, `repo`, `code`, `is
 | Server state | TanStack Query, persisted per account to IndexedDB |
 | Accessible primitives | React Aria (headless), all styling custom |
 | Styling | CSS Modules plus CSS custom properties for tokens |
-| Animation | Motion |
+| Animation | CSS transitions and keyframes; an in-house critically damped spring for gesture hand-off (ADR 0019) |
 | Virtualized lists | TanStack Virtual |
 | GraphQL typing | gql.tada against `schema/github.graphql` |
 | Code viewing | Shiki with the JavaScript regex engine, in a Web Worker, languages lazy-loaded |
@@ -255,11 +255,11 @@ type GitHubError =
 
 ### 6.1 Shell
 
-- **Primary navigation** has five destinations in order: **Home, Repositories, Work, Search, Account**. On phones a solid bottom bar shows icons with labels above the safe area. From 56 rem wide, the same destinations appear in a side rail beside a bounded reading column.
+- **Primary navigation** has five destinations in order: **Home, Repositories, Work, Search, Account**. On phones a translucent bottom bar shows icons only above the safe area; the active tab uses a filled or heavier icon, and every tab keeps its accessible name. Tab-root headers are translucent; detail headers turn translucent once content scrolls under them (ADR 0019). From 56 rem wide, the same destinations appear in a side rail beside a bounded reading column.
 - **Independent navigation stack per tab.** Switching tabs preserves each stack and its scroll positions.
-- Re-tapping the active tab scrolls to top if the screen is scrolled; otherwise it pops to the tab root.
-- **Edge-swipe back:** a swipe starting within 20 px of the leading edge pops the stack with an interactive, cancellable transition, at 60 fps on a mid-range device.
-- Every tab root has a compact title bar. Its leading avatar or menu button opens a left navigation drawer with profile, notifications, repositories, stars, settings, account switching and the command palette. A rightward swipe starting within 64 px of the left edge also opens it. In a Safari tab, the first 20 px remain available for native browser history. Detail screens retain the Back button and back gesture. Long detail titles collapse into the navigation bar on scroll.
+- Re-tapping the active tab scrolls to top if the screen is scrolled; otherwise it pops to the tab root. At the Search root it focuses the search field.
+- **Edge-swipe back:** a swipe starting within 20 px of the leading edge pops the stack with an interactive, cancellable transition, at 60 fps on a mid-range device. On Android the system back gesture owns that edge, so the app animates the resulting history pop instead (ADR 0019).
+- Every tab root has a compact title bar. Its leading avatar or menu button opens a left navigation drawer with profile, notifications, repositories, stars, settings, account switching and the command palette. A rightward swipe starting within 64 px of the left edge also opens it. In a Safari tab and on Android, the first 20 px remain available for the platform back gesture. Detail screens retain the Back button and back gesture. Long detail titles collapse into the navigation bar on scroll.
 - Bottom sheets keep a fixed header and scroll their contents independently. The close button, Escape, a backdrop tap or a downward drag on the header dismisses them.
 - The tab bar hides while the software keyboard is open (using the `visualViewport` API).
 - Long-pressing the **Account** tab opens the account switcher sheet. The notification bell on Home shows unread status and announces the count. The adjacent settings button opens Settings.
@@ -489,7 +489,7 @@ upgrade-insecure-requests
 
 ### 7.3 Service worker
 
-- Precaches the built app shell and static assets only.
+- Precaches the built app shell and static assets only. Large on-demand chunks (Shiki grammars, the code editor, licenses, workflow YAML) are cached on first use instead of precached.
 - **Never** caches or intercepts `/auth/*` or any `api.github.com` request.
 - New versions are shown as an "Update available — Reload" toast; activation is never forced while the user is composing.
 
@@ -513,7 +513,7 @@ upgrade-insecure-requests
 - **Typography:** the system font stack (`-apple-system, "SF Pro Text", Roboto, "Noto Sans JP", system-ui, sans-serif`) and a monospace stack (`ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace`). Dynamic Type is respected by sizing type with `rem` and honoring the user's font-size setting.
 - **Color:** light and dark themes from tokens, following the system by default. `--accent` is used for indicators and focus (at least 3:1). Accent-colored text and filled buttons use `--accent-text` and `--accent-fill`, which reach 4.5:1 (ADR 0010). Status colors (success, failure, pending, merged, closed, draft) have a contrast ratio of at least 4.5:1 against their background, and are always paired with an icon or shape.
 - **Spacing:** a 4 px grid. Touch targets are at least 44×44 px. The one exception is the diff line-number gutter, whose buttons are at least 24 px tall so dense rows stay readable; long-pressing the full-width line and the "Select range" sheet are the larger alternatives.
-- **Motion:** standard durations of 120 / 200 / 320 ms. Stack transitions are interruptible and physics-based. All non-essential motion is disabled under `prefers-reduced-motion`.
+- **Motion:** standard durations of 120 / 200 / 320 ms. Stack transitions are interruptible and physics-based. Sheets and the navigation drawer follow the finger and animate out. A touch that moves more than 10 px cancels any pending press, so a swipe never activates the row under it. All non-essential motion is disabled under `prefers-reduced-motion`.
 - **Feedback:** every async action shows pending state within 100 ms. Every optimistic action can be undone from a toast where an undo exists (Done, Mark read, label toggle). GitHub has no API to undo Done or Mark read, so those requests are sent only after the 5-second undo window closes (ADR 0009).
 - **Empty states:** every list has an empty state that says why it is empty and what to do next. Notifications and Work name the empty filter in plain language.
 - **Icons:** one open-source icon set (Lucide), tree-shaken.
@@ -619,3 +619,4 @@ The production URL is `https://gh-mobile-plus.pages.dev`. A push to `main` deplo
 - 2026-11-18: Repositories becomes a primary destination. Home brings together identity, contributions, recently pushed repositories, activity, notifications and settings. Search offers scoped qualifier examples. Wide screens use a navigation rail (ADR 0016).
 - 2026-11-19: Added tab-root navigation drawers, a feed-first Home, profile editing with optional account-bound authorization, follower lists, repository creation, forks, general repository settings, new text files and same-repository pull requests (ADR 0017).
 - 2026-11-22: Home opens with contributions, actionable Work counts and recent repository cards. Following remains separate with an explicit personal notifications link (ADR 0018).
+- 2026-11-26: Icon-only translucent tab bar, pure-black dark theme, translucent headers, Android edge back left to the system, drag-cancelled presses, follow-the-finger sheets and drawer, the Motion dependency replaced by an in-house spring, and on-demand chunks cached on first use (ADR 0019).
