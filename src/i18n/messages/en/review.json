@@ -120,7 +120,7 @@
   "submit.discardOlder": "Discard the older pending review",
   "pending.stale": "Earlier version",
   "submit.staleDrafts": "These comments refer to an earlier version. Keep a copy of the text, then discard each draft and select its lines again.",
-  "submit.backupFailed": "The full pending review could not be saved on this device. Open it on GitHub to finish it.",
+  "submit.backupFailed": "The full pending review couldn’t be saved on this device. Open it on GitHub to finish it.",
   "submit.discardFailed": "The older review couldn’t be discarded.",
   "submit.failed": "The review couldn’t be submitted.",
   "submit.headChanged": "The pull request changed. Check the latest diff before submitting again.",

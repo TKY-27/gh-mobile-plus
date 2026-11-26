@@ -4,17 +4,17 @@ An unofficial, free and open-source GitHub client for your phone, delivered as a
 
 > GH Mobile+ is not affiliated with or endorsed by GitHub, Inc.
 
-## Why
+## Overview
 
 Use GH Mobile+ to review a diff, check notifications or find a repository on your phone. It installs from the browser and keeps session and offline data on your device.
 
 ## Features
 
-- **Home:** You opens with your contribution calendar, work-count shortcuts and two recently pushed repositories. Following keeps activity and releases separate, with a link to your notifications. Tap the top-left avatar or swipe right near the left edge to open the navigation menu.
+- **Home:** the You view shows your contribution calendar, work-count shortcuts and two recently pushed repositories. Following keeps activity and releases separate, with a link to your notifications. Tap the top-left avatar or swipe right near the left edge to open the navigation menu.
 - **Profile:** edit your profile and social links, share it, or open your repositories, followers and following. Settings and account switching are in the header. GitHub asks for profile-write access when you enable editing.
 - **Repository management:** create a personal repository or fork one. Repository administrators can edit descriptions, homepages, feature switches and PR merge settings.
 - **Repositories and search:** open your repositories from the tab bar, or search GitHub by type with qualifiers.
-- **Work:** review requests, your open PRs, assigned issues and failing CI, in one place.
+- **Work:** review requests, your open PRs, assigned issues and pull requests, and failing CI.
 - **Notifications:** open the bell on Home to read threads, mark individual notifications as read, or act on a selection.
 - **Code review:** mark files viewed, step through hunks, comment on lines and ranges, suggest changes, and submit reviews.
 - **Pull requests and issues:** timelines, composer with preview and autocomplete, labels, assignees and merge. Compare existing branches and create a pull request or draft. PR state icons and colors match across lists, search and detail.
@@ -89,7 +89,7 @@ In development builds, `/__diagnostics` runs the spike probes from SPEC §12 wit
 
 ## Architecture
 
-The app is a React single-page app that calls the GitHub REST and GraphQL APIs directly from the browser. A tiny stateless Cloudflare function under `/auth` handles only the OAuth code exchange and token refresh. That function is required because GitHub's token endpoint does not allow browser requests.
+The app is a React single-page app that calls the GitHub REST and GraphQL APIs directly from the browser. A stateless Cloudflare function under `/auth` handles only the OAuth code exchange and token refresh. That function is required because GitHub's token endpoint does not allow browser requests.
 
 Tokens are kept in memory, and refresh tokens are kept in encrypted HttpOnly cookies. There is no database, no analytics and no tracking.
 

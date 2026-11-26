@@ -1,5 +1,5 @@
 {
-  "segment.label": "表示対象",
+  "segment.label": "表示するタスク",
   "segment.reviewRequested": "レビュー依頼",
   "segment.myPrs": "作成した PR",
   "segment.assigned": "担当",
@@ -12,11 +12,12 @@
   "review.reviewRequired": "レビュー待ち",
   "more": "{count} 件のうち、最近更新された {shown} 件を表示しています。",
   "empty.reviewRequested.title": "レビュー依頼はありません",
-  "empty.reviewRequested.message": "依頼されたプルリクエストがここに表示されます。",
-  "empty.myPrs.title": "オープン中のプルリクエストはありません",
+  "empty.reviewRequested.message": "レビューを依頼されたプルリクエストがここに表示されます。",
+  "empty.myPrs.title": "オープンなプルリクエストはありません",
   "empty.myPrs.message": "作成したプルリクエストは、マージまたはクローズされるまでここに表示されます。",
-  "empty.assigned.title": "担当中の Issue と PR はありません",
-  "empty.assigned.message": "担当に設定された Issue とプルリクエストがここに表示されます。",
+  "empty.assigned.title": "担当している Issue と PR はありません",
+  "empty.assigned.message": "担当者に設定された Issue とプルリクエストがここに表示されます。",
   "empty.ciFailing.title": "CI が失敗した PR はありません",
-  "empty.ciFailing.message": "オープン中のプルリクエストで失敗しているチェックはありません。"
+  "empty.ciFailing.message": "オープンなプルリクエストで失敗しているチェックはありません。",
+  "refresh": "タスクを更新"
 }

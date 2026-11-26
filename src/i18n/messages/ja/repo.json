@@ -1,5 +1,5 @@
 {
-  "private": "プライベート",
+  "private": "非公開",
   "forkOf": "フォーク元",
   "stats.stars.one": "スター",
   "stats.stars.other": "スター",
@@ -49,14 +49,14 @@
   "list.state": "状態",
   "list.open": "オープン",
   "list.closed": "クローズ",
-  "list.newIssue": "新しい Issue",
+  "list.newIssue": "新規 Issue",
   "list.comments.one": "コメント {count}件",
   "list.comments.other": "コメント {count}件",
   "list.noOpenIssues": "オープンな Issue はありません",
   "list.noClosedIssues": "クローズされた Issue はありません",
   "list.noOpenPulls": "オープンなプルリクエストはありません",
   "list.noClosedPulls": "クローズされたプルリクエストはありません",
-  "list.noOpenMessage": "ここはすべて片付いています。過去の作業は「クローズ」で見られます。",
+  "list.noOpenMessage": "現在オープンなものはありません。過去の作業は「クローズ」で見られます。",
   "list.noClosedMessage": "まだクローズされたものはありません。進行中のものは「オープン」で見られます。",
   "refs.switchFrom": "ブランチまたはタグ：{ref}。切り替える",
   "admin.title": "リポジトリ設定",
@@ -92,6 +92,6 @@
   "create.submit": "リポジトリを作成",
   "create.open": "{repo} を開く",
   "forking.check": "準備状況を確認",
-  "forking.noOwner": "自分のリポジトリをフォークするには、リポジトリを作成できる組織が必要です。",
-  "forking.uniqueName": "同じ組織にフォークするには、別のリポジトリ名を入力してください。"
+  "forking.noOwner": "自分のリポジトリをフォークするには、リポジトリを作成できる Organization が必要です。",
+  "forking.uniqueName": "同じ Organization にフォークするには、別のリポジトリ名を入力してください。"
 }

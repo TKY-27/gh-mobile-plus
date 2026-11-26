@@ -56,7 +56,7 @@
   "list.noClosedIssues": "No closed issues",
   "list.noOpenPulls": "No open pull requests",
   "list.noClosedPulls": "No closed pull requests",
-  "list.noOpenMessage": "Everything here is wrapped up. Switch to Closed to see past work.",
+  "list.noOpenMessage": "Nothing is open right now. Switch to Closed to see past work.",
   "list.noClosedMessage": "Nothing has been closed yet. Switch to Open to see what’s in progress.",
   "refs.switchFrom": "Branch or tag: {ref}. Switch",
   "admin.title": "Repository settings",
