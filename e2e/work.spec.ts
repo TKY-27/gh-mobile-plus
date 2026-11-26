@@ -21,7 +21,7 @@ test("all four segments load from one GraphQL request", async ({ page, oauth, gi
   );
   await signIn(page, oauth);
   await openInApp(page, "/pulls");
-  const screen = page.locator('[data-stack-screen="/pulls"]');
+  const screen = page.locator('[data-stack-screen^="/pulls"]');
   await expect(screen.getByText("Improve mobile review").first()).toBeVisible();
   for (const segment of SEGMENTS) {
     const button = screen.getByRole("radio", { name: new RegExp(`^${segment.label}`) });

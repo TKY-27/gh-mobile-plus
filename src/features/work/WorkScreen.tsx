@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useRouter } from "@tanstack/react-router";
+import { useScreenSearch } from "@/app/navigation/screen.ts";
+import { workRoute } from "@/app/router.ts";
 import { GitPullRequest } from "lucide-react";
 import { Page } from "@/app/Page.tsx";
 import type { ChecksState, ReviewDecision } from "@/data/types";
@@ -115,7 +117,9 @@ export default function WorkScreen() {
   const t = useT();
   const formatters = useFormatters();
   const queue = useWorkQueue();
-  const [segment, setSegment] = useState<WorkSegment>("reviewRequested");
+  const router = useRouter();
+  const search: Readonly<Record<string, unknown>> = useScreenSearch(workRoute);
+  const segment = SEGMENTS.find((id) => id === search.segment) ?? "reviewRequested";
   const current = queue.data?.[segment];
   const text = SEGMENT_TEXT[segment];
 
@@ -162,7 +166,9 @@ export default function WorkScreen() {
             };
           })}
           selected={segment}
-          onChange={setSegment}
+          onChange={(next) => {
+            router.history.replace(`/pulls?segment=${next}`);
+          }}
         />
       </div>
       <div aria-busy={queue.isFetching || undefined}>{body}</div>

@@ -76,6 +76,7 @@ test("swiping just inside the system edge opens the menu in browser tabs", async
   oauth,
 }) => {
   await signIn(page, oauth);
+  await page.getByRole("radio", { name: "Following", exact: true }).click();
   const avatar = page
     .getByRole("list", { name: "Activity" })
     .getByRole("link", { name: "View mona’s profile" })

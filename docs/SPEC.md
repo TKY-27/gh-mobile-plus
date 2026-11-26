@@ -271,8 +271,8 @@ type GitHubError =
 
 The compact header links the viewer's name to their profile and provides direct notification and settings actions. Two views share the space below it.
 
-1. **Following** opens first. Consecutive received events are grouped by actor and repository. Filters cover releases, stars, pushes, issues and PRs, and follows. A separate option shows recent releases from the 100 most recently starred repositories, limited to 10 releases per repository and a 14-day window. The feed uses infinite scroll to the 300-event limit and notes GitHub's delivery delay.
-2. **Overview** shows the last 52 weeks of contributions, yearly total, month markers and scale. Narrow viewports start at the current week. Up to six recently pushed owned repositories follow. See all opens the Repositories tab at `/repositories`.
+1. **You** opens first. The last 52 weeks of contributions, yearly total, month markers and scale appear above personal work. Narrow viewports start at the current week. Four cards show My PRs, Review requested, Assigned and CI failing from the shared Work queue; each opens its matching Work segment. Pending counts use placeholders, errors offer retry without inventing zero counts, and refresh updates both contributions and work. Two recently pushed owned repositories follow in a two-column grid, stacked on narrow screens. See all opens the Repositories tab at `/repositories`.
+2. **Following** stays separate. Consecutive received events are grouped by actor and repository. Filters cover releases, stars, pushes, issues and PRs, and follows. A separate option shows recent releases from the 100 most recently starred repositories, limited to 10 releases per repository and a 14-day window. The feed uses infinite scroll to the 300-event limit and notes GitHub's delivery delay. A labeled notifications link opens the existing personal Inbox; following activity and personal notifications are not combined.
 
 A downward pull at the top or the refresh button updates the visible view. A horizontal swipe, a cancelled touch and scrolling back up from further down the list do not start a refresh.
 
@@ -318,6 +318,8 @@ Segmented control: **Review requested**, **My PRs**, **Assigned**, **CI failing*
 | My PRs | `is:open is:pr author:@me archived:false` |
 | Assigned | `is:open assignee:@me archived:false` |
 | CI failing | `is:open is:pr author:@me status:failure archived:false` |
+
+Selection uses `/pulls?segment=reviewRequested|myPrs|assigned|ciFailing`; absent or unknown values select Review requested. Home work cards open this root destination, replacing the Work tab's previous detail stack.
 
 - Rows show the repository, number, title, checks rollup (success, failure, pending), review decision, draft state, and updated time.
 - Each segment header shows its count, so the screen reads as a queue that reaches zero.
@@ -616,3 +618,4 @@ The production URL is `https://gh-mobile-plus.pages.dev`. A push to `main` deplo
 - 2026-11-18: GitHub Actions deploys successful `main` builds to the existing Cloudflare Pages project (ADR 0015).
 - 2026-11-18: Repositories becomes a primary destination. Home brings together identity, contributions, recently pushed repositories, activity, notifications and settings. Search offers scoped qualifier examples. Wide screens use a navigation rail (ADR 0016).
 - 2026-11-19: Added tab-root navigation drawers, a feed-first Home, profile editing with optional account-bound authorization, follower lists, repository creation, forks, general repository settings, new text files and same-repository pull requests (ADR 0017).
+- 2026-11-22: Home opens with contributions, actionable Work counts and recent repository cards. Following remains separate with an explicit personal notifications link (ADR 0018).

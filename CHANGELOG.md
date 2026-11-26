@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Load and runtime performance: defer heavy lazy chunks (Shiki grammars, CodeMirror editor, licenses, workflow YAML) out of initial service-worker precache with runtime `CacheFirst` caching, parallelize i18n and account boot with snapshot hydration and API preconnect, isolate the rate-limit timer from `Shell` and memoize `StackView` layers, filter the Home activity feed client-side, memoize `InfiniteList` items and callbacks, preload primary tabs on idle, and replace the `motion` spring dependency with an analytical critically damped spring.
-- The leading control on every tab opens a left drawer. Home opens to Following with a separate Overview. Account keeps settings, switching and profile actions at the top.
+- Home opens to You: contributions first, four actionable Work-count cards and two recent repository cards. Following remains separate with a personal notifications link. Work shortcuts select the matching queue.
+- The leading control on every tab opens a left drawer. Account keeps settings, switching and profile actions at the top.
 - Home shows contributions, recently pushed repositories and following activity. Notifications and settings open from its header. The Repositories tab opens the signed-in account’s list.
 - Repository and profile lists have a bounded reading width. Search suggests qualifiers for each result type. Notification rows expose a one-tap read action.
 
@@ -35,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Work segment labels and counts remain readable on narrow screens.
 - Repeated or cancelled gestures preserve tab stacks, notification actions and review-file navigation. Vertical scrolls and multi-touch cancellation no longer trigger Home refresh.
 - Retrying an interrupted file proposal checks for its existing commit and pull request. A delayed save preserves edits made after dismissing the sheet.
 - Virtualized rows stay visible during deep scrolling and when returning to a list.
