@@ -6,6 +6,14 @@ const SCRIM_OPACITY = 0.14;
 
 export type StackMotion = ReturnType<typeof createStackMotion>;
 
+// WebKit loses offsets while layers are hidden.
+export const savedScrollTops = new WeakMap<HTMLElement, number>();
+
+export function restoreScroll(element: HTMLElement) {
+  const saved = savedScrollTops.get(element) ?? 0;
+  if (element.scrollTop !== saved) element.scrollTop = saved;
+}
+
 /** Avoids React renders to keep 60 fps. */
 export function createStackMotion() {
   const layers = new Map<string, HTMLDivElement>();
@@ -16,8 +24,10 @@ export function createStackMotion() {
 
   const width = () => container?.clientWidth ?? window.innerWidth;
 
-  function paint(moving: HTMLElement, under: HTMLElement | undefined, x: number, span: number) {
-    const fraction = Math.min(1, Math.max(0, x / span));
+  function paint(moving: HTMLElement, under: HTMLElement | undefined, raw: number, span: number) {
+    // Springs overshoot; never expose the edge.
+    const x = Math.min(span, Math.max(0, raw));
+    const fraction = x / span;
     position = x;
     moving.style.transform = `translate3d(${String(x)}px, 0, 0)`;
     if (under) {
@@ -30,6 +40,7 @@ export function createStackMotion() {
     if (!element) return;
     element.style.visibility = "visible";
     element.style.contentVisibility = "visible";
+    restoreScroll(element);
   }
 
   function settle(...elements: (HTMLElement | undefined)[]) {
@@ -37,6 +48,7 @@ export function createStackMotion() {
       element?.style.removeProperty("transform");
       element?.style.removeProperty("visibility");
       element?.style.removeProperty("content-visibility");
+      element?.style.removeProperty("pointer-events");
     }
     if (scrim) scrim.style.opacity = "0";
     position = 0;
@@ -55,11 +67,12 @@ export function createStackMotion() {
     onDone: () => void,
   ) {
     stop();
+    const span = width();
     if (prefersReducedMotion()) {
+      paint(moving, under, target, span);
       onDone();
       return;
     }
-    const span = width();
     animation = runSpring(
       position,
       target,

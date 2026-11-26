@@ -1,4 +1,4 @@
-import { useRef, type Touch } from "react";
+import { useCallback } from "react";
 import { Dialog } from "react-aria-components/Dialog";
 import { Modal, ModalOverlay } from "react-aria-components/Modal";
 import {
@@ -22,15 +22,89 @@ import { useShell } from "./shell-context.ts";
 import styles from "./NavigationMenu.module.css";
 
 const CLOSE_SWIPE_PX = 64;
+const FLICK_PX_PER_MS = 0.5;
+const SLOP_PX = 10;
+// A held finger reports no moves.
+const VELOCITY_WINDOW_MS = 100;
 
-export default function NavigationMenu(props: { onOpenChange: (open: boolean) => void }) {
+// Native listeners: iOS needs a non-passive touchmove.
+function trackCloseSwipe(panel: HTMLElement, close: () => void): () => void {
+  let start: { id: number; x: number; y: number } | null = null;
+  let last = { x: 0, time: 0, velocity: 0 };
+  let engaged = false;
+  const reset = () => {
+    start = null;
+    engaged = false;
+    delete panel.dataset.dragging;
+    panel.style.removeProperty("transform");
+  };
+  const onStart = (event: TouchEvent) => {
+    const touch = event.touches.length === 1 ? event.touches[0] : undefined;
+    reset();
+    if (!touch) return;
+    start = { id: touch.identifier, x: touch.clientX, y: touch.clientY };
+    last = { x: touch.clientX, time: event.timeStamp, velocity: 0 };
+  };
+  const onMove = (event: TouchEvent) => {
+    const touch = [...event.touches].find((candidate) => candidate.identifier === start?.id);
+    if (!start || !touch) return;
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    if (!engaged) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) <= SLOP_PX) return;
+      if (dx >= 0 || Math.abs(dy) >= Math.abs(dx)) {
+        start = null;
+        return;
+      }
+      engaged = true;
+      panel.dataset.dragging = "";
+    }
+    if (event.cancelable) event.preventDefault();
+    const elapsed = event.timeStamp - last.time;
+    if (elapsed > 0) last.velocity = (touch.clientX - last.x) / elapsed;
+    last = { ...last, x: touch.clientX, time: event.timeStamp };
+    panel.style.transform = `translate3d(${String(Math.min(0, dx))}px, 0, 0)`;
+  };
+  const onEnd = (event: TouchEvent) => {
+    const touch = [...event.changedTouches].find((candidate) => candidate.identifier === start?.id);
+    const distance = start && touch ? start.x - touch.clientX : 0;
+    const fresh = event.timeStamp - last.time <= VELOCITY_WINDOW_MS;
+    const flick = fresh && -last.velocity >= FLICK_PX_PER_MS;
+    const shouldClose = engaged && (distance >= CLOSE_SWIPE_PX || flick);
+    if (shouldClose) {
+      start = null;
+      engaged = false;
+      delete panel.dataset.dragging;
+      close();
+    } else reset();
+  };
+  panel.addEventListener("touchstart", onStart, { passive: true });
+  panel.addEventListener("touchmove", onMove, { passive: false });
+  panel.addEventListener("touchend", onEnd, { passive: true });
+  panel.addEventListener("touchcancel", reset, { passive: true });
+  return () => {
+    panel.removeEventListener("touchstart", onStart);
+    panel.removeEventListener("touchmove", onMove);
+    panel.removeEventListener("touchend", onEnd);
+    panel.removeEventListener("touchcancel", reset);
+  };
+}
+
+export default function NavigationMenu(props: {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const account = useActiveAccount();
-  const touchStart = useRef<Touch | null>(null);
   const t = useT();
   const shell = useShell();
-  const close = () => {
-    props.onOpenChange(false);
-  };
+  const { onOpenChange } = props;
+  const close = useCallback(() => {
+    onOpenChange(false);
+  }, [onOpenChange]);
+  const attachPanel = useCallback(
+    (panel: HTMLDivElement | null) => (panel ? trackCloseSwipe(panel, close) : undefined),
+    [close],
+  );
   const links = [
     [`/${account.login}`, "app.menu.profile", UserRound],
     ["/notifications", "app.tabs.inbox", Bell],
@@ -44,33 +118,14 @@ export default function NavigationMenu(props: { onOpenChange: (open: boolean) =>
   }
   return (
     <ModalOverlay
-      isOpen
+      isOpen={props.isOpen}
       isDismissable
       className={moduleClass(styles.overlay)}
       onOpenChange={props.onOpenChange}
     >
-      <Modal className={moduleClass(styles.modal)}>
+      <Modal ref={attachPanel} className={moduleClass(styles.modal)}>
         <Dialog className={moduleClass(styles.panel)} aria-label={t("app.menu.title")}>
-          <div
-            onTouchStart={(event) => {
-              touchStart.current = event.touches.length === 1 ? event.touches.item(0) : null;
-            }}
-            onTouchCancel={() => {
-              touchStart.current = null;
-            }}
-            onTouchEnd={(event) => {
-              const start = touchStart.current;
-              touchStart.current = null;
-              const end = event.changedTouches[0];
-              if (!start || !end || start.identifier !== end.identifier) return;
-              const distance = start.clientX - end.clientX;
-              if (
-                distance >= CLOSE_SWIPE_PX &&
-                distance > Math.abs(end.clientY - start.clientY) * 2
-              )
-                close();
-            }}
-          >
+          <div>
             <div className={styles.identity}>
               <Link
                 href={`/${account.login}`}

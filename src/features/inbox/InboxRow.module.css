@@ -108,6 +108,8 @@
 
 .row:not([data-dragging]) .open:active {
   background: var(--color-fill-pressed);
+  /* Delay so scroll starts never flash. */
+  transition-delay: 60ms;
 }
 
 .open:focus-visible {

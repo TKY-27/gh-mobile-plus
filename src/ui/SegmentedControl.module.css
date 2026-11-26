@@ -95,10 +95,15 @@
   color: var(--color-text);
 }
 
-.group[data-appearance="underline"] .segment[data-selected]::before {
+/* Fixed shape avoids a flash on deselect. */
+.group[data-appearance="underline"] .segment::before {
   inset: auto auto 0;
   width: 2.5rem;
   height: 3px;
-  background: var(--accent);
+  border-radius: var(--radius-full);
   box-shadow: none;
+}
+
+.group[data-appearance="underline"] .segment[data-selected]::before {
+  background: var(--accent);
 }

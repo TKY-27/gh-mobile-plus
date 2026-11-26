@@ -24,6 +24,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Instagram- and X-style chrome: an icon-only translucent tab bar with filled active icons, translucent headers, a pure-black dark theme, and a floating pull-to-refresh indicator that no longer shifts the list. Work gains pull-to-refresh and a refresh button. Re-tapping Search focuses the search field.
+- Sheets dismiss with a downward flick and animate in and out. The navigation drawer follows the finger when swiped closed, animates out, and opens as soon as an edge swipe passes its threshold.
+- On Android the system back gesture owns the leading edge; the app animates the resulting pop.
+- English and Japanese copy reviewed: one term per concept, no filler, and Japanese that says what the English says.
+- Inbox: every pending Undo stays visible and names its thread, a removed row collapses smoothly, and Mark read is an icon button.
 - Load and runtime performance: defer heavy lazy chunks (Shiki grammars, CodeMirror editor, licenses, workflow YAML) out of initial service-worker precache with runtime `CacheFirst` caching, parallelize i18n and account boot with snapshot hydration and API preconnect, isolate the rate-limit timer from `Shell` and memoize `StackView` layers, filter the Home activity feed client-side, memoize `InfiniteList` items and callbacks, preload primary tabs on idle, and replace the `motion` spring dependency with an analytical critically damped spring.
 - Home opens to You: contributions first, four actionable Work-count cards and two recent repository cards. Following remains separate with a personal notifications link. Work shortcuts select the matching queue.
 - The leading control on every tab opens a left drawer. Account keeps settings, switching and profile actions at the top.
@@ -36,6 +41,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- A sideways swipe over a row or menu item no longer opens it. A touch that moves more than 10 px cancels the press.
+- iOS no longer cancels a back swipe or row swipe when the finger drifts downward.
+- A completed back swipe no longer flashes an empty screen. Going back during a push continues from the current position. The revealed screen accepts taps immediately, and a double Back pops only once.
+- Swipe-back over code blocks and other horizontal scrollers works when they are scrolled to the start. The previous screen keeps its scroll position while it is revealed.
+- Stack springs settle as soon as the motion looks finished and never overshoot past the screen edge.
+- Sheets follow the iOS visual viewport, so the keyboard no longer covers them. Pinch zoom no longer counts as an open keyboard.
+- The underline tab control no longer flashes a block on the tab being deselected. Row highlights no longer flash when a scroll starts, and hover styles no longer stick after a tap.
 - Work segment labels and counts remain readable on narrow screens.
 - Repeated or cancelled gestures preserve tab stacks, notification actions and review-file navigation. Vertical scrolls and multi-touch cancellation no longer trigger Home refresh.
 - Retrying an interrupted file proposal checks for its existing commit and pull request. A delayed save preserves edits made after dismissing the sheet.

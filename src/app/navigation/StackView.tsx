@@ -9,15 +9,21 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { useRouter } from "@tanstack/react-router";
+import { holdScrollWhile } from "@/ui/hold-scroll.ts";
 import { NotFoundScreen } from "../NotFoundScreen.tsx";
 import { ScreenBoundary } from "../ScreenBoundary.tsx";
 import { EDGE_BACK_WIDTH_PX } from "../platform.ts";
 import { useNavigator } from "./context.ts";
 import type { StackEntry } from "./navigator.ts";
-import { ScreenContext, type ScreenValue } from "./screen.ts";
+import { ScreenContext, ScreenTopContext, type ScreenValue } from "./screen.ts";
 import { matchScreen, ROOT_ROUTE_ID } from "./screen-route.ts";
 import { ScreenSkeleton } from "./ScreenSkeleton.tsx";
-import { createStackMotion, type StackMotion } from "./stack-motion.ts";
+import {
+  createStackMotion,
+  restoreScroll,
+  savedScrollTops,
+  type StackMotion,
+} from "./stack-motion.ts";
 import styles from "./StackView.module.css";
 
 const SLOP_PX = 10;
@@ -52,7 +58,6 @@ const Layer = memo(function Layer(props: {
 }) {
   const scroller = useRef<HTMLDivElement | null>(null);
   const [mounted, setMounted] = useState(false);
-  const savedScroll = useRef(0);
   const { entry, isRoot, isTop, register } = props;
 
   const attach = useCallback(
@@ -64,18 +69,14 @@ const Layer = memo(function Layer(props: {
     [entry.key, register],
   );
 
-  // WebKit can lose offsets when hidden.
   useLayoutEffect(() => {
-    const element = scroller.current;
-    if (isTop && element && element.scrollTop !== savedScroll.current) {
-      element.scrollTop = savedScroll.current;
-    }
+    if (isTop && scroller.current) restoreScroll(scroller.current);
   }, [isTop]);
 
   const route = useScreenRoute(entry);
   const screen = useMemo<ScreenValue>(
-    () => ({ href: entry.href, isRoot, isTop, match: route.match, scroller }),
-    [entry.href, isRoot, isTop, route.match],
+    () => ({ href: entry.href, isRoot, match: route.match, scroller }),
+    [entry.href, isRoot, route.match],
   );
   const Screen = route.match.routeId === ROOT_ROUTE_ID ? NotFoundScreen : route.component;
   return (
@@ -87,14 +88,16 @@ const Layer = memo(function Layer(props: {
       inert={!isTop}
       style={{ zIndex: props.zIndex }}
       onScroll={(event) => {
-        if (isTop) savedScroll.current = event.currentTarget.scrollTop;
+        if (isTop) savedScrollTops.set(event.currentTarget, event.currentTarget.scrollTop);
       }}
     >
       {mounted ? (
         <ScreenContext value={screen}>
-          <ScreenBoundary key={route.match.routeId}>
-            <Suspense fallback={<ScreenSkeleton />}>{Screen ? <Screen /> : null}</Suspense>
-          </ScreenBoundary>
+          <ScreenTopContext value={isTop}>
+            <ScreenBoundary key={route.match.routeId}>
+              <Suspense fallback={<ScreenSkeleton />}>{Screen ? <Screen /> : null}</Suspense>
+            </ScreenBoundary>
+          </ScreenTopContext>
         </ScreenContext>
       ) : null}
     </div>
@@ -113,11 +116,13 @@ function focusScreen(
 ): (() => void) | undefined {
   const origin = origins.get(key);
   origins.delete(key);
+  const layer = motion.layers.get(key);
+  // A tap during the pop already moved focus.
+  if (layer?.contains(document.activeElement)) return;
   if (isRestorable(origin)) {
     origin.focus({ preventScroll: true });
     return;
   }
-  const layer = motion.layers.get(key);
   if (!layer) return;
   const focusTitle = () => {
     const title = layer.querySelector<HTMLElement>("h1");
@@ -148,6 +153,8 @@ export function StackView(props: {
   const previousTop = useRef<string | null>(null);
   const focusOrigins = useRef(new Map<string, HTMLElement>());
   const focusTarget = useRef<string | null>(null);
+  // Cleanup settles layers before the leave effect.
+  const interruptedAt = useRef<number | null>(null);
   const { entries, leaving, active, register: registerScroller } = props;
   const top = entries.at(-1);
   const below = entries.at(-2);
@@ -164,6 +171,7 @@ export function StackView(props: {
   useLayoutEffect(() => {
     return () => {
       drag.current = null;
+      interruptedAt.current = motion.position();
       motion.stop();
       motion.settle(...motion.layers.values());
     };
@@ -184,6 +192,7 @@ export function StackView(props: {
       const under = motion.layers.get(previous);
       motion.reveal(under);
       const width = motion.width();
+      topLayer.style.pointerEvents = "none";
       motion.paint(topLayer, under, width, width);
       motion.animateTo(topLayer, under, 0, 0, () => {
         motion.settle(topLayer, under);
@@ -213,9 +222,22 @@ export function StackView(props: {
     }
     motion.reveal(under);
     const width = motion.width();
-    motion.paint(leavingLayer, under, motion.position(), width);
+    motion.paint(leavingLayer, under, interruptedAt.current ?? motion.position(), width);
+    interruptedAt.current = null;
     motion.animateTo(leavingLayer, under, width, 0, finish);
   }, [leaving, top, active, navigator, motion]);
+
+  const attachContainer = useCallback(
+    (element: HTMLDivElement) => {
+      motion.setContainer(element);
+      const releaseScroll = holdScrollWhile(element, () => drag.current?.engaged === true);
+      return () => {
+        releaseScroll();
+        motion.setContainer(null);
+      };
+    },
+    [motion],
+  );
 
   function onPointerDown(event: ReactPointerEvent<HTMLDivElement>) {
     if (!active || leaving || !top) return;
@@ -232,6 +254,7 @@ export function StackView(props: {
       node = node.parentElement
     ) {
       if (
+        node.scrollLeft > 0 &&
         node.scrollWidth > node.clientWidth &&
         /^(auto|scroll)$/.test(getComputedStyle(node).overflowX)
       )
@@ -267,7 +290,12 @@ export function StackView(props: {
         motion.reveal(motion.layers.get(below.key));
       }
     }
-    if (!below) return;
+    if (!below) {
+      if (dx < MENU_SWIPE_PX) return;
+      drag.current = null;
+      props.onOpenMenu?.();
+      return;
+    }
     current.samples = [...current.samples, { x: event.clientX, time: event.timeStamp }].filter(
       (sample) => event.timeStamp - sample.time <= VELOCITY_WINDOW_MS,
     );
@@ -282,16 +310,14 @@ export function StackView(props: {
     if (current?.pointerId !== event.pointerId) return;
     drag.current = null;
     if (!current.engaged || !top) return;
-    if (!below) {
-      if (!cancelled && event.clientX - current.startX >= MENU_SWIPE_PX) props.onOpenMenu?.();
-      return;
-    }
+    if (!below) return;
     const topLayer = motion.layers.get(top.key);
     const under = motion.layers.get(below.key);
     if (!topLayer) return;
     const first = current.samples[0];
     const elapsed = first ? event.timeStamp - first.time : 0;
-    const measured = first && elapsed > 0 ? (event.clientX - first.x) / elapsed : 0;
+    // pointercancel coordinates are unreliable across engines.
+    const measured = !cancelled && first && elapsed > 0 ? (event.clientX - first.x) / elapsed : 0;
     const velocity = Math.max(-MAX_VELOCITY_PX_PER_MS, Math.min(MAX_VELOCITY_PX_PER_MS, measured));
     const projected = motion.position() + velocity * PROJECTION_MS;
     const complete = !cancelled && projected > current.width / 2;
@@ -300,7 +326,7 @@ export function StackView(props: {
         motion.settle(topLayer, under);
         return;
       }
-      motion.settle(under);
+      // Settling here paints a blank frame.
       navigator.back({ animated: false });
     });
   }
@@ -308,9 +334,7 @@ export function StackView(props: {
   const rendered = leaving ? [...entries, leaving] : entries;
   return (
     <div
-      ref={(element) => {
-        motion.setContainer(element);
-      }}
+      ref={attachContainer}
       className={styles.stack}
       data-active={active || undefined}
       inert={!active}
@@ -333,7 +357,7 @@ export function StackView(props: {
             key={entry.key}
             entry={entry}
             isRoot={index === 0}
-            isTop={isTop && !leaving && active}
+            isTop={isTop && active}
             hidden={!isTop && entry.key !== leaving?.key}
             zIndex={index * 2}
             register={register}

@@ -1,13 +1,16 @@
+import { useCallback } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { useScreenSearch } from "@/app/navigation/screen.ts";
 import { workRoute } from "@/app/router.ts";
-import { GitPullRequest } from "lucide-react";
+import { GitPullRequest, RotateCw } from "lucide-react";
 import { Page } from "@/app/Page.tsx";
 import type { ChecksState, ReviewDecision } from "@/data/types";
 import { useWorkQueue, type WorkItem, type WorkSegment } from "@/data/work";
 import { SkeletonRows } from "@/ui/SkeletonRows.tsx";
 import { useFormatters, useT, type MessageKey } from "@/i18n/index.tsx";
+import { IconButton } from "@/ui/Button.tsx";
 import { EmptyState } from "@/ui/EmptyState.tsx";
+import { PullToRefresh, useRefreshAction } from "@/ui/PullToRefresh.tsx";
 import { ErrorState } from "@/ui/ErrorState.tsx";
 import { ListRow, ListSection } from "@/ui/ListRow.tsx";
 import { RelativeTime } from "@/ui/RelativeTime.tsx";
@@ -122,6 +125,8 @@ export default function WorkScreen() {
   const segment = SEGMENTS.find((id) => id === search.segment) ?? "reviewRequested";
   const current = queue.data?.[segment];
   const text = SEGMENT_TEXT[segment];
+  const { refetch } = queue;
+  const { refreshing, refresh } = useRefreshAction(useCallback(() => refetch(), [refetch]));
 
   let body;
   if (queue.isPending) body = <SkeletonRows rows={SKELETON_ROWS} />;
@@ -153,25 +158,35 @@ export default function WorkScreen() {
   }
 
   return (
-    <Page title={t("app.tabs.work")} largeTitle>
-      <div className={styles.segments}>
-        <SegmentedControl
-          label={t("work.segment.label")}
-          segments={SEGMENTS.map((id) => {
-            const count = queue.data?.[id].count;
-            return {
-              id,
-              label: t(SEGMENT_TEXT[id].label),
-              ...(count === undefined ? {} : { count: formatters.compactNumber(count) }),
-            };
-          })}
-          selected={segment}
-          onChange={(next) => {
-            router.history.replace(`/pulls?segment=${next}`);
-          }}
-        />
-      </div>
-      <div aria-busy={queue.isFetching || undefined}>{body}</div>
+    <Page
+      title={t("app.tabs.work")}
+      largeTitle
+      actions={
+        <IconButton label={t("work.refresh")} onPress={refresh} isPending={refreshing}>
+          <RotateCw aria-hidden />
+        </IconButton>
+      }
+    >
+      <PullToRefresh refreshing={refreshing} onRefresh={refresh}>
+        <div className={styles.segments}>
+          <SegmentedControl
+            label={t("work.segment.label")}
+            segments={SEGMENTS.map((id) => {
+              const count = queue.data?.[id].count;
+              return {
+                id,
+                label: t(SEGMENT_TEXT[id].label),
+                ...(count === undefined ? {} : { count: formatters.compactNumber(count) }),
+              };
+            })}
+            selected={segment}
+            onChange={(next) => {
+              router.history.replace(`/pulls?segment=${next}`);
+            }}
+          />
+        </div>
+        <div aria-busy={queue.isFetching || undefined}>{body}</div>
+      </PullToRefresh>
     </Page>
   );
 }

@@ -1,13 +1,25 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowDown } from "lucide-react";
-import { useScreen } from "@/app/navigation/screen.ts";
+import { useIsTopScreen, useScreen } from "@/app/navigation/screen.ts";
 import { useT } from "@/i18n/index.tsx";
-import { Spinner } from "@/ui/Spinner.tsx";
+import { Spinner } from "./Spinner.tsx";
 import styles from "./PullToRefresh.module.css";
 
 const TRIGGER_PX = 72;
 const SLOP_PX = 8;
 const RESISTANCE = 0.5;
+const MAX_PULL_PX = TRIGGER_PX * 1.5;
+
+export function useRefreshAction(run: () => Promise<unknown>) {
+  const [refreshing, setRefreshing] = useState(false);
+  const refresh = useCallback(() => {
+    setRefreshing(true);
+    void run().finally(() => {
+      setRefreshing(false);
+    });
+  }, [run]);
+  return { refreshing, refresh };
+}
 
 /** Touch-only; pair with a Refresh action. */
 export function PullToRefresh(props: {
@@ -16,7 +28,8 @@ export function PullToRefresh(props: {
   children: ReactNode;
 }) {
   const t = useT();
-  const { scroller, isTop } = useScreen();
+  const { scroller } = useScreen();
+  const isTop = useIsTopScreen();
   const indicator = useRef<HTMLDivElement | null>(null);
   const { refreshing, onRefresh } = props;
 
@@ -30,7 +43,9 @@ export function PullToRefresh(props: {
 
     const paint = (pull: number) => {
       const progress = Math.min(1, pull / TRIGGER_PX);
-      element.style.setProperty("--pull", String(pull * RESISTANCE));
+      // iOS rubber-banding already moves the content.
+      const travel = root.scrollTop < 0 ? 0 : Math.min(pull, MAX_PULL_PX) * RESISTANCE;
+      element.style.setProperty("--pull", String(travel));
       element.style.setProperty("--progress", String(progress));
       element.toggleAttribute("data-armed", progress >= 1);
       element.toggleAttribute("data-pulling", pull > 0);
@@ -85,13 +100,13 @@ export function PullToRefresh(props: {
   return (
     <>
       <div ref={indicator} className={styles.indicator} data-refreshing={refreshing || undefined}>
-        {refreshing ? (
-          <Spinner size="small" label={t("home.refreshing")} />
-        ) : (
-          <span className={styles.arrow} aria-hidden>
-            <ArrowDown />
-          </span>
-        )}
+        <span className={styles.bubble}>
+          {refreshing ? (
+            <Spinner size="small" label={t("common.refreshing")} />
+          ) : (
+            <ArrowDown aria-hidden />
+          )}
+        </span>
       </div>
       {props.children}
     </>

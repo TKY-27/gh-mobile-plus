@@ -95,6 +95,8 @@ export function CodeView(props: {
   };
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    // No click follows a mobile long press.
+    suppressClick.current = false;
     const line = lineAt(event.target);
     if (line === null || !event.isPrimary) return;
     cancelPress();

@@ -34,6 +34,8 @@ body {
   font-size: var(--text-body);
   line-height: var(--leading-body);
   overscroll-behavior: none;
+  /* Rapid re-taps must not double-tap zoom. */
+  touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
 }
 

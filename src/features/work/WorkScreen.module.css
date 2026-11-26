@@ -1,5 +1,5 @@
 .segments {
-  padding: 0 var(--space-4) var(--space-1);
+  padding: var(--space-2) var(--space-4) var(--space-1);
 }
 
 /* Four counted labels overflow phone widths. */

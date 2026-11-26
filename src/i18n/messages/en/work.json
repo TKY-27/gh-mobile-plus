@@ -18,5 +18,6 @@
   "empty.assigned.title": "Nothing assigned",
   "empty.assigned.message": "Issues and pull requests assigned to you appear here.",
   "empty.ciFailing.title": "No failing checks",
-  "empty.ciFailing.message": "None of your open pull requests has failing checks."
+  "empty.ciFailing.message": "None of your open pull requests has failing checks.",
+  "refresh": "Refresh work queue"
 }

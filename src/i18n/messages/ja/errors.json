@@ -1,13 +1,13 @@
 {
   "unexpected.title": "問題が発生しました",
   "unexpected.message": "予期しないエラーが発生しました。詳細をコピーして報告してください。",
-  "authExpired.title": "セッションの有効期限が切れました — 再度サインインしてください",
-  "authExpired.message": "GitHubによってこのセッションが終了されました。続けるには再度サインインしてください。",
+  "authExpired.title": "セッションの有効期限が切れました。もう一度サインインしてください",
+  "authExpired.message": "GitHub がこのセッションを終了しました。続けるにはもう一度サインインしてください。",
   "authExpired.action": "再度サインイン",
   "orgAccessRestricted.title": "{org} はサードパーティアプリを制限しています",
-  "orgAccessRestricted.message": "この組織のコンテンツを表示するには、組織による GH Mobile+ の承認、またはシングルサインオンの承認が必要です。",
+  "orgAccessRestricted.message": "この Organization のコンテンツを表示するには、Organization による GH Mobile+ の承認か、シングルサインオンの承認が必要です。",
   "orgAccessRestricted.sso": "シングルサインオンを承認",
-  "orgAccessRestricted.request": "組織に承認をリクエスト",
+  "orgAccessRestricted.request": "Organization に承認をリクエスト",
   "rateLimited.title": "GitHubのレート制限に達しました",
   "rateLimited.message": "制限がリセットされる{time}までリクエストを停止します。",
   "rateLimited.secondary": "GitHubからリクエストを控えるよう求められました。{time}にもう一度お試しください。",
@@ -20,7 +20,7 @@
   "network.message": "接続を確認して、もう一度お試しください。",
   "server.title": "GitHubで問題が発生しています",
   "server.message": "GitHubがエラーを返しました（{status}）。しばらくしてからもう一度お試しください。",
-  "forbidden.message": "このアカウントではここでこの操作を行えません。問題がある場合は詳細をコピーしてください。",
+  "forbidden.message": "このアカウントでは、ここでこの操作はできません。問題がある場合は詳細をコピーしてください。",
   "conflict.message": "作業中にGitHub上で変更されました。再読み込みして最新の内容を確認してください。",
   "validation.message": "GitHubで一部の値が受け付けられませんでした。内容を確認して、もう一度お試しください。"
 }

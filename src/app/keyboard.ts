@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 const KEYBOARD_MIN_HEIGHT_PX = 120;
+const ZOOMED_SCALE = 1.01;
 
 function isEditable(element: Element | null): boolean {
   return (
@@ -22,13 +23,24 @@ export function useSoftKeyboardOpen(): boolean {
         baseline = { width: window.innerWidth, height: window.innerHeight };
       }
       baseline.height = Math.max(baseline.height, window.innerHeight);
-      const overlap = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
-      document.documentElement.style.setProperty("--keyboard-inset", `${String(overlap)}px`);
-      setOpen(
-        isEditable(document.activeElement) &&
-          baseline.height - viewport.height > KEYBOARD_MIN_HEIGHT_PX,
-      );
+      const root = document.documentElement.style;
+      // Pinch zoom also shrinks the viewport.
+      const zoomed = viewport.scale > ZOOMED_SCALE;
+      const editing = isEditable(document.activeElement) && !zoomed;
+      const overlap = editing
+        ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+        : 0;
+      root.setProperty("--keyboard-inset", `${String(overlap)}px`);
+      if (zoomed) {
+        root.removeProperty("--visual-viewport-height");
+        root.removeProperty("--visual-viewport-top");
+      } else {
+        root.setProperty("--visual-viewport-height", `${String(viewport.height)}px`);
+        root.setProperty("--visual-viewport-top", `${String(viewport.offsetTop)}px`);
+      }
+      setOpen(editing && baseline.height - viewport.height > KEYBOARD_MIN_HEIGHT_PX);
     };
+    update();
     viewport.addEventListener("resize", update);
     viewport.addEventListener("scroll", update);
     document.addEventListener("focusin", update);

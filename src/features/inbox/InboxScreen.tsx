@@ -118,10 +118,10 @@ export default function InboxScreen() {
       )
     : [];
   const selectedIds = new Set(selectedThreads.map((thread) => thread.id));
-  const { hasNextPage, isFetchingNextPage, fetchNextPage } = inbox;
+  const { hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage } = inbox;
   const loadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) void fetchNextPage();
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+    if (hasNextPage && !isFetchingNextPage && !isFetchNextPageError) void fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, isFetchNextPageError, fetchNextPage]);
 
   const reasonOf = (error: unknown) => describeError(t, formatters, error, now).title;
 
@@ -135,7 +135,8 @@ export default function InboxScreen() {
       },
     });
     if (undoable) {
-      undoToast = showToast(t(action === "done" ? "inbox.toast.done" : "inbox.toast.read"), {
+      const message = action === "done" ? "inbox.toast.done" : "inbox.toast.read";
+      undoToast = showToast(t(message, { title: thread.title }), {
         timeoutMs: "request",
         action: {
           label: t("common.undo"),

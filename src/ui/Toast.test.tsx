@@ -155,7 +155,7 @@ test("a later toast waits until the Undo request starts", async () => {
   expect(screen.getByText("Update available")).toBeTruthy();
 });
 
-test("overlapping request deadlines keep the first Undo reachable", async () => {
+test("overlapping request deadlines keep every Undo reachable", async () => {
   await renderRegion();
   const undoFirst = vi.fn();
   const undoSecond = vi.fn();
@@ -167,12 +167,13 @@ test("overlapping request deadlines keep the first Undo reachable", async () => 
     timeoutMs: "request",
     action: { label: "Undo", onAction: undoSecond },
   });
-  expect(screen.getByText("First action")).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Undo" }));
-  expect(undoFirst).toHaveBeenCalledOnce();
-  expect(screen.getByText("Second action")).toBeTruthy();
-  fireEvent.click(screen.getByRole("button", { name: "Undo" }));
+  expect(screen.getByRole("status").textContent).toMatch(/First action.*Second action/);
+  fireEvent.click(screen.getByRole("button", { name: "Undo", description: "Second action" }));
   expect(undoSecond).toHaveBeenCalledOnce();
+  expect(undoFirst).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Undo", description: "First action" }));
+  expect(undoFirst).toHaveBeenCalledOnce();
+  expect(screen.queryByRole("button", { name: "Undo" })).toBeNull();
 });
 
 test("a timed toast spends only its remaining time after another toast covers it", async () => {

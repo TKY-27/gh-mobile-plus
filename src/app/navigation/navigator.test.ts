@@ -45,6 +45,26 @@ describe("navigator", () => {
     expect(navigator.getState().leaving).toBeNull();
   });
 
+  test("a second back before the browser pops is ignored", async () => {
+    const history = createMemoryHistory({ initialEntries: ["/"] });
+    const go = history.go.bind(history);
+    history.go = (delta) => {
+      queueMicrotask(() => {
+        go(delta);
+      });
+    };
+    const navigator = createNavigator(history, { animatePopsFromHistory: true });
+    history.push("/octo");
+    history.push("/octo/repo");
+    navigator.back({ animated: true });
+    navigator.back({ animated: true });
+    await Promise.resolve();
+    expect(history.location.pathname).toBe("/octo");
+    navigator.back({ animated: true });
+    await Promise.resolve();
+    expect(history.location.pathname).toBe("/");
+  });
+
   test("back at another tab's root returns to Home", () => {
     const { history, navigator } = start("/");
     history.push("/octo");

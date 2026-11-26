@@ -1,6 +1,6 @@
 {
   "location.line": "{line} 行目",
-  "location.range": "{start}–{end} 行目",
+  "location.range": "{start}〜{end} 行目",
   "files.label": "変更されたファイル",
   "files.progress": "{viewed} / {total} 確認済み",
   "files.viewed": "{path} を確認済みにする",

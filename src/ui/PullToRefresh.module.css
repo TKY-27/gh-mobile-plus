@@ -1,0 +1,53 @@
+.indicator {
+  --pull: 0;
+  --progress: 0;
+
+  position: relative;
+  z-index: 1;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Floats so refreshing never shifts layout. */
+.bubble {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-elevated);
+  box-shadow:
+    0 0 0 var(--border-width) var(--color-separator),
+    0 2px 8px rgb(0 0 0 / 0.12);
+  color: var(--color-text-secondary);
+  opacity: var(--progress);
+  transform: translate3d(-50%, calc(var(--pull) * 1px - 100%), 0);
+}
+
+.bubble svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  transform: rotate(calc(var(--progress) * 180deg));
+}
+
+.indicator:not([data-pulling]) .bubble {
+  transition:
+    opacity var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+
+.indicator[data-armed] .bubble {
+  color: var(--accent-text);
+}
+
+.indicator[data-refreshing] .bubble {
+  opacity: 1;
+  transform: translate3d(-50%, var(--space-2), 0);
+}
+
+.indicator[data-refreshing] .bubble svg {
+  transform: none;
+}

@@ -60,8 +60,10 @@ button.row {
   cursor: pointer;
 }
 
+/* Skip the highlight when a scroll starts. */
 .row[data-pressed] {
   background: var(--color-fill-pressed);
+  transition-delay: 60ms;
 }
 
 .row[data-focus-visible] {

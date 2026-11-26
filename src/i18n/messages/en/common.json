@@ -19,5 +19,6 @@
   "status.pending": "Pending",
   "status.merged": "Merged",
   "status.closed": "Closed",
-  "status.draft": "Draft"
+  "status.draft": "Draft",
+  "refreshing": "Refreshing"
 }

@@ -1,7 +1,8 @@
 const VISUAL_DURATION_S = 0.32;
 const OMEGA = (2 * Math.PI) / VISUAL_DURATION_S;
 const REST_DELTA_PX = 0.5;
-const REST_VELOCITY = 1;
+// px/s; lower values outlast the visible motion.
+const REST_VELOCITY = 20;
 const MAX_DURATION_S = 2;
 const MS_PER_SECOND = 1000;
 

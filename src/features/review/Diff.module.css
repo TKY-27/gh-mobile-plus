@@ -1,4 +1,6 @@
 .scroller {
+  /* Sticky cards size to the visible width. */
+  container-type: inline-size;
   overflow-x: auto;
   overscroll-behavior-x: contain;
 }

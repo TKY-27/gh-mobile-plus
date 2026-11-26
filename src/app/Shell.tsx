@@ -6,7 +6,7 @@ import { Banner } from "@/ui/Banner.tsx";
 import { useNow } from "@/ui/RelativeTime.tsx";
 import { useAppBadge } from "./badge.ts";
 import { useSoftKeyboardOpen } from "./keyboard.ts";
-import { isIOSBrowserTab, prefersReducedMotion } from "./platform.ts";
+import { isAndroid, isIOSBrowserTab, prefersReducedMotion } from "./platform.ts";
 import { useNavigationState, useNavigator } from "./navigation/context.ts";
 import { TABS, topOf, type Tab } from "./navigation/navigator.ts";
 import { StackView } from "./navigation/StackView.tsx";
@@ -51,20 +51,25 @@ export function Shell(props: { unreadCount: number | null }) {
   const rateLimit = useRateLimit();
   const scrollers = useRef(new Map<string, HTMLDivElement>());
   const [menuOpen, setMenuOpen] = useState(false);
+  // Stay mounted to animate out.
+  const [menuLoaded, setMenuLoaded] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [switcherLoaded, setSwitcherLoaded] = useState(false);
   useAppBadge(props.unreadCount);
 
   const actions = useMemo<ShellActions>(
     () => ({
       unreadCount: props.unreadCount,
       openMenu: () => {
+        setMenuLoaded(true);
         setMenuOpen(true);
       },
       openCommandPalette: () => {
         setPaletteOpen(true);
       },
       openAccountSwitcher: () => {
+        setSwitcherLoaded(true);
         setSwitcherOpen(true);
       },
     }),
@@ -107,8 +112,10 @@ export function Shell(props: { unreadCount: number | null }) {
     const scroller = scrollers.current.get(topOf(state, tab).key);
     if (scroller && scroller.scrollTop > 0) {
       scroller.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "instant" : "smooth" });
-    } else {
+    } else if (state.stacks[tab].length > 1) {
       navigator.popToRoot();
+    } else if (tab === "search") {
+      scroller?.querySelector<HTMLInputElement>('input[type="search"]')?.focus();
     }
   };
 
@@ -127,7 +134,7 @@ export function Shell(props: { unreadCount: number | null }) {
               entries={state.stacks[tab]}
               leaving={state.leaving?.tab === tab ? state.leaving.entry : null}
               active={state.activeTab === tab}
-              backSwipeEnabled={!isIOSBrowserTab}
+              backSwipeEnabled={!isIOSBrowserTab && !isAndroid}
               onOpenMenu={actions.openMenu}
               register={register}
             />
@@ -142,14 +149,14 @@ export function Shell(props: { unreadCount: number | null }) {
           hidden={keyboardOpen}
           onSelect={navigator.selectTab}
           onReselect={reselect}
-          onAccountLongPress={() => {
-            setSwitcherOpen(true);
-          }}
+          onAccountLongPress={actions.openAccountSwitcher}
         />
         <Suspense fallback={null}>
-          {menuOpen ? <NavigationMenu onOpenChange={setMenuOpen} /> : null}
+          {menuLoaded ? <NavigationMenu isOpen={menuOpen} onOpenChange={setMenuOpen} /> : null}
           {paletteOpen ? <CommandPalette isOpen onOpenChange={setPaletteOpen} /> : null}
-          {switcherOpen ? <AccountSwitcher isOpen onOpenChange={setSwitcherOpen} /> : null}
+          {switcherLoaded ? (
+            <AccountSwitcher isOpen={switcherOpen} onOpenChange={setSwitcherOpen} />
+          ) : null}
         </Suspense>
       </div>
     </ShellContext>

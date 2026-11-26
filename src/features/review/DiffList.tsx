@@ -202,6 +202,8 @@ export function DiffList(props: DiffListProps) {
   };
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    // No click follows a mobile long press.
+    suppressClick.current = false;
     if (!onLongPress || !event.isPrimary) return;
     const target = event.target instanceof Element ? event.target : null;
     if (target?.closest("button, a, [data-handle]")) return;

@@ -19,5 +19,6 @@
   "status.pending": "保留中",
   "status.merged": "マージ済み",
   "status.closed": "クローズ",
-  "status.draft": "下書き"
+  "status.draft": "ドラフト",
+  "refreshing": "更新中"
 }

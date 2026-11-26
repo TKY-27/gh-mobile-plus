@@ -4,7 +4,7 @@ import { Form } from "react-aria-components/Form";
 import { useRouter } from "@tanstack/react-router";
 import { Page } from "@/app/Page.tsx";
 import { useSoftKeyboardOpen } from "@/app/keyboard.ts";
-import { useScreen, useScreenParams } from "@/app/navigation/screen.ts";
+import { useIsTopScreen, useScreenParams } from "@/app/navigation/screen.ts";
 import { newFileRoute } from "@/app/router.ts";
 import { useComposerActive } from "@/app/updates.ts";
 import {
@@ -105,7 +105,7 @@ function ineligibleIcon(reason: CreateFileIneligibleReason) {
 export default function CreateFileScreen() {
   const t = useT();
   const router = useRouter();
-  const { isTop } = useScreen();
+  const isTop = useIsTopScreen();
   const { login } = useActiveAccount();
   const { softWrap } = usePreferences();
   const keyboardOpen = useSoftKeyboardOpen();

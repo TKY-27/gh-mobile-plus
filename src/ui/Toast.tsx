@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useState, useSyncExternalStore } from "react";
 import { X } from "lucide-react";
 import { Button as AriaButton } from "react-aria-components/Button";
 import { useT } from "@/i18n/index.tsx";
@@ -52,6 +52,14 @@ function subscribe(listener: () => void) {
   };
 }
 
+function isUndo(toast: QueuedToast): boolean {
+  return toast.timeoutMs === "request";
+}
+
+function latestToastWithoutUndo(): QueuedToast | undefined {
+  return queue.some(isUndo) ? undefined : queue.at(-1);
+}
+
 function subscribeVisibility(listener: () => void) {
   document.addEventListener("visibilitychange", listener);
   return () => {
@@ -61,10 +69,11 @@ function subscribeVisibility(listener: () => void) {
 
 export function ToastRegion() {
   const t = useT();
-  const toast = useSyncExternalStore(
-    subscribe,
-    () => queue.find((entry) => entry.timeoutMs === "request") ?? queue.at(-1),
-  );
+  const messageIdPrefix = useId();
+  // Every pending Undo must stay reachable.
+  const undoToasts = useSyncExternalStore(subscribe, () => queue).filter(isUndo);
+  const toast = useSyncExternalStore(subscribe, latestToastWithoutUndo);
+  const shown = toast ? [toast] : undoToasts;
   const visible = useSyncExternalStore(
     subscribeVisibility,
     () => document.visibilityState === "visible",
@@ -108,31 +117,38 @@ export function ToastRegion() {
         }
       }}
     >
-      <div role="status" aria-live="polite" aria-atomic="true">
-        {toast ? (
-          <div key={toast.id} className={styles.toast}>
-            <p className={styles.message}>{toast.message}</p>
-            {toast.action ? (
-              <AriaButton
-                className={moduleClass(styles.action)}
+      <div role="status" aria-live="polite" aria-atomic="false" className={styles.stack}>
+        {shown.map((entry) => {
+          const messageId = `${messageIdPrefix}${String(entry.id)}`;
+          return (
+            <div key={entry.id} className={styles.toast}>
+              <p id={messageId} className={styles.message}>
+                {entry.message}
+              </p>
+              {entry.action ? (
+                <AriaButton
+                  className={moduleClass(styles.action)}
+                  aria-describedby={messageId}
+                  onPress={() => {
+                    entry.action?.onAction();
+                    dismissToast(entry.id);
+                  }}
+                >
+                  {entry.action.label}
+                </AriaButton>
+              ) : null}
+              <IconButton
+                label={t("common.dismiss")}
+                aria-describedby={messageId}
                 onPress={() => {
-                  toast.action?.onAction();
-                  dismissToast(toast.id);
+                  dismissToast(entry.id);
                 }}
               >
-                {toast.action.label}
-              </AriaButton>
-            ) : null}
-            <IconButton
-              label={t("common.dismiss")}
-              onPress={() => {
-                dismissToast(toast.id);
-              }}
-            >
-              <X aria-hidden />
-            </IconButton>
-          </div>
-        ) : null}
+                <X aria-hidden />
+              </IconButton>
+            </div>
+          );
+        })}
       </div>
     </section>
   );

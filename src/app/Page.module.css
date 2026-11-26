@@ -16,9 +16,11 @@
     box-shadow var(--duration-base) var(--ease-out);
 }
 
-.bar[data-collapsed] {
-  background: var(--color-bg);
+.bar[data-scrolled] {
+  background: var(--glass-bg);
   box-shadow: 0 var(--border-width) 0 var(--color-separator);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
 }
 
 .barRow {

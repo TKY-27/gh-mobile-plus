@@ -63,7 +63,10 @@ export function BulkBar(props: {
                 </span>
               </span>
               <span className={styles.track} aria-hidden>
-                <span className={styles.fill} style={{ width: `${String(percentage ?? 0)}%` }} />
+                <span
+                  className={styles.fill}
+                  style={{ transform: `scaleX(${String((percentage ?? 0) / 100)})` }}
+                />
               </span>
             </>
           )}
