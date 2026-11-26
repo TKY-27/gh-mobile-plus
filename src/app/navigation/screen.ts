@@ -10,12 +10,18 @@ export interface ScreenMatch {
 export interface ScreenValue {
   href: string;
   isRoot: boolean;
-  isTop: boolean;
   match: ScreenMatch;
   scroller: RefObject<HTMLDivElement | null>;
 }
 
 export const ScreenContext = createContext<ScreenValue | null>(null);
+
+// Separate, so pushes re-render fewer consumers.
+export const ScreenTopContext = createContext(true);
+
+export function useIsTopScreen(): boolean {
+  return use(ScreenTopContext);
+}
 
 export function useScreen(): ScreenValue {
   const value = use(ScreenContext);

@@ -124,6 +124,8 @@ export function createNavigator(history: RouterHistory, options: NavigatorOption
   let historyIndex = history.location.state.__TSR_index;
   let internalHref: string | null = null;
   let nextPopAnimated = options.animatePopsFromHistory;
+  // Browsers apply history.go asynchronously.
+  let traversing = false;
   const listeners = new Set<() => void>();
 
   function commit(next: NavigationState) {
@@ -155,6 +157,7 @@ export function createNavigator(history: RouterHistory, options: NavigatorOption
   }
 
   function onHistory(location: HistoryLocation, action: string) {
+    traversing = false;
     const index = location.state.__TSR_index;
     const delta = index - historyIndex;
     historyIndex = index;
@@ -184,9 +187,10 @@ export function createNavigator(history: RouterHistory, options: NavigatorOption
   function back(count: number, animated: boolean) {
     const depth = state.stacks[state.activeTab].length;
     const steps = Math.min(count, depth - 1);
-    if (steps < 1) return;
+    if (steps < 1 || traversing) return;
     if (historyIndex >= steps) {
       nextPopAnimated = animated;
+      traversing = true;
       history.go(-steps);
       return;
     }

@@ -378,10 +378,12 @@
 .profileLink svg {
   color: var(--color-text-secondary);
 }
-.ownerLink:hover,
-.starLink:hover,
-.profileLink:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .ownerLink:hover,
+  .starLink:hover,
+  .profileLink:hover {
+    text-decoration: underline;
+  }
 }
 
 @media (min-width: 38rem) {

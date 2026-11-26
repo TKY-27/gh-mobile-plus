@@ -1,4 +1,5 @@
-import { useEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
+import { useCallback, useEffect, useRef, type PointerEvent as ReactPointerEvent } from "react";
+import { holdScrollWhile } from "@/ui/hold-scroll.ts";
 import {
   Bell,
   Check,
@@ -21,13 +22,21 @@ import { useT, type MessageKey } from "@/i18n/index.tsx";
 import { IconButton } from "@/ui/Button.tsx";
 import { Checkbox } from "@/ui/Checkbox.tsx";
 import { RelativeTime } from "@/ui/RelativeTime.tsx";
-import { actionFor, commitDistance, rubberBand, shouldCommit, type SwipeAction } from "./swipe.ts";
+import {
+  actionFor,
+  clampVelocity,
+  commitDistance,
+  rubberBand,
+  shouldCommit,
+  type SwipeAction,
+} from "./swipe.ts";
 import styles from "./InboxRow.module.css";
 
 const LONG_PRESS_MS = 500;
 const SLOP_PX = 10;
 const VELOCITY_WINDOW_MS = 100;
-const MAX_VELOCITY_PX_PER_MS = 4;
+const COLLAPSE_MS = 200;
+const COLLAPSE_EASING = "cubic-bezier(0.2, 0.8, 0.2, 1)";
 
 const SUBJECT_ICONS: Readonly<Record<NotificationSubjectType, LucideIcon>> = {
   Issue: CircleDot,
@@ -141,6 +150,16 @@ export function InboxRow(props: {
   const menuShown = useRef(false);
   const exiting = useRef(false);
 
+  const attachSurface = useCallback((element: HTMLDivElement | null) => {
+    surface.current = element;
+    if (!element) return;
+    const releaseScroll = holdScrollWhile(element, () => drag.current?.engaged === true);
+    return () => {
+      releaseScroll();
+      surface.current = null;
+    };
+  }, []);
+
   useEffect(
     () => () => {
       settle.current?.cancel();
@@ -171,15 +190,30 @@ export function InboxRow(props: {
       done();
       return;
     }
+    const from = offset.current;
     settle.current = runSpring(
-      offset.current,
+      from,
       target,
       velocity,
       (x) => {
-        paint(x, threshold);
+        // Crossing zero would paint the opposite action.
+        paint(target === 0 && x * from < 0 ? 0 : x, threshold);
       },
       done,
     );
+  };
+
+  const collapse = (done: () => void) => {
+    const element = row.current;
+    if (!element || prefersReducedMotion()) {
+      done();
+      return;
+    }
+    const animation = element.animate(
+      [{ height: `${String(element.offsetHeight)}px` }, { height: "0px" }],
+      { duration: COLLAPSE_MS, easing: COLLAPSE_EASING, fill: "forwards" },
+    );
+    animation.onfinish = done;
   };
 
   const cancelLongPress = () => {
@@ -258,7 +292,7 @@ export function InboxRow(props: {
     const first = current.samples[0];
     const elapsed = first ? event.timeStamp - first.time : 0;
     const measured = first && elapsed > 0 ? (event.clientX - first.x) / elapsed : 0;
-    const velocity = Math.max(-MAX_VELOCITY_PX_PER_MS, Math.min(MAX_VELOCITY_PX_PER_MS, measured));
+    const velocity = clampVelocity(measured);
     const action = actionFor(offset.current);
     const commit =
       !cancelled &&
@@ -278,8 +312,10 @@ export function InboxRow(props: {
     exiting.current = true;
     const exit = Math.sign(offset.current) * current.width;
     animateTo(exit, velocity, threshold, () => {
-      exiting.current = false;
-      props.onAction(action);
+      collapse(() => {
+        exiting.current = false;
+        props.onAction(action);
+      });
     });
   }
 
@@ -318,9 +354,9 @@ export function InboxRow(props: {
         </span>
       </div>
       <div
-        ref={surface}
+        ref={attachSurface}
         className={styles.surface}
-        onPointerDown={onPointerDown}
+        onPointerDownCapture={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={(event) => {
           release(event, false);
@@ -349,13 +385,13 @@ export function InboxRow(props: {
             <button
               type="button"
               className={styles.read}
+              aria-label={t("inbox.action.read")}
               disabled={props.offline}
               onClick={() => {
                 props.onAction("read");
               }}
             >
               <MailOpen aria-hidden />
-              {t("inbox.action.read")}
             </button>
           ) : null}
         </span>

@@ -1,6 +1,6 @@
 export type ThemePreference = "system" | "light" | "dark";
 
-export const THEME_COLORS = { light: "#ffffff", dark: "#0f0f11" } as const;
+export const THEME_COLORS = { light: "#ffffff", dark: "#000000" } as const;
 
 export function applyTheme(theme: ThemePreference): void {
   const root = document.documentElement;

@@ -130,9 +130,14 @@
 }
 
 .workTile[data-hovered],
-.followingLink:hover,
 .notificationsLink[data-hovered] {
   background: var(--color-bg-secondary);
+}
+
+@media (hover: hover) {
+  .followingLink:hover {
+    background: var(--color-bg-secondary);
+  }
 }
 
 .workTile[data-pressed],

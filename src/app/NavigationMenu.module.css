@@ -12,16 +12,45 @@
   overscroll-behavior: contain;
   padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) env(safe-area-inset-left);
   background: var(--color-bg);
-  animation: slide-in var(--duration-base) var(--ease-out);
   touch-action: pan-y pinch-zoom;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.modal[data-dragging] {
+  transition: none;
+}
+
+.modal[data-entering] {
+  animation: slide-in var(--duration-slow) var(--ease-out);
+}
+
+.modal[data-exiting] {
+  animation: slide-out var(--duration-base) var(--ease-in-out) forwards;
+}
+
+.overlay[data-entering] {
+  animation: fade var(--duration-slow) var(--ease-out);
+}
+
+.overlay[data-exiting] {
+  animation: fade var(--duration-base) var(--ease-in-out) reverse forwards;
 }
 
 @keyframes slide-in {
   from {
     transform: translateX(-100%);
   }
+}
+
+@keyframes slide-out {
   to {
-    transform: translateX(0);
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
   }
 }
 
@@ -95,7 +124,12 @@
   stroke-width: 1.8;
 }
 
-.row[data-hovered],
 .row[data-pressed] {
   background: var(--color-fill);
+}
+
+@media (hover: hover) {
+  .row[data-hovered] {
+    background: var(--color-fill);
+  }
 }

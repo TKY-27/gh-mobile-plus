@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FileX, GitBranch, History, Trash2 } from "lucide-react";
 import { useRouter } from "@tanstack/react-router";
 import { Page } from "@/app/Page.tsx";
-import { useScreen, useScreenParams } from "@/app/navigation/screen.ts";
+import { useIsTopScreen, useScreenParams } from "@/app/navigation/screen.ts";
 import { editRoute } from "@/app/router.ts";
 import { useSoftKeyboardOpen } from "@/app/keyboard.ts";
 import { useComposerActive } from "@/app/updates.ts";
@@ -39,7 +39,7 @@ function outcomePath(outcome: CommitOutcome): string {
 export default function EditScreen() {
   const t = useT();
   const router = useRouter();
-  const { isTop } = useScreen();
+  const isTop = useIsTopScreen();
   const { login, publicOnly } = useActiveAccount();
   const { softWrap } = usePreferences();
   const keyboardOpen = useSoftKeyboardOpen();

@@ -52,7 +52,7 @@ export function Page(props: {
   const screen = useScreen();
   const bar = useRef<HTMLElement | null>(null);
   const largeTitle = useRef<HTMLHeadingElement | null>(null);
-  const [titleOffscreen, setTitleOffscreen] = useState(false);
+  const [titleVisibility, setTitleVisibility] = useState<"full" | "partial" | "hidden">("full");
   const hasLargeTitle = Boolean(props.largeTitle && !screen.isRoot);
 
   useEffect(() => {
@@ -61,9 +61,15 @@ export function Page(props: {
     if (!hasLargeTitle || !title || !root) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setTitleOffscreen(entry ? !entry.isIntersecting : false);
+        if (!entry) return;
+        if (!entry.isIntersecting) setTitleVisibility("hidden");
+        else setTitleVisibility(entry.intersectionRatio < 1 ? "partial" : "full");
       },
-      { root, rootMargin: `-${String(bar.current?.offsetHeight ?? 0)}px 0px 0px 0px` },
+      {
+        root,
+        rootMargin: `-${String(bar.current?.offsetHeight ?? 0)}px 0px 0px 0px`,
+        threshold: [0, 1],
+      },
     );
     observer.observe(title);
     return () => {
@@ -88,7 +94,8 @@ export function Page(props: {
       <header
         ref={bar}
         className={styles.bar}
-        data-collapsed={!hasLargeTitle || titleOffscreen || undefined}
+        data-collapsed={!hasLargeTitle || titleVisibility === "hidden" || undefined}
+        data-scrolled={!hasLargeTitle || titleVisibility !== "full" || undefined}
         data-root={screen.isRoot || undefined}
         data-account-root={(screen.isRoot && screen.match.routeId === "/account") || undefined}
       >

@@ -6,8 +6,10 @@
   grid-template-columns: repeat(5, minmax(0, 1fr));
   padding-bottom: env(safe-area-inset-bottom);
   padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
-  background: var(--color-bg);
-  border-top: 1px solid var(--color-separator);
+  background: var(--glass-bg);
+  border-top: var(--border-width) solid var(--color-separator);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
   -webkit-touch-callout: none;
   user-select: none;
   -webkit-user-select: none;
@@ -20,32 +22,25 @@
 
 .tab {
   display: grid;
-  justify-items: center;
-  align-content: center;
-  gap: var(--space-1);
+  place-items: center;
   min-height: var(--tab-bar-min-height);
-  padding: var(--space-1) 0;
   border: none;
   background: transparent;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-
-.tab[aria-current="page"] {
   color: var(--color-text);
-  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .icon {
   display: grid;
   place-items: center;
   width: var(--hit-target);
-  height: 26px;
-  border-radius: var(--radius-md);
+  height: var(--hit-target);
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
-.tab[aria-current="page"] .icon svg {
-  stroke-width: 2.6;
+.tab[data-pressed] .icon {
+  transform: scale(0.86);
 }
 
 .tab[data-tab="account"][aria-current="page"] .icon > span {
@@ -53,22 +48,17 @@
   outline-offset: 1px;
 }
 
-.tab[data-pressed] {
-  background: var(--color-fill-pressed);
-}
-
 .tab[data-focus-visible] {
   outline-offset: -3px;
 }
 
 .icon svg {
-  width: 1.45rem;
-  height: 1.45rem;
+  width: 1.625rem;
+  height: 1.625rem;
 }
 
 .label {
-  font-size: var(--text-caption);
-  line-height: var(--leading-tight);
+  display: none;
 }
 
 @media (min-width: 56rem) {
@@ -82,6 +72,8 @@
     background: var(--color-bg);
     border: none;
     border-right: 1px solid var(--color-separator);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   .brand {
@@ -94,6 +86,7 @@
 
   .tab {
     display: flex;
+    color: var(--color-text-secondary);
     align-items: center;
     gap: var(--space-3);
     min-height: var(--hit-target);
@@ -107,9 +100,22 @@
     background: var(--color-bg-secondary);
   }
 
+  .tab[aria-current="page"] {
+    color: var(--color-text);
+    font-weight: var(--weight-semibold);
+  }
+
   .icon {
     width: auto;
     height: auto;
+  }
+
+  .tab[data-pressed] .icon {
+    transform: none;
+  }
+
+  .label {
+    display: inline;
   }
 
   .tab[aria-current="page"] .icon {

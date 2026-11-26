@@ -40,7 +40,7 @@ import { Spinner } from "@/ui/Spinner.tsx";
 import { VirtualList } from "@/ui/VirtualList.tsx";
 import { estimateFeedRow, FeedRow } from "./FeedRow.tsx";
 import { ContributionGraph, ProfileIdentity } from "./ProfileCard.tsx";
-import { PullToRefresh } from "./PullToRefresh.tsx";
+import { PullToRefresh, useRefreshAction } from "@/ui/PullToRefresh.tsx";
 import { ReleaseRow, releaseKey } from "./ReleaseRow.tsx";
 import styles from "./HomeScreen.module.css";
 
@@ -241,16 +241,14 @@ function FollowingSection({
   const releases = useStarredReleases(view === "starredReleases");
   const filter = view === "starredReleases" ? "all" : view;
   const feed = useActivityFeed(filter);
-  const [refreshing, setRefreshing] = useState(false);
   const { refetch: refetchReleases } = releases;
   const { refetch: refetchFeed } = feed;
-  const refresh = useCallback(() => {
-    setRefreshing(true);
-    const refreshed = view === "starredReleases" ? refetchReleases() : refetchFeed();
-    void refreshed.finally(() => {
-      setRefreshing(false);
-    });
-  }, [view, refetchReleases, refetchFeed]);
+  const { refreshing, refresh } = useRefreshAction(
+    useCallback(
+      () => (view === "starredReleases" ? refetchReleases() : refetchFeed()),
+      [view, refetchReleases, refetchFeed],
+    ),
+  );
 
   return (
     <PullToRefresh refreshing={refreshing} onRefresh={refresh}>
@@ -325,15 +323,11 @@ export default function HomeScreen() {
     scroller.current?.scrollTo({ top: 0 });
   };
   const [view, setView] = useState<ActivityView>("all");
-  const [refreshing, setRefreshing] = useState(false);
   const { refetch: refetchViewer } = viewer;
   const { refetch: refetchWork } = work;
-  const refresh = useCallback(() => {
-    setRefreshing(true);
-    void Promise.all([refetchViewer(), refetchWork()]).finally(() => {
-      setRefreshing(false);
-    });
-  }, [refetchViewer, refetchWork]);
+  const { refreshing, refresh } = useRefreshAction(
+    useCallback(() => Promise.all([refetchViewer(), refetchWork()]), [refetchViewer, refetchWork]),
+  );
 
   const notifications = t("app.tabs.inbox");
   const unread = unreadCount ?? 0;

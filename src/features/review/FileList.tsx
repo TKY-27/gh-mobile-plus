@@ -169,7 +169,7 @@ export function FileList(props: {
         <span className={styles.progressTrack} aria-hidden>
           <span
             className={styles.progressFill}
-            style={{ width: `${String((viewed / total) * 100)}%` }}
+            style={{ transform: `scaleX(${String(viewed / total)})` }}
           />
         </span>
         <Button

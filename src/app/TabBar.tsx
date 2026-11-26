@@ -17,7 +17,10 @@ import styles from "./TabBar.module.css";
 
 const LONG_PRESS_MS = 500;
 const ACTIVE_STROKE = 2.4;
+const ACTIVE_OUTLINE_STROKE = 3;
 const IDLE_STROKE = 1.8;
+// A filled search glyph becomes a disc.
+const FILLED_WHEN_ACTIVE: ReadonlySet<Tab> = new Set(["home", "repositories", "work"]);
 
 const TAB_ICONS: Readonly<Record<Tab, LucideIcon>> = {
   home: House,
@@ -34,6 +37,11 @@ const TAB_LABELS: Readonly<Record<Tab, MessageKey>> = {
   search: "app.tabs.search",
   account: "app.tabs.account",
 };
+
+function activeStroke(active: boolean, tab: Tab): number {
+  if (!active) return IDLE_STROKE;
+  return FILLED_WHEN_ACTIVE.has(tab) ? ACTIVE_STROKE : ACTIVE_OUTLINE_STROKE;
+}
 
 export function TabBar(props: {
   active: Tab;
@@ -115,7 +123,10 @@ export function TabBar(props: {
               ) : (
                 <Icon
                   aria-hidden
-                  strokeWidth={props.active === tab ? ACTIVE_STROKE : IDLE_STROKE}
+                  strokeWidth={activeStroke(props.active === tab, tab)}
+                  fill={
+                    props.active === tab && FILLED_WHEN_ACTIVE.has(tab) ? "currentColor" : "none"
+                  }
                 />
               )}
             </span>

@@ -1,6 +1,6 @@
 .overlay {
   position: fixed;
-  inset: 0;
+  inset: var(--visual-viewport-top, 0px) 0 auto;
   height: var(--visual-viewport-height, 100dvh);
   z-index: 100;
   display: grid;
@@ -10,12 +10,28 @@
 }
 
 .overlay[data-entering] {
-  animation: appear var(--duration-fast) var(--ease-out);
+  animation: appear var(--duration-base) var(--ease-out);
+}
+
+.overlay[data-exiting] {
+  animation: appear var(--duration-base) var(--ease-in-out) reverse;
 }
 
 @keyframes appear {
   from {
     opacity: 0;
+  }
+}
+
+@keyframes rise {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes sink {
+  to {
+    transform: translateY(100%);
   }
 }
 
@@ -28,6 +44,19 @@
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   background: var(--color-bg-elevated);
   box-shadow: var(--shadow-sheet);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.sheet[data-dragging] {
+  transition: none;
+}
+
+.sheet[data-entering] {
+  animation: rise var(--duration-slow) var(--ease-out);
+}
+
+.sheet[data-exiting] {
+  animation: sink var(--duration-base) var(--ease-in-out) forwards;
 }
 
 .content {

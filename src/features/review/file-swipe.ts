@@ -1,8 +1,16 @@
-import { useLayoutEffect, useRef, useState, type MouseEvent, type PointerEvent } from "react";
-import { useScreen } from "@/app/navigation/screen.ts";
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type MouseEvent,
+  type PointerEvent,
+} from "react";
+import { holdScrollWhile } from "@/ui/hold-scroll.ts";
+import { useIsTopScreen, useScreen } from "@/app/navigation/screen.ts";
 import { prefersReducedMotion } from "@/app/platform.ts";
 import { runSpring, type SpringRun } from "@/app/navigation/spring.ts";
-import { commitDistance, rubberBand, shouldCommit } from "@/features/inbox/swipe.ts";
+import { clampVelocity, commitDistance, rubberBand, shouldCommit } from "@/features/inbox/swipe.ts";
 
 // Reserve the edge for back navigation.
 const EDGE_EXCLUSION_PX = 24;
@@ -58,12 +66,26 @@ export function useFileSwipe(options: {
   canGo: (direction: SwipeDirection) => boolean;
   onSwipe: (direction: SwipeDirection) => void;
 }) {
-  const { scroller, isTop } = useScreen();
+  const { scroller } = useScreen();
+  const isTop = useIsTopScreen();
   const [motion] = useState(createSurfaceMotion);
   const gesture = useRef<Gesture | null>(null);
   const suppressClick = useRef(false);
   const entering = useRef<{ offset: number; velocity: number } | null>(null);
   const { fileKey, enabled, canGo, onSwipe } = options;
+
+  const attach = useCallback(
+    (element: HTMLElement | null) => {
+      motion.attach(element);
+      if (!element) return;
+      const releaseScroll = holdScrollWhile(element, () => gesture.current?.engaged === true);
+      return () => {
+        releaseScroll();
+        motion.attach(null);
+      };
+    },
+    [motion],
+  );
 
   useLayoutEffect(() => {
     gesture.current = null;
@@ -89,20 +111,25 @@ export function useFileSwipe(options: {
     const width = motion.width();
     const first = current.samples[0];
     const elapsed = first ? event.timeStamp - first.time : 0;
-    const velocity = first && elapsed > 0 ? (event.clientX - first.x) / elapsed : 0;
+    const velocity = clampVelocity(first && elapsed > 0 ? (event.clientX - first.x) / elapsed : 0);
+    const position = motion.position();
     const travel = event.clientX - current.startX;
-    const direction: SwipeDirection = travel < 0 ? 1 : -1;
+    const direction: SwipeDirection = position < 0 ? 1 : -1;
     const commit =
-      !cancelled && canGo(direction) && shouldCommit(travel, velocity, commitDistance(width));
+      !cancelled &&
+      // Leftover entering motion must not change files.
+      Math.sign(travel) === Math.sign(position) &&
+      canGo(direction) &&
+      shouldCommit(position, velocity, commitDistance(width));
     if (!commit) {
-      motion.settle(motion.position(), velocity);
+      motion.settle(position, velocity);
       return;
     }
-    navigate(direction, motion.position(), velocity);
+    navigate(direction, position, velocity);
   };
 
   return {
-    ref: motion.attach,
+    ref: attach,
     go: (direction: SwipeDirection) => {
       if (canGo(direction)) navigate(direction);
     },

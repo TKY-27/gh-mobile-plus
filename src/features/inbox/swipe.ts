@@ -2,6 +2,7 @@ const COMMIT_FRACTION = 0.35;
 const MAX_COMMIT_PX = 160;
 const RUBBER_COEFFICIENT = 0.55;
 const PROJECTION_MS = 120;
+const MAX_VELOCITY_PX_PER_MS = 4;
 
 export type SwipeAction = "done" | "read";
 
@@ -28,4 +29,8 @@ export function rubberBand(distance: number, free: number, dimension: number): n
 export function shouldCommit(offset: number, velocityPerMs: number, threshold: number): boolean {
   const projected = offset + velocityPerMs * PROJECTION_MS;
   return Math.sign(projected) === Math.sign(offset) && Math.abs(projected) >= threshold;
+}
+
+export function clampVelocity(velocityPerMs: number): number {
+  return Math.max(-MAX_VELOCITY_PX_PER_MS, Math.min(MAX_VELOCITY_PX_PER_MS, velocityPerMs));
 }

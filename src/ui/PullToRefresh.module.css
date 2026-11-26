@@ -3,44 +3,51 @@
   --progress: 0;
 
   position: relative;
-  display: grid;
-  place-items: center;
+  z-index: 1;
   height: 0;
-  overflow: visible;
-  transition: height var(--duration-base) var(--ease-out);
-}
-
-.indicator[data-refreshing] {
-  height: var(--hit-target);
-}
-
-.arrow {
-  position: absolute;
-  top: 0;
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--radius-full);
-  background: var(--color-fill);
-  color: var(--color-text-secondary);
-  opacity: var(--progress);
-  transform: translateY(calc(var(--pull) * 1px - 100%)) rotate(calc(var(--progress) * 180deg));
   pointer-events: none;
 }
 
-.indicator:not([data-pulling]) .arrow {
+/* Floats so refreshing never shifts layout. */
+.bubble {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-elevated);
+  box-shadow:
+    0 0 0 var(--border-width) var(--color-separator),
+    0 2px 8px rgb(0 0 0 / 0.12);
+  color: var(--color-text-secondary);
+  opacity: var(--progress);
+  transform: translate3d(-50%, calc(var(--pull) * 1px - 100%), 0);
+}
+
+.bubble svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  transform: rotate(calc(var(--progress) * 180deg));
+}
+
+.indicator:not([data-pulling]) .bubble {
   transition:
     opacity var(--duration-base) var(--ease-out),
     transform var(--duration-base) var(--ease-out);
 }
 
-.indicator[data-armed] .arrow {
-  background: var(--accent-soft);
+.indicator[data-armed] .bubble {
   color: var(--accent-text);
 }
 
-.arrow svg {
-  width: 1.125rem;
-  height: 1.125rem;
+.indicator[data-refreshing] .bubble {
+  opacity: 1;
+  transform: translate3d(-50%, var(--space-2), 0);
+}
+
+.indicator[data-refreshing] .bubble svg {
+  transform: none;
 }

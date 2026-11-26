@@ -154,9 +154,11 @@
   cursor: pointer;
 }
 
-.choice:hover,
-.action:hover {
-  background: var(--color-bg-secondary);
+@media (hover: hover) {
+  .choice:hover,
+  .action:hover {
+    background: var(--color-bg-secondary);
+  }
 }
 
 .action {
@@ -223,6 +225,8 @@
   cursor: pointer;
 }
 
-.qualifiers button:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .qualifiers button:hover {
+    text-decoration: underline;
+  }
 }

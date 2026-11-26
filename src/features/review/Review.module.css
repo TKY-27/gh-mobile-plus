@@ -70,7 +70,8 @@
   height: 100%;
   border-radius: inherit;
   background: var(--accent);
-  transition: width var(--duration-base) var(--ease-out);
+  transform-origin: left;
+  transition: transform var(--duration-base) var(--ease-out);
 }
 
 .fileRow {
@@ -268,7 +269,7 @@
 .pending {
   position: sticky;
   left: 0;
-  max-width: calc(100vw - var(--space-6));
+  max-width: calc(100cqi - var(--space-6));
 }
 
 .thread[data-resolved] {

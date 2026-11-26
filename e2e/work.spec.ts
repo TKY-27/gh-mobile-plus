@@ -32,3 +32,20 @@ test("all four segments load from one GraphQL request", async ({ page, oauth, gi
   }
   expect(workQueries).toBe(1);
 });
+
+test("the refresh action reloads the queue in one request", async ({ page, oauth, github }) => {
+  let workQueries = 0;
+  github.use(
+    githubGraphql.query("WorkQueue", () => {
+      workQueries += 1;
+      return HttpResponse.json({ data: workQueue });
+    }),
+  );
+  await signIn(page, oauth);
+  await openInApp(page, "/pulls");
+  const screen = page.locator('[data-stack-screen^="/pulls"]');
+  await expect(screen.getByText("Improve mobile review").first()).toBeVisible();
+  await screen.getByRole("button", { name: enWork.refresh }).click();
+  await expect.poll(() => workQueries).toBe(2);
+  await expect(screen.getByRole("button", { name: enWork.refresh })).toBeEnabled();
+});

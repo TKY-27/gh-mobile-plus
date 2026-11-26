@@ -16,7 +16,6 @@ test("only a completed single-finger pull refreshes the active screen", async ()
           value={{
             href: "/",
             isRoot: true,
-            isTop: true,
             scroller: { current: root },
             match: { routeId: "/", params: {}, search: {} },
           }}

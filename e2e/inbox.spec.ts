@@ -94,22 +94,41 @@ test("a back swipe across a notification leaves the thread untouched", async ({
   await expect.poll(async () => (await subject.boundingBox())?.x).toBeCloseTo(initial.x, 0);
   await expect(page).toHaveURL("/notifications");
   await swipe(page, thread, 1, "back");
-  if (browserName === "chromium") await expect(page).toHaveURL("/");
+  // System back owns the Android edge.
+  if (browserName === "chromium") await expect(page).toHaveURL("/notifications");
   await expect(page.getByRole("button", { name: enCommon.undo })).toHaveCount(0);
   await page.waitForTimeout(SETTLE_MS);
   expect(writes).toEqual([]);
 });
 
-test("a newer swipe replaces the Undo, and none outlives its request", async ({ page, github }) => {
+test("a home-screen back swipe across a notification goes back without acting", async ({
+  page,
+  github,
+}) => {
+  test.skip(test.info().project.name !== "iphone", "Standalone iOS only.");
+  const writes = countWrites(github);
+  await page.addInitScript(() => {
+    Object.defineProperty(Navigator.prototype, "standalone", { get: () => true });
+  });
+  await page.goto("/notifications");
+  await expect(row(page, THREAD_TITLE)).toBeVisible();
+  await swipe(page, row(page, THREAD_TITLE), 1, "back");
+  await expect(page).toHaveURL("/");
+  await page.waitForTimeout(SETTLE_MS);
+  expect(writes).toEqual([]);
+});
+
+test("each pending swipe keeps its Undo until its request is sent", async ({ page, github }) => {
   const writes = countWrites(github);
   await swipe(page, row(page, THREAD_TITLE), 1);
   await page.waitForTimeout(SECOND_SWIPE_DELAY_MS);
   await swipe(page, row(page, SECOND_TITLE), 1);
   const undo = page.getByRole("button", { name: enCommon.undo });
-  await expect(undo).toHaveCount(1);
+  await expect(undo).toHaveCount(2);
   await expect
     .poll(() => writes, { timeout: SETTLE_MS })
     .toEqual(["DELETE /notifications/threads/1"]);
+  await expect(undo).toHaveCount(1);
   await undo.click();
   await expect(row(page, SECOND_TITLE)).toBeVisible();
   await page.waitForTimeout(SETTLE_MS);
